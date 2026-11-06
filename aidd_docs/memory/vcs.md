@@ -13,6 +13,23 @@
 - Synthetic example: `docs(aidd): clarify memory loading and approval rules`.
 - No branch-naming standard is established. Create branches only when instructed.
 
+## Direct Git execution
+
+- Use the installed `git-commit` skill for Conventional Commits and logical grouping; execute Git operations as direct, explicit Git CLI commands.
+- Do not generate temporary Node.js or Python scripts to orchestrate Git. Do not wrap Git commands in `node -e`, heredocs, shell scripts or subprocess calls unless the owner explicitly requests it.
+- Run each command separately and transparently, in this order; staging and committing still require explicit approval:
+
+1. `git status`
+2. `git diff --check`
+3. `git diff`
+4. `git add -- <explicitly approved files>`
+5. `git diff --cached --check`
+6. `git diff --cached`
+7. `git commit -m "<conventional commit message>"`
+
+- Keep security checks proportional to the change and separate from Git operations. Never hide staging or commits inside a validation script.
+- Preserve sandbox restrictions and approval policy; request normal escalation when required, never work around it. No automatic push or deployment.
+
 ## Approval boundaries
 
 - Intentional staging, commits and pushes each require explicit user authorization covering that action. Permission to edit, validate or commit does not imply permission to push.
