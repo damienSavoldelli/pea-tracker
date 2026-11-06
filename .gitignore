@@ -70,6 +70,13 @@ web_modules/
 .env.*
 !.env.example
 
+# Local Wrangler secrets
+.dev.vars
+.dev.vars.*
+
+# Local documentation review archive
+pea-tracker-aidd-review.zip
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
@@ -147,3 +154,6 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Local Wrangler state
+.wrangler/
