@@ -1,8 +1,11 @@
 # pea-tracker
 AI-ready portfolio tracking architecture leveraging Cloudflare Workers, automated market data pipelines, REST APIs, and Model Context Protocol (MCP) for seamless integration with AI agents.
 
-## Local diagnostic proof of concept
+## Initial application features
 
+PEA Tracker is one evolving application in one repository and shared codebase.
+Health and MCP ping are its first features, not a disposable server or separate
+project. D1, portfolio management, collection and OAuth will extend this application.
 This increment exposes public diagnostics only. It has no database, portfolio data,
 market-data requests, secrets, administrative endpoints or authentication provider.
 Production security requirements remain in [the architecture baseline](aidd_docs/INSTALL.md).
@@ -42,8 +45,8 @@ The lockfile pins transitive packages. Vitest requires Node ^22.12, ^24 or >=26;
 Wrangler requires Node >=22. Use a supported LTS meeting both constraints.
 The pinned Wrangler release pulls Miniflare 5.20261104.0-beta transitively; the
 local runtime smoke test passed, but upgrades should repeat both SDK and workerd
-checks. `workers_dev` is disabled in configuration; a future approved public
-connection test must explicitly choose and configure its HTTPS exposure.
+checks. Public HTTPS exposure is prepared only for the named development environment;
+it becomes active only after a separately approved deployment.
 
 Use the official SDK's Web-standard transport, not its Node HTTP wrapper. Each
 request gets its own server and transport, no session identifier or persisted
@@ -69,6 +72,48 @@ Evaluate Workers OAuth Provider versus Auth0 for interoperability, security,
 maintenance and cost before selection. Complete private-data gates before introducing
 real financial information. Local tests do not establish Workers Free CPU performance
 or successful ChatGPT connectivity.
+
+## Cloudflare development and production environments
+
+One `wrangler.jsonc` defines both deployments of the same application. Shared source,
+entrypoint and compatibility settings stay at the top level; no parallel ping project
+or copied application is created. Prefer named environments over separate config files
+or ad hoc name overrides, which would make configuration drift easier.
+
+| Selection | Worker name | Public workers.dev endpoint |
+| --- | --- | --- |
+| Default local commands | pea-tracker-dev | Disabled by default |
+| `--env dev` | pea-tracker-dev | Prepared for an approved development deployment |
+| `--env production` | pea-tracker | Disabled pending production readiness/exposure decision |
+
+Explicit names avoid Wrangler's automatic environment-name suffix. The default name
+matches development, so it does not introduce a third intended deployment or implicitly
+target production. Local `npm run dev` and Docker remain local and unchanged.
+Use explicit `--env dev` or `--env production` for every future remote operation;
+do not use a bare deployment command.
+
+Local preparation commands only (no deployment or provisioning):
+
+```sh
+npm run check
+npm run build -- --env dev
+npm run build -- --env production
+```
+
+`build` always includes `--dry-run`. No deployment script or CI deployment is added.
+For a later explicitly approved development deployment, the target command will be
+`npm exec -- wrangler deploy --env dev`; it has not been run. Account/subdomain,
+permissions, public diagnostic exposure and applicable readiness checks must be
+confirmed first. Preview URLs are disabled. Production requires its own approval
+and exposure configuration; workers_dev=false alone is not a deployment prohibition.
+
+Future D1/KV bindings, non-secret variables and secrets must be configured explicitly
+per environment with distinct development/production resources; never share private
+production data with development. Do not add placeholder resource IDs that could
+trigger provisioning. Both environments currently have no resource bindings or secrets.
+Development naming does not relax private-data security gates. OAuth selection remains
+open, and the current diagnostic responses/service identity remain `pea-tracker`.
+See [Cloudflare environments and inheritance](https://developers.cloudflare.com/workers/wrangler/environments/).
 
 ## Optional Docker development
 

@@ -20,6 +20,9 @@ flowchart LR
 ## Key decisions
 
 - Modular application boundaries, one owner, no speculative tenancy or dashboard.
+- One evolving PEA Tracker application, one GitHub repository and shared codebase. REST health and MCP ping are its first features; extend them with D1, portfolio, collection and OAuth rather than creating a disposable server or duplicated project.
+- One Wrangler config defines named dev (pea-tracker-dev) and production (pea-tracker) deployments sharing the entrypoint. The default local name matches dev; remote operations require explicit environment selection. Development workers.dev exposure is prepared, production exposure and preview URLs remain disabled; configuration preparation does not authorize deployment.
+- Future bindings, variables and secrets are environment-specific, with separate development/production resources. No resources are provisioned or bound yet; private-data gates apply in every environment.
 - OAuth selection remains open between Workers OAuth Provider and Auth0 until ChatGPT interoperability, security, maintenance, CPU and cost are evaluated.
 - Synthetic MCP initialization/ping may precede D1, ledger, calculations, backups and collection infrastructure. It is not a production acceptance test.
 - Production security and applicable release gates are mandatory before introducing real financial data, regardless of environment name.

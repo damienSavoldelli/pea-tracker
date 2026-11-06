@@ -1,7 +1,18 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "pea-tracker",
+  "name": "pea-tracker-dev",
   "main": "src/index.ts",
   "compatibility_date": "2026-11-06",
-  "workers_dev": false
+  "workers_dev": false,
+  "preview_urls": false,
+  "env": {
+    "dev": {
+      "name": "pea-tracker-dev",
+      "workers_dev": true
+    },
+    "production": {
+      "name": "pea-tracker",
+      "workers_dev": false
+    }
+  }
 }

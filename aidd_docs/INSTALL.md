@@ -82,6 +82,20 @@ workflow artifacts for financial dumps. [GitHub billing](https://docs.github.com
 
 ## Architecture
 
+PEA Tracker is one evolving application in one GitHub repository and shared codebase.
+REST health and MCP ping are its first features; the same application will grow to
+include D1, portfolio management, market data and OAuth. The delivery stages below
+describe maturity and data-access gates, not separate projects or disposable servers.
+
+Use one Wrangler configuration with named `dev` and `production` environments,
+explicitly targeting `pea-tracker-dev` and `pea-tracker` respectively. They share
+`src/index.ts` and application modules; only deployment settings and future resource
+bindings differ. The default name matches development. Development workers.dev
+exposure is prepared; production exposure and preview URLs remain disabled. No cloud
+resources or deployment are authorized by this configuration. Future D1 resources,
+variables and secrets must be defined independently per environment. See the root
+README for local dry-run commands and deployment approval requirements.
+
 ```mermaid
 flowchart TD
     Owner[Owner / local administration] --> REST[Hono REST adapter]
@@ -342,12 +356,12 @@ following stages so connectivity can be proven before financial infrastructure e
 
 | Stage | Scope | Required before entering / completing |
 | --- | --- | --- |
-| Technical proof of concept | Synthetic, non-sensitive fixtures only; minimal MCP initialization and protocol ping connectivity | Bounded implementation authorization; protocol/transport correctness, isolated configuration, safe logs, no financial data or credentials; separate approval for any cloud resources or deployment |
+| Initial diagnostic features | Synthetic, non-sensitive fixtures only; REST health, MCP initialization and ping within the evolving application | Bounded implementation authorization; protocol/transport correctness, isolated configuration, safe logs, no financial data or credentials; separate approval for any cloud resources or deployment |
 | Authentication evaluation | Synthetic-data ChatGPT interoperability; compare Workers OAuth Provider and Auth0 | Verify security, owner restrictions, lifecycle, maintenance, CPU and full cost before selecting OAuth |
 | Private-data production | Actual holdings, transactions, quotations tied to the owner and financial outputs | All applicable security, financial correctness, persistence, backup/restore, monitoring, privacy and release gates below; explicit production approval |
 
-The initial MCP ping is a protocol connectivity test, not a portfolio feature and not
-an authentication acceptance test. It may proceed without D1, a portfolio ledger,
+The initial MCP ping is an application feature that validates protocol connectivity,
+not an authentication acceptance test. It may proceed without D1, a portfolio ledger,
 financial calculations, production backups or the scheduled data pipeline. Any public
 unauthenticated probe must be limited to a non-sensitive synthetic endpoint with no
 private-data access; it never authorizes exposing private REST/MCP operations.
