@@ -69,3 +69,74 @@ Evaluate Workers OAuth Provider versus Auth0 for interoperability, security,
 maintenance and cost before selection. Complete private-data gates before introducing
 real financial information. Local tests do not establish Workers Free CPU performance
 or successful ChatGPT connectivity.
+
+## Optional Docker development
+
+Production remains Cloudflare Workers and GitHub Actions. Docker is for local
+development/testing only; native macOS `npm run dev` remains unchanged. Use an
+existing Docker Engine and Compose installation; no Cloudflare login is required.
+
+```sh
+docker version
+docker compose version
+docker compose up --build --detach --wait
+docker compose logs --tail=50 worker
+curl http://127.0.0.1:8787/api/v1/health
+docker compose exec worker npm run check
+docker compose exec worker node scripts/smoke-mcp.mjs
+docker compose down
+```
+
+To test real MCP initialization, discovery and ping through the container's published
+host port, run `node scripts/smoke-mcp.mjs` on the host (requires the existing local
+`npm ci` installation). The `exec` variant above tests the container's own loopback.
+Both use the official MCP client and verify structured diagnostics, not custom JSON
+substitutes. Stop any native Wrangler process before starting Compose: both use 8787.
+
+The image pins `node:22.23.4-bookworm-slim`, compatible with the existing tooling,
+and installs the lockfile with `npm ci`. Debian/glibc avoids Alpine/musl differences
+for Wrangler/workerd native binaries. The image installs Debian `ca-certificates`,
+required for workerd startup even when the diagnostic Worker makes no external calls;
+TLS verification is not disabled. No platform override is forced: use native Linux
+ARM64 on Apple Silicon or AMD64 on Intel. This version tag is not an immutable
+image digest; Docker resolves it at build time. No host node_modules are copied.
+Sources: [official Node image](https://hub.docker.com/_/node),
+[Docker volume initialization](https://docs.docker.com/engine/storage/volumes/).
+
+Wrangler runs as the non-root `node` user with `--local --ip 0.0.0.0 --port 8787`;
+the host port is bound to `127.0.0.1`. Source, tests and smoke scripts are read-only
+bind mounts, allowing editor changes and Wrangler rebuilds without exposing the
+repository root. The named `worker_node_modules` volume is populated from the image
+on first use and separates Linux dependencies from macOS dependencies. Docker-managed
+volumes survive `docker compose down`.
+
+After changing package manifests/lockfile, TypeScript configuration or Wrangler
+configuration, rebuild and recreate the development volume:
+
+```sh
+docker compose down --volumes
+docker compose up --build --detach --wait
+```
+
+`--volumes` deletes this Compose project's disposable dependency volume; do not use
+it for future persistent application data. Ordinary source edits need no rebuild.
+If Docker Desktop file events fail to trigger reload, restart the Worker with
+`docker compose restart worker`; file watching must be checked on the actual host.
+
+The allowlisted `.dockerignore` excludes Git/assistant metadata, `.env*`, `.dev.vars*`,
+private archives, keys, SQL dumps, node_modules, dist, coverage and Wrangler state.
+Even safe `.env.example` files are excluded from images. Selective runtime mounts
+also exclude root secret files: `.dockerignore` alone does not protect bind mounts.
+Do not add secrets to source/test/script directories. No Docker socket, host home,
+Cloudflare credentials, env_file or remote bindings are mounted/configured. Wrangler
+telemetry is disabled. Builds download public images and npm dependencies; this is
+not an offline or network-isolated environment. Never pass Cloudflare credentials
+or enable remote mode for this diagnostic service.
+
+### Future Python collector
+
+Add a separately scoped Python image/service only when implementing the collector,
+with its own pinned dependencies, pytest command and isolated mounts. It could call
+the Worker over the Compose service network, without exposing another host port.
+Use synthetic fixtures first; financial data and authentication still require their
+production gates. No Python/yfinance service is active in this Compose environment.

@@ -5,6 +5,7 @@
 - `npm test` runs Vitest against the Hono app using Web-standard Request/Response and the official MCP client; it covers the complete SDK initialization/discovery/invocation path plus invalid requests.
 - `npm run typecheck` performs strict checks; `npm run build` checks Worker bundling. A local Wrangler smoke test complements Node-based tests; these do not prove deployed CPU budgets or ChatGPT connectivity.
 - Python/pytest and financial correctness tests are deferred until those components exist.
+- Optional container checks: `docker compose exec worker npm run check`; with Compose running, host `node scripts/smoke-mcp.mjs` verifies published-port REST and SDK initialization/list/call. The same script via `docker compose exec worker` checks container loopback. See the root README for setup and teardown.
 
 ## Validation boundaries
 

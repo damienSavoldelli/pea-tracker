@@ -24,7 +24,8 @@ flowchart LR
 - Synthetic MCP initialization/ping may precede D1, ledger, calculations, backups and collection infrastructure. It is not a production acceptance test.
 - Production security and applicable release gates are mandatory before introducing real financial data, regardless of environment name.
 - Exact decimal strings and arbitrary-precision arithmetic are required; preserve the precision/rounding contract in INSTALL.md. Never use binary floating point for monetary calculations.
-- After the initial MCP ping implementation and successful local tests, evaluate Docker Compose for reproducible local development/testing: one Node.js/TypeScript/Wrangler container for the Worker and MCP tests, and one Python container for the yfinance collector and pytest. This is an evaluation decision, not adoption or authorization to create Docker files; keep the current MCP implementation task unchanged.
+- Optional Docker Compose development wraps the existing diagnostic Worker in Node/TypeScript/Wrangler; it does not change the completed MCP increment. Source/test mounts are selective and read-only, Linux node_modules use a named volume, and only host loopback port 8787 is published. See the root README for lifecycle and validation commands.
+- A separate Python/yfinance/pytest container remains deferred until collector implementation; it is not part of active Compose services.
 - Docker is development/testing tooling only, never a production hosting requirement. Production remains Cloudflare Workers with GitHub Actions automation.
 
 ## Gotchas

@@ -13,3 +13,4 @@
 - `src/index.ts` composes Hono routes; `src/adapters/rest/health.ts` and `src/adapters/mcp/handler.ts` independently expose diagnostics from `src/diagnostics.ts`.
 - `tests/worker.test.ts` exercises the app with the official MCP client and raw HTTP requests. `package.json` defines checks and local development; `wrangler.jsonc` has no resource bindings.
 - No database migrations, collection pipeline, portfolio services or CI workflows exist. The larger source tree in INSTALL.md remains a proposal.
+- Root Dockerfile, compose.yaml and .dockerignore provide optional local development; scripts/smoke-mcp.mjs verifies REST and the real MCP protocol over loopback HTTP.
