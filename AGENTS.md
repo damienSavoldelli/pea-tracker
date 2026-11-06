@@ -46,6 +46,14 @@
 - Execute Git directly, following `aidd_docs/memory/vcs.md`; do not orchestrate Git through Node.js/Python, heredocs, shell scripts or subprocess wrappers unless explicitly requested. Keep security checks separate; no automatic push or deployment.
 - Keep all documentation and context free of actual holdings, PRU values, transactions, credentials, tokens and private portfolio data. Use clearly identified synthetic examples only.
 
+## Cloudflare Operations
+
+- Use official Wrangler commands wherever possible for authentication, configuration checks and deployments; use direct, readable CLI commands rather than temporary Node.js/Python scripts or heredocs for operational tasks.
+- Never directly read or parse Wrangler credential files. Never extract OAuth access tokens into custom Node.js, Python or shell scripts, or manually construct Authorization headers from locally stored credentials.
+- Do not use token-export commands to work around these restrictions. Let Wrangler manage authentication internally; never print or copy credentials into project files, logs or chat.
+- If Wrangler cannot provide required information, explain the limitation and propose an official Cloudflare dashboard or other approved official method. Do not work around missing permissions with credential extraction or request broader permissions automatically.
+- Preserve sandbox and approval requirements. Select the explicitly authorized environment for remote commands; stop for unexpected permissions, resources or paid-plan requirements. No production deployment or paid-service activation without explicit approval.
+
 ## Memory Management
 
 Project docs, memory, specs, and plans live in `aidd_docs/`.
