@@ -1,10 +1,11 @@
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
-import { handleMcp } from './adapters/mcp/handler';
+import { handleMcp, type ProtectedMcpDependencies } from './adapters/mcp/handler';
+import { authenticationFailure } from './adapters/auth/metadata';
 import { health } from './adapters/rest/health';
 import { instrumentRoutes, type InstrumentHttpDependencies } from './adapters/rest/instruments';
 
-export function createApp(dependencies: { instruments?: InstrumentHttpDependencies } = {}) {
+export function createApp(dependencies: { instruments?: InstrumentHttpDependencies; mcp?: ProtectedMcpDependencies } = {}) {
   const app = new Hono();
   app.use('*', async (context, next) => {
     await next();
@@ -16,7 +17,17 @@ export function createApp(dependencies: { instruments?: InstrumentHttpDependenci
     maxSize: 64 * 1024,
     onError: context => context.json({ error: 'Request body too large' }, 413),
   }));
-  app.all('/mcp', context => handleMcp(context.req.raw));
+  const protectedMcp = dependencies.mcp;
+  if (protectedMcp) {
+    app.get('/.well-known/oauth-protected-resource/mcp', context => context.json(protectedMcp.metadata));
+    if (protectedMcp.restMetadata) app.get('/.well-known/oauth-protected-resource/api/v1', context => context.json(protectedMcp.restMetadata!));
+    app.all('/mcp', async context => {
+      try {
+        const principal = await protectedMcp.authenticate(context.req.raw);
+        return await handleMcp(context.req.raw, { principal, service: protectedMcp.service, challenge: protectedMcp.challenge });
+      } catch (error) { return authenticationFailure(error, protectedMcp.challenge); }
+    });
+  } else app.all('/mcp', context => handleMcp(context.req.raw));
   if (dependencies.instruments?.service && typeof dependencies.instruments.authenticate === 'function') {
     app.route('/api/v1/instruments', instrumentRoutes(dependencies.instruments));
   }

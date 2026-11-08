@@ -94,6 +94,9 @@
           },
           "500": {
             "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
           }
         },
         "parameters": [
@@ -202,6 +205,9 @@
           },
           "500": {
             "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
           }
         },
         "parameters": [
@@ -301,6 +307,9 @@
           },
           "500": {
             "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
           }
         }
       },
@@ -380,6 +389,9 @@
           },
           "409": {
             "$ref": "#/components/responses/Conflict"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
           }
         },
         "parameters": [
@@ -405,6 +417,54 @@
           }
         }
       }
+    },
+    "/.well-known/oauth-protected-resource/mcp": {
+      "servers": [
+        {
+          "url": "/"
+        }
+      ],
+      "get": {
+        "operationId": "getMcpProtectedResource",
+        "summary": "Public discovery in explicit protected composition only; absent from default Worker",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Protected resource metadata without credentials or owner identity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthProtectedResource"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/.well-known/oauth-protected-resource/api/v1": {
+      "servers": [
+        {
+          "url": "/"
+        }
+      ],
+      "get": {
+        "operationId": "getRestProtectedResource",
+        "summary": "Public discovery in explicit protected composition only; absent from default Worker",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Protected resource metadata without credentials or owner identity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthProtectedResource"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -412,7 +472,7 @@
       "BearerAuth": {
         "type": "http",
         "scheme": "bearer",
-        "description": "Provider undecided. This scheme alone does not enforce owner, scopes, audience or capability. No private route is publicly mounted in this slice."
+        "description": "Explicit protected local composition validates RS256 access JWTs against pinned issuer/JWKS, route audience, exact owner/client and delegated scope ceilings. Default Worker remains diagnostic-only; live Auth0 integration is unverified."
       }
     },
     "schemas": {
@@ -728,6 +788,43 @@
             }
           }
         }
+      },
+      "OAuthProtectedResource": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "resource",
+          "authorization_servers",
+          "scopes_supported",
+          "bearer_methods_supported"
+        ],
+        "properties": {
+          "resource": {
+            "type": "string",
+            "format": "uri"
+          },
+          "authorization_servers": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 1,
+            "items": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "scopes_supported": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "bearer_methods_supported": {
+            "type": "array",
+            "items": {
+              "const": "header"
+            }
+          }
+        }
       }
     },
     "responses": {
@@ -876,7 +973,18 @@
             }
           }
         }
+      },
+      "AuthenticationUnavailable": {
+        "description": "Trusted authentication keys are temporarily unavailable; fail closed without accessing financial storage.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
       }
     }
-  }
+  },
+  "x-oauth-local-policy": "MCP requires mcp:read and portfolio:read on its audience; REST read/admin require portfolio:read/portfolio:admin on a separate audience. Discovery: /.well-known/oauth-protected-resource/mcp and /.well-known/oauth-protected-resource/api/v1. No authorization server or public financial routes are enabled."
 }

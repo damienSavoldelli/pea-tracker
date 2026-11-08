@@ -163,6 +163,27 @@ maintenance and cost before selection. Complete private-data gates before introd
 real financial information. Local tests do not establish Workers Free CPU performance
 or successful ChatGPT connectivity.
 
+## Local OAuth verification
+
+The explicit `createProtectedApp(verifier, instrumentService)` composition validates
+RS256 access JWTs with trusted issuer/JWKS, exact resource audience, owner/client
+allowlists and delegated scope ceilings. REST read/admin, MCP reads and collector
+policy are separate. Financial MCP offers only list/get instrument reads and calls
+the same services as REST. The default deployed entrypoint still uses `createApp()`
+without these dependencies, so public health/ping behavior remains unchanged.
+
+`npm run check` runs the original instrument/D1/diagnostic tests plus signed-token
+policy, JWT/JWKS, real loopback HTTP, MCP and native workerd tests. Fixtures generate
+synthetic keys in process, close their servers and load no real Auth0 credentials.
+The guarded Node HTTP fixture binds only 127.0.0.1; the test-only Worker manifest
+also binds loopback and has no remote bindings. Do not deploy or tunnel these fixtures.
+No dependencies were installed: the already locked jose 6.2.15 is now a direct pin.
+
+See [local OAuth evidence](aidd_docs/tasks/2026_11/2026_11_08_oauth-authentication/local-implementation.md)
+for policy, verification limits and remaining hosted-provider gates. This increment
+does not implement an authorization server, immediate JWT revocation, real collector
+ingestion or live ChatGPT/Claude OAuth linking.
+
 ## Cloudflare development and production environments
 
 One `wrangler.jsonc` defines both deployments of the same application. Shared source,

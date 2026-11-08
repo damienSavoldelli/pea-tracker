@@ -1,5 +1,5 @@
 ---
-status: pending
+status: done
 ---
 
 # Instruction: Implement isolated local token verification and protected routing
@@ -82,6 +82,13 @@ status: pending
    refresh and hosted-client behavior remains phase 3.
 
 ## Test acceptance criteria
+
+Local evidence: 233 tests across 17 suites and strict TypeScript pass on host and
+Docker, including all original instrument/D1/MCP/diagnostic cases. Sixty auth cases
+cover policy/JWT/JWKS, signed-token HTTP, official MCP SDK and actual native workerd;
+two added default-route regressions prove metadata remains unmounted. OpenAPI
+discovery/503 responses validate. Both diagnostic Worker dry-run environments pass
+without bindings. See [local-implementation.md](local-implementation.md) for limits.
 
 | Task | Acceptance criteria |
 | --- | --- |

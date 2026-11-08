@@ -1,5 +1,5 @@
 ---
-status: pending
+status: done
 ---
 
 # Instruction: Freeze authorization policy and protect the diagnostic baseline
@@ -52,6 +52,13 @@ status: pending
    hosted-client test is claimed from a principal-only fixture.
 
 ## Test acceptance criteria
+
+Local evidence: owner authorized phases 1/2. Existing locked jose 6.2.15 was reused
+and promoted to a direct pin without installation. Eight policy cases and retained
+service/default-app tests prove least privilege, stable identity and no unauthorized
+repository mutation. Hosted owner assurance, actual provider entitlements and
+private-data residual-window acceptance remain phase-3/release gates. No real
+identity, dependency download, branch or Git write was introduced.
 
 | Task | Acceptance criteria |
 | --- | --- |

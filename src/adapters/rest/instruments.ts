@@ -6,13 +6,14 @@ import type { InstrumentService } from '../../application/instruments';
 export interface InstrumentHttpDependencies {
   service: InstrumentService;
   authenticate: (request: Request) => Principal | null | Promise<Principal | null>;
+  challenge?: (status: 401 | 403, request: Request) => string;
 }
 
 const titles: Record<ErrorStatus, string> = {
   400: 'Bad Request', 401: 'Unauthorized', 403: 'Forbidden', 404: 'Not Found',
   405: 'Method Not Allowed', 406: 'Not Acceptable', 409: 'Conflict', 412: 'Precondition Failed',
   413: 'Content Too Large', 415: 'Unsupported Media Type', 422: 'Unprocessable Content',
-  428: 'Precondition Required', 500: 'Internal Server Error',
+  428: 'Precondition Required', 429: 'Too Many Requests', 500: 'Internal Server Error', 503: 'Service Unavailable',
 };
 
 function acceptsJson(value: string | null) {
@@ -121,6 +122,7 @@ export function instrumentRoutes(dependencies: InstrumentHttpDependencies) {
     } catch (error) {
       const failure = error instanceof ApplicationError ? error : new ApplicationError(500, 'internal_error');
       if (failure.status === 401) headers.set('WWW-Authenticate', 'Bearer');
+      if ((failure.status === 401 || failure.status === 403) && dependencies.challenge) headers.set('WWW-Authenticate', dependencies.challenge(failure.status, request));
       if (failure.status === 405) headers.set('Allow', allow);
       headers.set('Content-Type', 'application/problem+json');
       const body: { type: string; title: string; status: number; code: string; request_id: string; field_paths?: string[] } = {

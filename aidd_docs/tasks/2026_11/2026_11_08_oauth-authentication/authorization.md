@@ -1,7 +1,18 @@
 # Proposed authorization contract
 
-Status: pending owner approval. Scope names preserve the existing OpenAPI vocabulary.
-This contract describes future enforcement; it does not expose any route today.
+Status: phases 1/2 authorized and implemented for isolated synthetic local use.
+Scope names preserve the existing OpenAPI vocabulary. Hosted provider/identity
+assurance and private-data release remain pending. Default public routes are unchanged.
+
+Implementation uses pinned existing jose 6.2.15 with RS256, explicit azp (or configured
+client_id), JWT/at+jwt headers, five-minute maximum issued lifetime and 30-second
+tolerance. It deliberately accepts only a single exact audience, including a
+single-element array; additional provider co-audiences require a reviewed token
+profile rather than automatic acceptance. Native issuer/client compatibility is
+still a phase-3 gate. JWKS caches for at most five minutes, with 30-second default
+unknown-key/failure cooldown and two-second default bounded fetch/body timeout.
+Concurrent cold JWKS fetches fail closed with 503 rather than sharing cross-request
+network I/O in workerd; no high-load availability guarantee is claimed.
 
 ## Resources and clients
 

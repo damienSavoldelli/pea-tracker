@@ -1,6 +1,6 @@
 ---
 objective: "Validate a single-owner OAuth authorization boundary for shared REST/MCP services using synthetic data, without changing the connected diagnostic Worker."
-status: pending
+status: in-progress
 ---
 
 # Plan: OAuth authentication and authorization
@@ -16,6 +16,11 @@ selection. The completed documentation research does not establish a working OAu
 connection. All phases require implementation approval; phase 3 additionally needs
 specific remote-setting/resource/deployment approval. No dependency installation,
 cloud changes, endpoint change, real data or Git writes are authorized now.
+
+Subsequent owner instruction authorizes phases 1 and 2 implementation with synthetic
+keys/identities and local tests only. See [local implementation evidence](local-implementation.md).
+Phases 3 and 4 remain pending; no hosted OAuth connection or private-data release is
+claimed. No branch, staging, commit, push or remote operation is authorized.
 
 ## Phases
 
