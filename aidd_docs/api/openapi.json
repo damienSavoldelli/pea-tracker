@@ -1,0 +1,882 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "PEA Tracker REST API",
+    "version": "0.1.0",
+    "description": "Financial Instruments REST contract. Default Worker exposes health and MCP ping only. Instruments are implemented for isolated synthetic apps and the explicit loopback-only HTTP harness; no public instrument exposure or selected OAuth provider."
+  },
+  "servers": [
+    {
+      "url": "/api/v1"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Diagnostics"
+    },
+    {
+      "name": "Instruments"
+    }
+  ],
+  "x-contract-status": "implemented-synthetic-local-only",
+  "x-auth-policy": "Private endpoints require approved authentication, verified owner/API audience and operation-specific permissions before any public exposure. Default app has diagnostics only; synthetic principals are injected in tests, never selected by HTTP headers.",
+  "x-first-adapter": "In-memory per isolated application instance only. No durable idempotency, D1 or recovery evidence.",
+  "x-http-policy": "Instrument responses are no-store/nosniff without permissive CORS. Authenticate/authorize before repository access. Mutation body limit 16 KiB. Unknown/repeated query parameters rejected. Undeclared methods on mounted instrument routes return authenticated 405 with Allow; HEAD is explicitly rejected rather than inherited from GET. Errors use application/problem+json; safe request IDs only.",
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "getHealth",
+        "tags": [
+          "Diagnostics"
+        ],
+        "x-status": "existing",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Existing public diagnostic; unchanged.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/instruments": {
+      "get": {
+        "operationId": "listInstruments",
+        "summary": "List synthetic catalog records",
+        "tags": [
+          "Instruments"
+        ],
+        "x-status": "implemented-synthetic-local-only",
+        "x-required-capability": "instruments:read",
+        "x-required-scopes": [
+          "portfolio:read"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Catalog page in ID ascending order; no snapshot guarantee across writes.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstrumentPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "406": {
+            "$ref": "#/components/responses/NotAcceptable"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            },
+            "description": "Single base-10 integer value; unknown and repeated query parameters rejected."
+          },
+          {
+            "name": "active",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Only literal true/false accepted; omitted means all records."
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            },
+            "description": "Opaque versioned base64url cursor binding last ID and active filter; invalid or mismatched cursor returns 400."
+          }
+        ]
+      },
+      "post": {
+        "operationId": "createInstrument",
+        "summary": "Create a synthetic catalog record",
+        "tags": [
+          "Instruments"
+        ],
+        "x-status": "implemented-synthetic-local-only",
+        "x-required-capability": "instruments:admin",
+        "x-required-scopes": [
+          "portfolio:admin"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created, or exact replay of original create outcome.",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^\"[1-9][0-9]*\"$"
+                },
+                "description": "Strong version ETag."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store"
+                }
+              },
+              "Location": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^/api/v1/instruments/[0-9a-f-]{36}$"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Instrument"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "406": {
+            "$ref": "#/components/responses/NotAcceptable"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/ContentTooLarge"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableContent"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            },
+            "description": "Same subject/operation/key and canonical input replays original 201; changed input returns 409. Outcomes persist only for app-instance lifetime in the first adapter."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInstrument"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/instruments/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "getInstrument",
+        "summary": "Get a catalog record by opaque ID",
+        "tags": [
+          "Instruments"
+        ],
+        "x-status": "implemented-synthetic-local-only",
+        "x-required-capability": "instruments:read",
+        "x-required-scopes": [
+          "portfolio:read"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current instrument.",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^\"[1-9][0-9]*\"$"
+                },
+                "description": "Strong version ETag."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Instrument"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "406": {
+            "$ref": "#/components/responses/NotAcceptable"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateInstrument",
+        "summary": "Update name or active state with a version precondition",
+        "tags": [
+          "Instruments"
+        ],
+        "x-status": "implemented-synthetic-local-only",
+        "x-required-capability": "instruments:admin",
+        "x-required-scopes": [
+          "portfolio:admin"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current record after one successful version increment; stale retries return 412.",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^\"[1-9][0-9]*\"$"
+                },
+                "description": "Strong version ETag."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Instrument"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "406": {
+            "$ref": "#/components/responses/NotAcceptable"
+          },
+          "412": {
+            "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "413": {
+            "$ref": "#/components/responses/ContentTooLarge"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableContent"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        },
+        "parameters": [
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\"[1-9][0-9]*\"$"
+            },
+            "description": "Exactly one strong version ETag; missing 428, malformed/weak/wildcard 400, stale 412."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateInstrument"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Provider undecided. This scheme alone does not enforce owner, scopes, audience or capability. No private route is publicly mounted in this slice."
+      }
+    },
+    "schemas": {
+      "Health": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "service",
+          "version"
+        ],
+        "properties": {
+          "status": {
+            "const": "ok"
+          },
+          "service": {
+            "const": "pea-tracker"
+          },
+          "version": {
+            "const": "0.1.0"
+          }
+        }
+      },
+      "CreateInstrument": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "kind",
+          "quote_currency",
+          "price_unit"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160,
+            "pattern": "^(?!.*[\\u0000-\\u001F\\u007F-\\u009F])\\S(?:.*\\S)?$",
+            "description": "Unicode code-point length; no edge whitespace or control characters."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "stock",
+              "etf"
+            ]
+          },
+          "isin": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Z]{2}[A-Z0-9]{9}[0-9]$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Shape and modulus-10 checksum required. Null allowed; non-null ISIN unique even when inactive. Allocation is not verified.",
+            "x-semantic-validation": "ISIN modulus-10 checksum"
+          },
+          "quote_currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$",
+            "description": "Uppercase code syntax only; no registry, coverage or FX assertion."
+          },
+          "price_unit": {
+            "type": "string",
+            "enum": [
+              "currency_unit",
+              "hundredth_currency_unit"
+            ],
+            "description": "Quotation unit metadata; no conversion calculation in this slice."
+          },
+          "exchange_mic": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Z0-9]{4}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "provider_symbol": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[A-Za-z0-9.^=:_-]+$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "active": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "UpdateInstrument": {
+        "type": "object",
+        "additionalProperties": false,
+        "minProperties": 1,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160,
+            "pattern": "^(?!.*[\\u0000-\\u001F\\u007F-\\u009F])\\S(?:.*\\S)?$",
+            "description": "Unicode code-point length; no edge whitespace or control characters."
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Instrument": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "isin",
+          "quote_currency",
+          "price_unit",
+          "exchange_mic",
+          "provider_symbol",
+          "active",
+          "version",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160,
+            "pattern": "^(?!.*[\\u0000-\\u001F\\u007F-\\u009F])\\S(?:.*\\S)?$",
+            "description": "Unicode code-point length; no edge whitespace or control characters."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "stock",
+              "etf"
+            ]
+          },
+          "isin": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Z]{2}[A-Z0-9]{9}[0-9]$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Shape and modulus-10 checksum required. Null allowed; non-null ISIN unique even when inactive. Allocation is not verified.",
+            "x-semantic-validation": "ISIN modulus-10 checksum"
+          },
+          "quote_currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$",
+            "description": "Uppercase code syntax only; no registry, coverage or FX assertion."
+          },
+          "price_unit": {
+            "type": "string",
+            "enum": [
+              "currency_unit",
+              "hundredth_currency_unit"
+            ],
+            "description": "Quotation unit metadata; no conversion calculation in this slice."
+          },
+          "exchange_mic": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Z0-9]{4}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "provider_symbol": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[A-Za-z0-9.^=:_-]+$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "active": {
+            "type": "boolean",
+            "default": true
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          }
+        }
+      },
+      "InstrumentPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "page"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/Instrument"
+            }
+          },
+          "page": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "next_cursor"
+            ],
+            "properties": {
+              "next_cursor": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "Problem": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "title",
+          "status",
+          "code",
+          "request_id"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "status": {
+            "type": "integer",
+            "minimum": 400,
+            "maximum": 599
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "maxLength": 64
+          },
+          "request_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "field_paths": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "BadRequest; safe code/request ID only, no raw values or exception detail.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Unauthorized; safe code/request ID only, no raw values or exception detail.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        },
+        "headers": {
+          "WWW-Authenticate": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Bearer challenge; provider-specific metadata follows auth selection."
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Forbidden; safe code/request ID only, no raw values or exception detail.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "NotFound; safe code/request ID only, no raw values or exception detail.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "MethodNotAllowed": {
+        "description": "MethodNotAllowed; safe code/request ID only, no raw values or exception detail.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        },
+        "headers": {
+          "Allow": {
+            "schema": {
+              "type": "string"
+            },
+            "description": "Supported methods for the matched route."
+          }
+        }
+      },
+      "NotAcceptable": {
+        "description": "NotAcceptable; safe code/request ID only, no raw values or exception detail.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "Conflict; safe code/request ID only, no raw values or exception detail.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "PreconditionFailed": {
+        "description": "PreconditionFailed; safe code/request ID only, no raw values or exception detail.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "ContentTooLarge": {
+        "description": "ContentTooLarge; safe code/request ID only, no raw values or exception detail.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "UnsupportedMediaType": {
+        "description": "UnsupportedMediaType; safe code/request ID only, no raw values or exception detail.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "UnprocessableContent": {
+        "description": "UnprocessableContent; safe code/request ID only, no raw values or exception detail.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "PreconditionRequired": {
+        "description": "PreconditionRequired; safe code/request ID only, no raw values or exception detail.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "InternalError": {
+        "description": "InternalError; safe code/request ID only, no raw values or exception detail.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -8,6 +8,15 @@
 !src/**
 !tests/
 !tests/**
+!aidd_docs/
+aidd_docs/**
+!aidd_docs/api/
+aidd_docs/api/**
+!aidd_docs/api/openapi.json
+!aidd_docs/api/schemas/
+aidd_docs/api/schemas/**
+!aidd_docs/api/schemas/openapi-3.1-2025-09-15.json
+!aidd_docs/api/schemas/LICENSE
 !scripts/
 !scripts/smoke-mcp.mjs
 **/.git

@@ -2,7 +2,7 @@
 
 Architecture decision and future installation guide.
 
-Status: **approved architecture baseline; architecture foundation validated; local synthetic diagnostic increment implemented**.
+Status: **approved API-first architecture and financial backend product baseline; diagnostic REST/MCP and synthetic local instrument slice implemented**.
 Decision date: 2026-11-06. Source checks: 2026-11-06.
 This document records discovery blocks 1–3 and the selected infrastructure direction.
 The owner approved this baseline with staged proof-of-concept and production gates.
@@ -11,8 +11,9 @@ are future work, not authorization to install, provision, spend or deploy.
 
 ## Vision
 
-PEA Tracker maintains a private investment portfolio, collects market quotations,
-and exposes structured financial information to AI assistants through read-only MCP.
+PEA Tracker is an API-first financial application that maintains a private investment
+portfolio, collects market quotations, and exposes reusable REST capabilities with
+read-only MCP as its AI-facing adapter.
 It replaces manual screenshots with reproducible, timestamped portfolio analysis.
 
 V1 serves one owner with approximately 20 stocks and ETFs held in a French PEA at
@@ -47,6 +48,7 @@ order execution, native mobile application or speculative multi-tenancy.
 | Decision | Choice | Why / trade-off |
 | --- | --- | --- |
 | Architecture | Modular serverless backend with one shared business layer | Small workload; avoids service proliferation while retaining adapters |
+| API contract | Versioned REST under `/api/v1`, documented with OpenAPI | Reusable financial capabilities independent of AI client or transport |
 | Front-end | No portfolio UI in V1 | API-first scope; OAuth login/consent may need minimal browser pages |
 | Back-end | Cloudflare Workers, Hono, strict TypeScript | Familiar JavaScript ecosystem, managed runtime; CPU budget must be measured |
 | Database | Cloudflare D1 with prepared SQL and versioned migrations | Relational data at small scale; SQLite and platform constraints accepted conditionally |
@@ -86,6 +88,55 @@ PEA Tracker is one evolving application in one GitHub repository and shared code
 REST health and MCP ping are its first features; the same application will grow to
 include D1, portfolio management, market data and OAuth. The delivery stages below
 describe maturity and data-access gates, not separate projects or disposable servers.
+
+### Confirmed API-first decision — 2026-11-06
+
+The owner confirmed the following architecture; this approval covers documentation,
+not implementation or release:
+
+- Define reusable REST contracts under `/api/v1` with OpenAPI. Keep the Streamable
+  HTTP MCP endpoint at `/mcp`; MCP is an AI-facing adapter of this application.
+- Implement financial rules in shared TypeScript application/domain services.
+  REST and MCP call these services directly within the Worker; neither adapter owns
+  financial calculations, duplicates repository logic, nor calls the other over HTTP.
+- Application services depend on repository interfaces; D1 access belongs in its
+  adapter. Authorization is checked at adapter and application-service boundaries.
+- Preserve separate policies for MCP reads, REST administration and quotation
+  ingestion. A common service implementation does not imply a common permission grant.
+- Keep one Worker codebase and the existing named development/production environments.
+  Do not introduce a second MCP product, speculative tenancy or a required dashboard.
+- Keep capability contracts independent of Hono/MCP objects. A future extracted MCP
+  service could use an HTTP client for the versioned REST API, with explicit credential
+  and audience handling; no internal network hop or client abstraction is needed now.
+
+Consequences: REST contracts become a reviewable product boundary; MCP can offer
+task-oriented read tools over the same capabilities. API evolution and contract tests
+add maintenance, but avoid divergent financial results and enable future clients.
+
+The owner approved the [financial backend PRD](tasks/2026_11/2026_11_08-financial-backend-prd.md)
+on 2026-11-08. Cost basis/PRU, unrealized gains and total portfolio performance are
+distinct concepts. Weighted-average cost basis is preferred; fee treatment and other
+accounting conventions still require explicit approval before dependent calculations.
+Dated opening state must not fabricate prior transactions. Incomplete source history
+means unavailable historical performance, not an inferred or zero return.
+
+Deliver incremental vertical slices: the [Financial Instruments plan](tasks/2026_11/2026_11_08_financial-instruments/plan.md)
+and [OpenAPI contract](api/openapi.json) implement the approved synthetic catalog slice. Instrument
+metadata does not depend on advanced performance, dividend or corporate-action rules.
+In-memory storage supports isolated synthetic acceptance and a separate loopback-only
+HTTP harness; D1 remains the persistence direction, not a provisioned service. The
+owner authorized this slice's implementation/tests and real HTTP refinement only.
+The default Worker retains only health/ping until an approved auth integration permits
+private routes; OAuth choice remains open. No fixture auth or memory repository is
+instantiated by the deployment entrypoint. No real data or cloud change is authorized.
+
+The earlier [financial backend design proposal](tasks/2026_11/2026_11_06_financial-backend/design.md)
+provides the broader resource/MCP/auth roadmap. Its technical proposals remain under
+review where not refined by the approved PRD and implemented first slice.
+
+The connected MCP diagnostic returned `ok`, service `pea-tracker`, version `0.1.0`
+at `2026-11-06T22:25:54.342Z` during this conversation. This updates the earlier
+local-only connectivity evidence, not OAuth, financial correctness or runtime CPU gates.
 
 Use one Wrangler configuration with named `dev` and `production` environments,
 explicitly targeting `pea-tracker-dev` and `pea-tracker` respectively. They share
@@ -365,9 +416,12 @@ not an authentication acceptance test. It may proceed without D1, a portfolio le
 financial calculations, production backups or the scheduled data pipeline. Any public
 unauthenticated probe must be limited to a non-sensitive synthetic endpoint with no
 private-data access; it never authorizes exposing private REST/MCP operations.
-The owner subsequently authorized local dependency installation, implementation and
-tests for REST health and the synthetic MCP ping tool. Cloud resources, deployments,
-secrets, commits, pushes and publication remain outside that authorization.
+The owner subsequently authorized local diagnostic development. The connected MCP
+ping was observed responding in this conversation; this is diagnostic connectivity
+evidence only. The owner subsequently approved the Financial Instruments REST slice
+with synthetic memory storage and an explicit loopback HTTP harness. Other financial
+features, new dependencies, D1/cloud resources, deployment, plugin changes, real data,
+staging, commits and pushes remain outside this authorization.
 
 Production requirements become mandatory before the first real financial data is
 introduced, even into a pilot or non-production environment. Do not treat environment
@@ -459,8 +513,9 @@ Future checklist, intentionally not executed:
 
 ## Audit summary
 
-Documentation-based parallel candidate audits preceded selection; no deployed tests
-or benchmark evidence exists. This design incorporates their unresolved findings.
+Documentation-based parallel candidate audits preceded selection. Connected diagnostic
+ping evidence now exists; deployed financial, authentication and CPU benchmark evidence
+remains absent. This design incorporates their unresolved findings.
 
 | Candidate | Verdict | Notes |
 | --- | --- | --- |

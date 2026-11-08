@@ -10,6 +10,8 @@ services:
       - ./src:/workspace/src:ro
       - ./tests:/workspace/tests:ro
       - ./scripts:/workspace/scripts:ro
+      - ./aidd_docs/api/openapi.json:/workspace/aidd_docs/api/openapi.json:ro
+      - ./aidd_docs/api/schemas/openapi-3.1-2025-09-15.json:/workspace/aidd_docs/api/schemas/openapi-3.1-2025-09-15.json:ro
       - worker_node_modules:/workspace/node_modules
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8787/api/v1/health').then(response => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"]

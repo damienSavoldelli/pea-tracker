@@ -6,9 +6,62 @@ AI-ready portfolio tracking architecture leveraging Cloudflare Workers, automate
 PEA Tracker is one evolving application in one repository and shared codebase.
 Health and MCP ping are its first features, not a disposable server or separate
 project. D1, portfolio management, collection and OAuth will extend this application.
-This increment exposes public diagnostics only. It has no database, portfolio data,
-market-data requests, secrets, administrative endpoints or authentication provider.
+The default Worker exposes public diagnostics only. A synthetic instrument catalog
+is implemented through shared services, REST adapters and per-app memory storage,
+available through isolated tests and a separate loopback HTTP harness. There is no
+D1 database, portfolio ledger, quotation retrieval, real data or OAuth provider.
 Production security requirements remain in [the architecture baseline](aidd_docs/INSTALL.md).
+
+## Synthetic Financial Instruments REST API
+
+The [OpenAPI contract](aidd_docs/api/openapi.json) defines create/list/get/update
+operations under `/api/v1/instruments`. See the [slice contract](aidd_docs/tasks/2026_11/2026_11_08_financial-instruments/contract.md)
+for metadata validation, pagination, idempotency, ETags and errors. Identity/quote
+metadata is immutable in this slice; PATCH changes only name/active state.
+
+Start the explicit local HTTP harness separately from Wrangler:
+
+```sh
+node scripts/dev-instruments.mjs --principal admin --port 8788
+```
+
+It binds only `127.0.0.1`, starts empty, fixes its synthetic principal for the
+server's lifetime and rejects foreign Host/Origin/cross-site requests. Default
+principal is `reader`; available fixtures are `reader`, `admin`, `collector` and
+`anonymous`. There are no passwords/tokens, and Authorization/X-Role headers cannot
+change the fixture. Any local process can use the selected role: this is synthetic
+test tooling, not production authentication. Do not tunnel, proxy or publish it.
+Use only synthetic records. Ctrl-C stops it, drops memory and removes its generated
+bundle from its own `.wrangler/instruments-local-*` directory.
+
+In another terminal, create and list a clearly synthetic record:
+
+```sh
+curl http://127.0.0.1:8788/api/v1/instruments \
+  -H 'Content-Type: application/json' \
+  -H 'Idempotency-Key: synthetic-example-a' \
+  --data '{"name":"Synthetic ETF A","kind":"etf","quote_currency":"EUR","price_unit":"currency_unit"}'
+curl 'http://127.0.0.1:8788/api/v1/instruments?limit=10'
+```
+
+POST returns Location and ETag headers. Item GET uses that Location; PATCH requires
+the current `If-Match` ETag and accepts name/active only. Same-key/default-equivalent
+POST retries return the original 201 result, even after later updates. A stale PATCH
+returns 412. All storage and replay guarantees end when the app instance stops.
+
+`npm run check` includes unit, repository, in-process HTTP, real loopback HTTP,
+OpenAPI and diagnostic regression tests. It must be permitted to bind temporary
+loopback ports. Tests close every server. OpenAPI checks use an offline official
+schema snapshot with installed Ajv/ajv-formats; the [validation notes](aidd_docs/api/schemas/README.md)
+document the narrow Ajv workaround and format limits. The launcher uses installed
+esbuild. These tools currently come from the locked transitive dependency graph;
+no packages were installed or added for this slice.
+
+`src/index.ts`, `npm run dev`, Docker's Worker and both deployment environments
+remain diagnostic-only: instrument requests return 404 and MCP lists only ping.
+Neither fixture authentication nor a memory repository is wired into that entrypoint.
+Real OAuth, persistent storage, recovery, abuse controls and private-data release
+gates remain open. Node HTTP tests/dry-run bundles do not establish Workers CPU limits.
 
 Use Node.js 22.12 or newer supported by the pinned tooling:
 
@@ -167,6 +220,10 @@ docker compose up --build --detach --wait
 it for future persistent application data. Ordinary source edits need no rebuild.
 If Docker Desktop file events fail to trigger reload, restart the Worker with
 `docker compose restart worker`; file watching must be checked on the actual host.
+
+Contract tests receive only the two allowlisted synthetic OpenAPI/schema JSON files
+through image copies and read-only Compose file mounts; other AIDD docs stay outside
+the image/runtime mounts. The local instrument harness is not started by Compose.
 
 The allowlisted `.dockerignore` excludes Git/assistant metadata, `.env*`, `.dev.vars*`,
 private archives, keys, SQL dumps, node_modules, dist, coverage and Wrangler state.
