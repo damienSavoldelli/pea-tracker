@@ -53,6 +53,12 @@ be demonstrated before selecting it for private financial access?
 
 ## Follow-up
 
+Phases 1/2 now implement local JWT verification; phase-3 local preparation adds a
+dedicated fail-closed synthetic composition and configuration/discovery checks.
+See [interop evidence](../../tasks/2026_11/2026_11_08_oauth-authentication/interop-evidence.md).
+No actual tenant entitlement, Auth0-issued token or hosted client result is available;
+the final provider-selection outcome remains inconclusive.
+
 Review the pending implementation plan. Approval of documentation does not authorize
 tenant changes, dependencies, provisioning, deployment or changing the connected MCP.
 Resume the spike with actual approved PoC evidence before making a final selection.

@@ -1,0 +1,11 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "pea-tracker-oauth-poc",
+  "main": "../../src/entrypoints/oauth-poc.ts",
+  "compatibility_date": "2026-11-08",
+  "workers_dev": false,
+  "preview_urls": false,
+  "dev": { "ip": "127.0.0.1", "port": 8790 },
+  "vars": { "OAUTH_POC_CONFIG": "{}" },
+  "observability": { "enabled": false }
+}

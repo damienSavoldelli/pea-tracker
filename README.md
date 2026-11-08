@@ -184,6 +184,11 @@ for policy, verification limits and remaining hosted-provider gates. This increm
 does not implement an authorization server, immediate JWT revocation, real collector
 ingestion or live ChatGPT/Claude OAuth linking.
 
+The separate `src/entrypoints/oauth-poc.ts` prepares genuine Auth0 verification over
+synthetic Memory data. Its closed Wrangler template is not a deployment approval;
+see [phase-3 setup and evidence](aidd_docs/tasks/2026_11/2026_11_08_oauth-authentication/interop-evidence.md)
+for required tenant settings, separate-host approval and hosted-client test gates.
+
 ## Cloudflare development and production environments
 
 One `wrangler.jsonc` defines both deployments of the same application. Shared source,

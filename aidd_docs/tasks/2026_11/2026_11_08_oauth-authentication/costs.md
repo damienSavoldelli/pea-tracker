@@ -4,6 +4,11 @@ Status: dated estimate, not a quote or authorization to spend. Research reused f
 the completed official-source investigations dated 2026-11-08. No tenant, bill or
 cloud account settings were accessed. USD catalogue prices are not euro/tax totals.
 
+Phase-3 preparation: no tenant or entitlement evidence yet; no resources or charges
+introduced. The closed PoC template has no D1/KV binding. Public hosting remains
+blocked on approval of actual Free entitlements, abuse controls and a traffic budget;
+the estimates below have not become observed costs. See [interop-evidence.md](interop-evidence.md).
+
 ## Expected usage
 
 INSTALL's baseline is one owner, 20–100 REST/MCP requests/day, roughly 18 quotation

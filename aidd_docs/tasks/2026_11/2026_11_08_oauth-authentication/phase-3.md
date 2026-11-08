@@ -1,8 +1,16 @@
 ---
-status: pending
+status: blocked
 ---
 
 # Instruction: Prove actual provider and hosted-client interoperability
+
+Local preparation authorized by the owner: dedicated fail-closed composition,
+operator configuration/discovery checks and synthetic tests are implemented.
+Remote configuration, hosting and actual client tests remain gated. See
+[interop-evidence.md](interop-evidence.md) for the approval package and execution sheet.
+Local checks pass; blocked on owner-selected tenant/host, manual setup and specific
+remote-operation approval. No remote action or hosted result has been observed.
+Do not mark this phase done until actual hosted acceptance criteria pass.
 
 ## Architecture projection
 

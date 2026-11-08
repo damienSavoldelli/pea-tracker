@@ -1,6 +1,6 @@
 ---
 objective: "Validate a single-owner OAuth authorization boundary for shared REST/MCP services using synthetic data, without changing the connected diagnostic Worker."
-status: in-progress
+status: blocked
 ---
 
 # Plan: OAuth authentication and authorization
@@ -21,6 +21,12 @@ Subsequent owner instruction authorizes phases 1 and 2 implementation with synth
 keys/identities and local tests only. See [local implementation evidence](local-implementation.md).
 Phases 3 and 4 remain pending; no hosted OAuth connection or private-data release is
 claimed. No branch, staging, commit, push or remote operation is authorized.
+
+Subsequent owner instruction authorizes phase-3 local preparation/integration only;
+remote actions still need separate explicit approval. Phase 3 local preparation
+passes; hosted execution is blocked on exact setup and owner approval;
+see [interop evidence](interop-evidence.md). Phase 4 remains pending. No hosted
+interoperability result or cloud operation is implied by this authorization.
 
 ## Phases
 
