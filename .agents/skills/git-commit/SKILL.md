@@ -10,6 +10,12 @@ allowed-tools: shell(git:*)
 
 Make Git commits that follow the [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/) specification. Get the type, the scope, and the summary from the diff.
 
+Reviewing changes, editing this skill, implementing code or requesting a commit
+message does not authorize staging or committing. Create a local commit only when
+the user explicitly requests it, within the authorized change scope. An explicit
+commit request covers staging its relevant files; do not ask again unless scope or
+ownership is ambiguous. Preserve repository approval and sandbox requirements.
+
 ## Message Format
 
 ```text
@@ -60,19 +66,42 @@ BREAKING CHANGE: Clients must use the v2 endpoints.
 
 Find the commit rules before you write a message:
 
+- `AGENTS.md` and `aidd_docs/memory/vcs.md` when present.
 - A commitlint configuration, for example `commitlint.config.js` or `.commitlintrc.json`.
 - `CONTRIBUTING.md`.
 - The recent messages: `git log --oneline -10`.
 
 If a repository rule is different from this skill, use the repository rule.
+Reuse unchanged instructions already read in the session; load only task-relevant
+validation guidance, not the entire memory bank.
 
 ### 2. Examine the changes
 
 ```bash
-git status --porcelain
+git status --porcelain=v1 --untracked-files=all
+git diff --check
 git diff --staged
 git diff
+git ls-files --others --exclude-standard
 ```
+
+Review the complete staged and unstaged diffs, plus the contents of candidate
+untracked files before staging: `git diff` does not show untracked contents. A
+statistic or filename list is not a content review. Inspect binary/symlink changes
+appropriately and identify unrelated modifications without discarding them.
+
+Check candidate paths and contents for secrets, credentials, private keys/tokens,
+real financial data, local environment files (`.env*`, `.dev.vars*`), Wrangler state
+(`.wrangler/`), SQLite databases/WAL files, logs, dumps and unintended build output
+(`dist/`, coverage, archives). Never read local Wrangler credential files for this
+check or print matched secret values. Ignored files are not evidence of a safe
+candidate. Intentional source migrations and generated declarations may be included
+after verifying their purpose/provenance; do not treat them as local database state.
+Keep security checks read-only, scoped to candidates and separate from Git writes.
+
+Confirm the selected changes form one coherent commit, including relevant tests and
+AIDD documentation. If genuinely independent changes need multiple commits, explain
+the split before proceeding; do not expand the authorized scope.
 
 If there are no changes, run the checks at the start of step 3. If they find `MERGE_HEAD`, continue. If not, tell the user what `git status --long` shows. Do not make an empty commit.
 
@@ -109,22 +138,43 @@ git add -- path/to/file1 path/to/file2
 - Stage the files only if `git diff --check` finds no "leftover conflict marker" line. Ignore whitespace warnings from the other branch.
 - Then, with any Git version, run `git diff --name-only --no-relative` and `git ls-files --others --exclude-standard`. They list edits in other files. Skip the files that are still unmerged.
 - Show these paths to the user. Ask if they belong to the commit. Stage only the approved paths with `git add -- <paths>`.
-- Git quotes some paths, for example paths with non-ASCII characters. `git add` fails for a quoted path. Ask the user about these files.
+- Pass literal filenames with proper shell quoting; Git's displayed quotes are not part of the filename.
 
-**If there is no operation and no unmerged file**, put one logical change in each commit. If the staged files contain more than one change, first unstage the files of the other changes. Then stage the files for this change:
+**If there is no operation and no unmerged file**, put one logical change in each
+commit. Preserve unrelated staged and unstaged work. If the index contains changes
+outside the authorized scope, clarify their disposition before unstaging or committing;
+never silently include, reset or discard them. Stage only reviewed, in-scope paths:
 
 ```bash
-git reset -q -- path/to/other-file1 path/to/other-file2
 git add -- path/to/file1 path/to/file2
-git add -- '*.test.*'
-git add -- src/components/
 ```
 
 - Put a glob in quotes. Without quotes, the shell expands the glob and does not find the files in subdirectories.
 - Do not use `git add -p` or `git add -i`. These commands wait for input from a person.
 - Examine the list of staged files with `git diff --staged --name-only`. Do not commit secrets, for example `.env` files, `credentials.json`, or private keys.
 
-### 4. Write the message
+### 4. Run final checks
+
+- Run the repository-required checks appropriate to the actual changes: relevant
+  tests, TypeScript, OpenAPI, runtime or Worker dry-run checks when affected.
+  Documentation/instruction-only changes need applicable structure/link checks,
+  not an unrelated application test suite.
+- Reuse documented passing results when the checked content and configuration have
+  not changed. Rerun affected checks after a fix; do not repeat full validation
+  merely because the next step is a commit. Report failures or unverified checks;
+  do not commit through a blocking failure or bypass required hooks.
+- Check the exact staged snapshot, including newly added files:
+
+```bash
+git diff --cached --check
+git diff --cached
+git diff --cached --name-only
+```
+
+Confirm scope and security again against that snapshot. After any staging/content
+change, repeat the affected review/checks before committing.
+
+### 5. Write the message
 
 Get each part from the diff:
 
@@ -132,7 +182,7 @@ Get each part from the diff:
 - **Scope**: The module or the area that the change affects.
 - **Summary**: What changed, in one line.
 
-### 5. Commit
+### 6. Commit
 
 When step 3 finds `MERGE_HEAD`, `CHERRY_PICK_HEAD`, or `REVERT_HEAD`, run `git commit --no-edit` with no paths and no `--cleanup` option. This keeps the message that Git prepared. Do not write a new `-m` message. The message can keep the `Conflicts:` comment lines from Git. Do not remove them.
 
@@ -147,17 +197,25 @@ git commit -m "fix(parser): accept empty input" -m "An empty file caused a crash
 
 For a long message, write the message to a temporary file. Then run `git commit -F <file>`.
 
-### 6. Make sure that the commit is correct
+### 7. Make sure that the commit is correct
 
 ```bash
+git rev-parse HEAD
 git log -1 --stat --first-parent
-git status --porcelain
+git status --porcelain=v1 --untracked-files=all
 ```
+
+Report the commit hash/message, included files or concise file groups, validation
+results/limitations and remaining uncommitted changes. If clean, state that explicitly.
 
 ## Safety Rules
 
+- Execute Git as direct, readable CLI commands; follow the repository's VCS policy.
+  Do not hide Git operations in Node/Python, heredocs or subprocess wrappers.
 - Do not change the Git configuration.
 - Do not use `--no-verify` unless the user tells you to. Hooks can be in `.git/hooks` or in the Git configuration.
 - If a hook fails, Git does not make the commit. Fix the problem, stage the files again, and run the same `git commit` command again. Do not use `--amend`, because it changes the previous commit.
 - Do not change the commit history unless the user tells you to. Do not use `git reset --hard`, `git rebase`, or the experimental `git history` command.
 - Do not push unless the user tells you to. Do not force push to the default branch.
+- Never automatically push, deploy, amend or rewrite history as part of this workflow.
+  A local commit does not authorize any of those actions.

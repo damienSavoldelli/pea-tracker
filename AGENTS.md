@@ -43,7 +43,7 @@
 - Preserve exact decimal requirements, read-only MCP and separate administrative authorization.
 - No dependency installation, cloud resources, deployment or paid-service activation without explicit authorization.
 - Preserve Codex workspace-write/on-request restrictions; never weaken security to meet the zero-cost target.
-- Execute Git directly, following `aidd_docs/memory/vcs.md`; do not orchestrate Git through Node.js/Python, heredocs, shell scripts or subprocess wrappers unless explicitly requested. Keep security checks separate; no automatic push or deployment.
+- For Git reviews and commits, follow the project-local [git-commit skill](.agents/skills/git-commit/SKILL.md) and [VCS policy](aidd_docs/memory/vcs.md).
 - Keep all documentation and context free of actual holdings, PRU values, transactions, credentials, tokens and private portfolio data. Use clearly identified synthetic examples only.
 
 ## Cloudflare Operations
