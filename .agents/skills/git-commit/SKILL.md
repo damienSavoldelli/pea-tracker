@@ -16,6 +16,11 @@ the user explicitly requests it, within the authorized change scope. An explicit
 commit request covers staging its relevant files; do not ask again unless scope or
 ownership is ambiguous. Preserve repository approval and sandbox requirements.
 
+Codex `allow` execution rules for `git add` and `git commit` (including `--amend`)
+remove system prompts only; they never authorize an action on the user's behalf.
+Amending requires a specific user request to amend, not merely permission to create
+a new commit. Continue the review and validation workflow even without a system prompt.
+
 ## Message Format
 
 ```text

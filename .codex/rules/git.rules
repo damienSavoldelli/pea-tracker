@@ -1,0 +1,37 @@
+# Owner-approved system execution permissions, including commit --amend.
+# Execution permission does not authorize staging, committing or amending. Follow
+# AGENTS.md, aidd_docs/memory/vcs.md and the git-commit skill for task authorization.
+# Use direct commands from the repository root, with explicit reviewed paths.
+prefix_rule(
+    pattern = ["git", ["add", "commit"]],
+    decision = "allow",
+    justification = "Owner-approved local Git execution; task authorization remains mandatory",
+    match = [
+        "git add -- src/app.ts",
+        "git add -A",
+        "git add .",
+        "git commit -m 'feat(auth): example'",
+        "git commit -m example -m body",
+        "git commit -F message.txt",
+        "git commit --amend --no-edit",
+        "git commit --amend -m example",
+        "git commit -m example --amend",
+    ],
+    not_match = ["git push", "git reset --hard", "git rebase main", "git clean -fd"],
+)
+
+# Remote writes and destructive operations retain system confirmation.
+prefix_rule(
+    pattern = ["git", ["push", "reset", "rebase", "clean", "restore", "rm"]],
+    decision = "prompt",
+    justification = "Require approval for remote writes and destructive Git operations",
+    match = [
+        "git push origin main",
+        "git reset --hard HEAD",
+        "git rebase main",
+        "git clean -fd",
+        "git restore README.md",
+        "git rm README.md",
+    ],
+    not_match = ["git add -- README.md", "git commit -m example", "git commit --amend --no-edit", "git status"],
+)

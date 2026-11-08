@@ -44,6 +44,7 @@
 - No dependency installation, cloud resources, deployment or paid-service activation without explicit authorization.
 - Preserve Codex workspace-write/on-request restrictions; never weaken security to meet the zero-cost target.
 - For Git reviews and commits, follow the project-local [git-commit skill](.agents/skills/git-commit/SKILL.md) and [VCS policy](aidd_docs/memory/vcs.md).
+- Codex execution rules remove system prompts only; staging/commits still require explicit user authorization, and amending requires specific authorization to amend.
 - Keep all documentation and context free of actual holdings, PRU values, transactions, credentials, tokens and private portfolio data. Use clearly identified synthetic examples only.
 
 ## Cloudflare Operations
