@@ -7,6 +7,22 @@ Architecture: [INSTALL.md](../../../INSTALL.md).
 Machine-readable contract: [OpenAPI](../../../api/openapi.json).
 Implementation plan: [plan.md](plan.md).
 
+## Local D1 implementation addendum — 2026-11-08
+
+The subsequently approved [D1 increment](../2026_11_08_d1-instruments/plan.md)
+extends persistence only; operation schemas, statuses, auth policies and repository
+signatures remain unchanged. The original memory-only choice below records the
+first increment's boundary. Both Memory and native D1 now run the same repository
+and real loopback HTTP acceptance suites. The default Worker still mounts neither.
+
+D1 uses versioned local-only migrations, atomic row + original outcome creation,
+immutable v1 replay snapshots and batched conditional UPDATE + SELECT. Zero-row
+updates are SQL success; missing/stale/exhausted errors are classified from the
+captured transaction read without dependent writes. Replay/version state survives
+tested local process restarts. No outcome TTL, remote D1, OAuth, production CPU,
+power-loss or backup recovery claim is added. See the D1 implementation record and
+root README for initialization, persistence paths, limitations and evidence.
+
 ## Boundary and supported behavior
 
 One synthetic instrument catalog, stock/ETF records, no owner/tenant dimension.

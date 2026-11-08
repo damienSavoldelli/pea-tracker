@@ -19,6 +19,7 @@ aidd_docs/api/schemas/**
 !aidd_docs/api/schemas/LICENSE
 !scripts/
 !scripts/smoke-mcp.mjs
+!scripts/dev-instruments-d1.mjs
 **/.git
 **/.git/**
 **/.env
@@ -30,6 +31,9 @@ aidd_docs/api/schemas/**
 **/*.p12
 **/*.zip
 **/*.sql
+!migrations/
+!migrations/0001_instruments.sql
+!migrations/0002_instrument_create_outcomes.sql
 **/*.sqlite*
 **/node_modules
 **/node_modules/**

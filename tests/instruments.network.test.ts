@@ -1,16 +1,26 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { instrumentSchema } from '../src/domain/instruments';
 import { probeLocalRequest, startLocalInstrumentServer, type LocalInstrumentServer } from './helpers/instruments-http-server.mjs';
 import { syntheticInput } from './helpers/instruments';
 import { assertContractResponse } from './helpers/openapi';
+import { D1InstrumentRepository } from '../src/adapters/d1/instruments';
+import { MemoryInstrumentRepository } from '../src/adapters/memory/instruments';
+import type { InstrumentRepository } from '../src/ports/instruments';
+import { openLocalD1, type LocalD1 } from './helpers/d1-local.mjs';
 
-describe('real loopback HTTP instrument workflow', () => {
+describe.each(['memory', 'd1'])('%s real loopback HTTP instrument workflow', storage => {
   const servers: LocalInstrumentServer[] = [];
   let admin: LocalInstrumentServer;
-  beforeAll(async () => { admin = await startLocalInstrumentServer({ principal: 'admin' }); servers.push(admin); });
-  afterAll(async () => { await Promise.all(servers.map(server => server.close())); });
+  let local: LocalD1 | undefined;
+  let repository: InstrumentRepository;
+  beforeAll(async () => {
+    if (storage === 'd1') local = await openLocalD1();
+    repository = local ? new D1InstrumentRepository(local.db) : new MemoryInstrumentRepository();
+    admin = await startLocalInstrumentServer({ principal: 'admin', repository }); servers.push(admin);
+  }, 30000);
+  afterAll(async () => { await Promise.all(servers.map(server => server.close())); await local?.cleanup(); });
   const send = async (method: string, path: string, body?: unknown, headers: Record<string, string> = {}) => {
     const response = await fetch(`${admin.url}${path}`, { method, headers: { Accept: 'application/json', ...(body === undefined ? {} : { 'Content-Type': 'application/json' }), ...headers }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
     await assertContractResponse(method, path, response.clone());
@@ -70,13 +80,16 @@ describe('real loopback HTTP instrument workflow', () => {
   });
 
   it('fixes synthetic principals per server; headers cannot elevate anonymous/read/collector fixtures', async () => {
+    const create = vi.spyOn(repository, 'create');
     for (const principal of ['anonymous', 'reader', 'collector'] as const) {
-      const server = await startLocalInstrumentServer({ principal }); servers.push(server);
+      const server = await startLocalInstrumentServer({ principal, repository }); servers.push(server);
       const response = await fetch(`${server.url}/api/v1/instruments`, { method: 'POST', headers: { Authorization: 'Bearer synthetic-admin', 'X-Role': 'admin', 'X-Principal': 'admin', 'Content-Type': 'application/json', 'Idempotency-Key': 'denied' }, body: JSON.stringify(syntheticInput) });
       await assertContractResponse('POST', '/api/v1/instruments', response.clone());
       expect(response.status).toBe(principal === 'anonymous' ? 401 : 403);
       if (principal === 'anonymous') expect(response.headers.get('WWW-Authenticate')).toBe('Bearer');
     }
+    expect(create).not.toHaveBeenCalled();
+    create.mockRestore();
   });
 
   it('blocks browser cross-site requests and untrusted Host headers', async () => {

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { MemoryInstrumentRepository } from '../src/adapters/memory/instruments';
 import { admin, fixture, reader, syntheticInput, syntheticIsin } from './helpers/instruments';
+import { instrumentRepositoryContract } from './helpers/instrument-repository-contract';
 
 describe('memory repository acceptance', () => {
   it('atomically replays canonical input and retains original outcome after updates', async () => {
@@ -42,4 +44,17 @@ describe('memory repository acceptance', () => {
     expect((await service.get(reader, record.id)).name).toBe(syntheticInput.name);
     expect((await fixture().service.list(reader, {})).data).toEqual([]);
   });
+});
+
+instrumentRepositoryContract('memory shared repository contract', async () => {
+  const repository = new MemoryInstrumentRepository();
+  return {
+    repository,
+    peer: repository,
+    seedBoundary: async record => {
+      // Fixture setup of persisted boundary state, deliberately outside valid-create inputs.
+      await repository.create(record, { subject: 'synthetic-boundary-setup', key: 'max-version', canonicalInput: '{}' });
+    },
+    dispose: async () => {},
+  };
 });

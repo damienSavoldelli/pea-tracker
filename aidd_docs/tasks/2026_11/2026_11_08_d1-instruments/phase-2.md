@@ -1,5 +1,5 @@
 ---
-status: pending
+status: done
 ---
 
 # Instruction: Versioned schema and atomic D1InstrumentRepository
@@ -118,6 +118,15 @@ status: pending
    reservation remains. Do not add production fault-injection API/configuration.
 
 ## Test acceptance criteria
+
+Implementation evidence: both migrations are applied through official Wrangler
+local migration tracking. Migration + D1 integrity suites pass 32 tests, including
+fresh/repeat/upgrade/failure, rejecting constraints/FK/immutability, both query-plan
+indexes, actual repository second-write rollback, retry after failure, corrupt
+storage rejection, unknown error sanitization and real HTTP/OpenAPI 500 responses.
+Shared Memory/D1 tests cover concurrent keys/identity/CAS and maximum-version error
+precedence. UPDATE zero-row behavior is explicitly verified by the runtime gate;
+the adapter has only a dependent SELECT and never a dependent write.
 
 | Task | Acceptance criteria |
 | --- | --- |

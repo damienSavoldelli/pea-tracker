@@ -5,11 +5,12 @@ AI-ready portfolio tracking architecture leveraging Cloudflare Workers, automate
 
 PEA Tracker is one evolving application in one repository and shared codebase.
 Health and MCP ping are its first features, not a disposable server or separate
-project. D1, portfolio management, collection and OAuth will extend this application.
+project. Portfolio management, collection and OAuth will extend this application.
 The default Worker exposes public diagnostics only. A synthetic instrument catalog
-is implemented through shared services, REST adapters and per-app memory storage,
-available through isolated tests and a separate loopback HTTP harness. There is no
-D1 database, portfolio ledger, quotation retrieval, real data or OAuth provider.
+is implemented through shared services, REST adapters, per-app memory storage and
+a native D1 repository. Both are available only through isolated synthetic tests
+and separate loopback HTTP harnesses. There is no remote D1 database, portfolio
+ledger, quotation retrieval, real data or OAuth provider.
 Production security requirements remain in [the architecture baseline](aidd_docs/INSTALL.md).
 
 ## Synthetic Financial Instruments REST API
@@ -47,7 +48,43 @@ curl 'http://127.0.0.1:8788/api/v1/instruments?limit=10'
 POST returns Location and ETag headers. Item GET uses that Location; PATCH requires
 the current `If-Match` ETag and accepts name/active only. Same-key/default-equivalent
 POST retries return the original 201 result, even after later updates. A stale PATCH
-returns 412. All storage and replay guarantees end when the app instance stops.
+returns 412. Memory storage and replay guarantees end when the app instance stops.
+
+### Persistent synthetic local D1
+
+Explicitly initialize local state, then start the D1 harness:
+
+```sh
+node node_modules/wrangler/bin/wrangler.js d1 migrations apply pea-tracker-instruments-local --config tests/fixtures/wrangler.d1-local.jsonc --env= --local --persist-to .wrangler/instruments-d1-local
+node scripts/dev-instruments-d1.mjs --principal admin --port 8788
+```
+
+The fixed fixture has no database/account ID, disables remote bindings, and loads
+no environment files. It does not change the root Worker configuration. Startup
+requires both migrations; it never creates schema during an HTTP request. Use the
+same synthetic curl examples above. The same loopback/Host/Origin guards and fixed
+principals apply. Ctrl-C closes HTTP and disposes the owned local runtime; the database
+under `.wrangler/instruments-d1-local/v3` is intentionally retained. Wrangler CLI
+uses the parent directory with `--persist-to`; `getPlatformProxy` uses its `v3`
+subdirectory. Tests verify that both access the same store.
+
+Source migrations `0001_instruments.sql` and `0002_instrument_create_outcomes.sql`
+are ordered and tracked by Wrangler. Create atomically saves the catalog row and
+immutable original response snapshot; replay remains the original version even
+after PATCH and process restart. PATCH uses a conditional version update followed
+by a read in one batch. A zero-row update is SQL success and is classified as
+missing/stale/exhausted without any dependent write. There is no outcome expiry or
+cleanup policy in this slice. Local restart tests do not prove power-loss recovery,
+remote durability, backups, OAuth or production readiness. Use synthetic data only.
+
+Regenerate native D1/Worker types with the installed Wrangler (no new dependency):
+
+```sh
+node node_modules/wrangler/bin/wrangler.js types src/adapters/d1/worker-configuration.d.ts --config tests/fixtures/wrangler.d1-local.jsonc --env= --env-interface D1LocalEnv
+```
+
+Normalize trailing whitespace in the generated declarations before committing;
+the pinned generator currently emits five trailing-space lines.
 
 `npm run check` includes unit, repository, in-process HTTP, real loopback HTTP,
 OpenAPI and diagnostic regression tests. It must be permitted to bind temporary
@@ -59,8 +96,8 @@ no packages were installed or added for this slice.
 
 `src/index.ts`, `npm run dev`, Docker's Worker and both deployment environments
 remain diagnostic-only: instrument requests return 404 and MCP lists only ping.
-Neither fixture authentication nor a memory repository is wired into that entrypoint.
-Real OAuth, persistent storage, recovery, abuse controls and private-data release
+Neither fixture authentication nor either repository is wired into that entrypoint.
+Real OAuth, remote persistent storage, recovery, abuse controls and private-data release
 gates remain open. Node HTTP tests/dry-run bundles do not establish Workers CPU limits.
 
 Use Node.js 22.12 or newer supported by the pinned tooling:
@@ -221,8 +258,9 @@ it for future persistent application data. Ordinary source edits need no rebuild
 If Docker Desktop file events fail to trigger reload, restart the Worker with
 `docker compose restart worker`; file watching must be checked on the actual host.
 
-Contract tests receive only the two allowlisted synthetic OpenAPI/schema JSON files
-through image copies and read-only Compose file mounts; other AIDD docs stay outside
+Contract tests receive the allowlisted synthetic OpenAPI/schema JSON files and two
+exact source SQL migrations through image copies and read-only Compose file mounts;
+SQLite files, dumps and local D1 state remain excluded. Other AIDD docs stay outside
 the image/runtime mounts. The local instrument harness is not started by Compose.
 
 The allowlisted `.dockerignore` excludes Git/assistant metadata, `.env*`, `.dev.vars*`,

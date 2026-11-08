@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { z } from 'zod';
 import { createApp } from '../src/app';
 import { instrumentSchema } from '../src/domain/instruments';
 import { admin, fixture, missingId, reader, syntheticInput } from './helpers/instruments';
@@ -31,7 +32,7 @@ describe('instrument REST adapter', () => {
     expect(await replay.json()).toEqual(record);
     expect(replay.headers.get('ETag')).toBe('"1"');
     expect(await (await request('GET', '?active=true')).json()).toEqual({ data: [], page: { next_cursor: null } });
-    expect((await (await request()).json()).data).toHaveLength(1);
+    expect(z.object({ data: z.array(instrumentSchema) }).parse(await (await request()).json()).data).toHaveLength(1);
     for (const response of [created, got, updated, replay]) {
       expect(response.headers.get('Cache-Control')).toBe('no-store');
       expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff');

@@ -1,21 +1,34 @@
 ---
 objective: "Persist the existing instrument repository contract and original idempotent outcomes across local D1 restarts without exposing financial routes or changing the public Worker."
-status: pending
+status: implemented
 ---
 
 # Plan: D1InstrumentRepository
 
 Source: owner's D1 persistence planning request, [approved PRD](../2026_11_08-financial-backend-prd.md), [implemented instrument contract](../2026_11_08_financial-instruments/contract.md), [OpenAPI](../../../api/openapi.json) and [architecture](../../../INSTALL.md).
 
-Planning only. Approval is required before any runtime code/configuration, SQL migration,
+Historical planning boundary (superseded by the implementation approval below):
+approval was required before any runtime code/configuration, SQL migration,
 local database initialization, dependency installation or test execution that creates
 D1 state. No remote D1, deployment, real financial data, public instrument routes,
 Git writes, branch changes or hooks. Only this plan folder is written now.
+
+The owner subsequently approved implementation with an explicit zero-row-update
+refinement. A zero-row SQL UPDATE is successful SQL, not a rollback signal. The
+repository update batch therefore contains only the guarded UPDATE and a read;
+there is no dependent write to commit on a missing/stale version. Runtime probes
+and repository tests must demonstrate both native zero-row behavior and application
+404/412 classification. No port signature change, remote operation or Git write
+is authorized. AIDD commit/branch defaults are overridden by the owner's restriction.
 
 Baseline inspected: commit dff9b8146e26a4e33f94aaa83d57ee28a08f276a; working tree/index
 clean. Existing 92-test evidence belongs to the prior slice; no new D1 runtime evidence
 is claimed. Installed tooling: Wrangler 4.158.0, Vitest 5.1.0 and strict TypeScript.
 No @types/node or @cloudflare/workers-types package is installed at project root.
+
+Implementation evidence is recorded in [implementation.md](implementation.md).
+The original planning assessment below is retained as design context; phase status
+and the implementation record describe the observed runtime results.
 
 ## Phases
 

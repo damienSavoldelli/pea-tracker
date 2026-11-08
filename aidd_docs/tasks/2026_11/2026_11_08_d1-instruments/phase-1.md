@@ -1,5 +1,5 @@
 ---
-status: pending
+status: done
 ---
 
 # Instruction: Freeze repository semantics and verify local D1 tooling
@@ -94,7 +94,19 @@ node node_modules/wrangler/bin/wrangler.js d1 migrations apply pea-tracker-instr
 The migration command belongs after phase 2 authors the SQL files. Tests substitute
 a unique test-owned persist-to path, never the developer directory. Use official CLI
 arguments directly; no credential extraction, custom Cloudflare HTTP or hidden remote
-operation in a test helper. Fixture config and declarations do not exist yet.
+operation in a test helper. These commands were planning-only when authored;
+implementation now provides the fixture/declarations and exercises test-owned state.
+
+## Implementation evidence
+
+- Native ID-free binding initialization, foreign keys, batch rollback, zero-row
+  success and runtime reopen pass in `tests/d1-local-runtime.test.ts` (5 cases).
+- Official CLI SELECT reads the same persisted scratch row as the proxy, verifying
+  CLI root versus proxy root/v3 mapping. Distinct directories remain isolated.
+- Native declarations generated with Wrangler 4.158.0/workerd 1.20261104.1,
+  compatibility date 2026-11-06; strict TypeScript passes without new dependencies.
+- Repository signatures unchanged; approved initial-create preconditions documented.
+  Shared suite has 17 cases per adapter; Memory retains its 4 original cases.
 
 ## Test acceptance criteria
 

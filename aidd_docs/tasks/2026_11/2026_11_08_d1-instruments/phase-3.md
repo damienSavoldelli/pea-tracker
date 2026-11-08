@@ -1,5 +1,5 @@
 ---
-status: pending
+status: done
 ---
 
 # Instruction: Prove restart durability, HTTP parity and deployment isolation
@@ -100,6 +100,15 @@ status: pending
    hooks, deployment or remote D1 operation is authorized by the plan.
 
 ## Test acceptance criteria
+
+Implementation evidence: host and Docker strict TypeScript +171 tests/12 suites
+pass. Real HTTP/OpenAPI runs against both repositories; restart uses a new Node
+and workerd process, including process-group SIGINT shutdown. Both dev/production
+dry-run bundles pass and report no bindings. Default health/MCP regressions pass;
+src/index.ts, src/app.ts and root wrangler.jsonc remain unchanged. Only source SQL
+is allowlisted for Docker; no state, credentials, remote resources or Git writes.
+See [implementation.md](implementation.md) for commands, concurrency guarantees,
+observed transient load-test limitation and remaining release gates.
 
 | Task | Acceptance criteria |
 | --- | --- |

@@ -14,7 +14,7 @@ export async function startLocalInstrumentServer(options = {}) {
     subject: `synthetic-local-${role}`,
     permissions: role === 'admin' ? ['instruments:read', 'instruments:admin'] : role === 'reader' ? ['instruments:read'] : [],
   };
-  const app = createApp({ instruments: { service: new InstrumentService(new MemoryInstrumentRepository()), authenticate: () => principal } });
+  const app = createApp({ instruments: { service: new InstrumentService(options.repository ?? new MemoryInstrumentRepository()), authenticate: () => principal } });
   const server = createServer({ requestTimeout: 5000, headersTimeout: 5000 }, async (incoming, outgoing) => {
     const problem = (status, code) => {
       outgoing.writeHead(status, { 'Content-Type': 'application/problem+json', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', Connection: 'close' });

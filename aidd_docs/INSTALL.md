@@ -123,11 +123,12 @@ means unavailable historical performance, not an inferred or zero return.
 Deliver incremental vertical slices: the [Financial Instruments plan](tasks/2026_11/2026_11_08_financial-instruments/plan.md)
 and [OpenAPI contract](api/openapi.json) implement the approved synthetic catalog slice. Instrument
 metadata does not depend on advanced performance, dividend or corporate-action rules.
-In-memory storage supports isolated synthetic acceptance and a separate loopback-only
-HTTP harness; D1 remains the persistence direction, not a provisioned service. The
-owner authorized this slice's implementation/tests and real HTTP refinement only.
+In-memory storage supports isolated synthetic acceptance. The approved
+[D1 increment](tasks/2026_11/2026_11_08_d1-instruments/plan.md) adds a native binding
+adapter and two versioned SQL migrations, exercised only with Wrangler local D1
+and the separate loopback HTTP harness. No remote D1 service is provisioned.
 The default Worker retains only health/ping until an approved auth integration permits
-private routes; OAuth choice remains open. No fixture auth or memory repository is
+private routes; OAuth choice remains open. No fixture auth or instrument repository is
 instantiated by the deployment entrypoint. No real data or cloud change is authorized.
 
 The earlier [financial backend design proposal](tasks/2026_11/2026_11_06_financial-backend/design.md)
@@ -419,8 +420,9 @@ private-data access; it never authorizes exposing private REST/MCP operations.
 The owner subsequently authorized local diagnostic development. The connected MCP
 ping was observed responding in this conversation; this is diagnostic connectivity
 evidence only. The owner subsequently approved the Financial Instruments REST slice
-with synthetic memory storage and an explicit loopback HTTP harness. Other financial
-features, new dependencies, D1/cloud resources, deployment, plugin changes, real data,
+with synthetic memory storage and an explicit loopback HTTP harness, followed by
+the local-only D1 repository increment. Other financial features, new dependencies,
+remote D1/cloud resources, deployment, plugin changes, real data,
 staging, commits and pushes remain outside this authorization.
 
 Production requirements become mandatory before the first real financial data is

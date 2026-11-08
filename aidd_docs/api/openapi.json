@@ -20,7 +20,7 @@
   ],
   "x-contract-status": "implemented-synthetic-local-only",
   "x-auth-policy": "Private endpoints require approved authentication, verified owner/API audience and operation-specific permissions before any public exposure. Default app has diagnostics only; synthetic principals are injected in tests, never selected by HTTP headers.",
-  "x-first-adapter": "In-memory per isolated application instance only. No durable idempotency, D1 or recovery evidence.",
+  "x-first-adapter": "Memory per isolated application instance, plus native D1 in explicitly isolated local synthetic tooling. D1 atomically persists original create outcomes and optimistic versions across tested local process restarts; no remote recovery or production authentication evidence. The public Worker remains diagnostic-only.",
   "x-http-policy": "Instrument responses are no-store/nosniff without permissive CORS. Authenticate/authorize before repository access. Mutation body limit 16 KiB. Unknown/repeated query parameters rejected. Undeclared methods on mounted instrument routes return authenticated 405 with Allow; HEAD is explicitly rejected rather than inherited from GET. Errors use application/problem+json; safe request IDs only.",
   "paths": {
     "/health": {

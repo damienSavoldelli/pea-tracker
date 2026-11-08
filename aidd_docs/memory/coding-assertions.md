@@ -7,6 +7,6 @@
 
 ## Boundaries
 
-- The owner authorized the synthetic Financial Instruments slice, isolated loopback HTTP harness and tests. No D1/cloud resources, real financial data, deployment, staging, commits, pushes or publication are authorized. Public/default Worker remains diagnostic-only pending approved authentication.
+- The owner authorized the synthetic Financial Instruments slice and local D1 repository increment, isolated loopback HTTP harnesses and tests. No remote D1/cloud resources, real financial data, deployment, staging, commits, pushes or publication are authorized. Public/default Worker remains diagnostic-only pending approved authentication.
 - Preserve .codex/config.toml sandbox settings. Do not commit or create branches without explicit instruction.
 - Report checks performed and their limits; synthetic connectivity success does not satisfy private-data production gates.

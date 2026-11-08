@@ -5,5 +5,5 @@ export interface LocalInstrumentServer {
   role: LocalPrincipal;
   close(): Promise<void>;
 }
-export function startLocalInstrumentServer(options?: { principal?: LocalPrincipal; port?: number }): Promise<LocalInstrumentServer>;
+export function startLocalInstrumentServer(options?: { principal?: LocalPrincipal; port?: number; repository?: import('../../src/ports/instruments').InstrumentRepository }): Promise<LocalInstrumentServer>;
 export function probeLocalRequest(url: string, headers: Record<string, string>): Promise<number>;
