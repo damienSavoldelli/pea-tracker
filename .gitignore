@@ -69,6 +69,7 @@ web_modules/
 .env
 .env.*
 !.env.example
+!.env.access-poc.example.json
 
 # Local Wrangler secrets
 .dev.vars

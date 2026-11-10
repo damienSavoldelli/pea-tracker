@@ -19,12 +19,13 @@ export function createApp(dependencies: { instruments?: InstrumentHttpDependenci
   }));
   const protectedMcp = dependencies.mcp;
   if (protectedMcp) {
-    app.get('/.well-known/oauth-protected-resource/mcp', context => context.json(protectedMcp.metadata));
+    if (protectedMcp.metadata) app.get('/.well-known/oauth-protected-resource/mcp', context => context.json(protectedMcp.metadata!));
     if (protectedMcp.restMetadata) app.get('/.well-known/oauth-protected-resource/api/v1', context => context.json(protectedMcp.restMetadata!));
     app.all('/mcp', async context => {
       try {
         const principal = await protectedMcp.authenticate(context.req.raw);
-        return await handleMcp(context.req.raw, { principal, service: protectedMcp.service, challenge: protectedMcp.challenge });
+        return await handleMcp(context.req.raw, { principal, service: protectedMcp.service, challenge: protectedMcp.challenge,
+          ...(protectedMcp.oauthScopes ? { oauthScopes: protectedMcp.oauthScopes } : {}) });
       } catch (error) { return authenticationFailure(error, protectedMcp.challenge); }
     });
   } else app.all('/mcp', context => handleMcp(context.req.raw));

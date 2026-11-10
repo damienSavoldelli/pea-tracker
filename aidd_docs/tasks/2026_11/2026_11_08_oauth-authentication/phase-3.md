@@ -4,6 +4,11 @@ status: blocked
 
 # Instruction: Prove actual provider and hosted-client interoperability
 
+Current primary candidate is Access Managed OAuth by owner decision (2026-11-09).
+The [local Access implementation](access-implementation.md) replaces Auth0 for the
+prepared PoC deployment; Auth0-specific setup below is retained as prior work.
+Hosted Access and real ChatGPT/Claude evidence are still pending approval/execution.
+
 Local preparation authorized by the owner: dedicated fail-closed composition,
 operator configuration/discovery checks and synthetic tests are implemented.
 Remote configuration, hosting and actual client tests remain gated. See

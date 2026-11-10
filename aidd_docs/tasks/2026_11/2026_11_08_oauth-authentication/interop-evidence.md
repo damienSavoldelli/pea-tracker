@@ -1,5 +1,10 @@
 # Phase 3 — Auth0 interoperability preparation
 
+Historical Auth0 preparation below. Owner switched priority to Access Managed OAuth
+on 2026-11-09; the PoC Wrangler config now targets the separate Access entrypoint.
+See [Access integration and deployment proposal](access-implementation.md) for current
+configuration and evidence. No prior Auth0 result is a hosted Access success claim.
+
 Status: local preparation implemented; hosted execution blocked pending exact setup
 and separate owner approval. No actual Auth0 tenant or hosted client was accessed.
 No OAuth connection, PKCE exchange, refresh or revocation success is claimed.

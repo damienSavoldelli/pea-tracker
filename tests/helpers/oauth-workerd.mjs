@@ -3,7 +3,8 @@ import { build } from 'esbuild';
 import { readFile, readdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
-export async function startOAuthWorker() {
+export async function startOAuthWorker(variant = 'jwt') {
+  if (!['jwt', 'access'].includes(variant)) throw new Error('Unknown OAuth fixture');
   const root = fileURLToPath(new URL('../../', import.meta.url));
   const fixture = new URL('../fixtures/wrangler.oauth-local.jsonc', import.meta.url);
   const config = JSON.parse(await readFile(fixture, 'utf8'));
@@ -12,8 +13,8 @@ export async function startOAuthWorker() {
   if ((await readdir(new URL('../fixtures/', import.meta.url))).some(file => /^\.(?:env|dev\.vars)(?:\.|$)/.test(file))) throw new Error('Fixture environment files are not allowed');
   // Existing pinned Wrangler dependencies only. Inline native runtime options
   // load no .env, .dev.vars, credential files, remote bindings or persistent state.
-  const result = await build({ absWorkingDir: root, entryPoints: ['tests/fixtures/oauth-worker.ts'], bundle: true, write: false, platform: 'browser', format: 'esm', target: 'es2022', logLevel: 'silent' });
-  const runtime = new Miniflare({ workers: [{ config: { name: config.name, compatibilityDate: config.compatibility_date,
+  const result = await build({ absWorkingDir: root, entryPoints: [variant === 'access' ? 'tests/fixtures/access-worker.ts' : 'tests/fixtures/oauth-worker.ts'], bundle: true, write: false, platform: 'browser', format: 'esm', target: 'es2022', logLevel: 'silent' });
+  const runtime = new Miniflare({ workers: [{ config: { name: config.name, compatibilityDate: variant === 'access' ? '2026-11-09' : config.compatibility_date,
     manifest: { mainModule: 'index.js', modules: { 'index.js': { type: 'esm', contents: result.outputFiles[0].text } } } } }],
     host: '127.0.0.1', port: 0, cf: false, enableDevRegistry: false, telemetry: { enabled: false }, logRequests: false });
   try {

@@ -11,13 +11,15 @@ export interface ProtectedMcpDependencies {
   service: InstrumentService;
   authenticate(request: Request): Promise<Principal>;
   challenge(status: 401 | 403): string;
-  metadata: { resource: string; authorization_servers: string[]; scopes_supported: string[]; bearer_methods_supported: string[] };
+  metadata?: { resource: string; authorization_servers: string[]; scopes_supported: string[]; bearer_methods_supported: string[] };
+  oauthScopes?: readonly string[];
   restMetadata?: { resource: string; authorization_servers: string[]; scopes_supported: string[]; bearer_methods_supported: string[] };
 }
 interface FinancialContext {
   principal: Principal;
   service: InstrumentService;
   challenge(status: 401 | 403): string;
+  oauthScopes?: readonly string[];
 }
 
 export async function handleMcp(request: Request, financial?: FinancialContext): Promise<Response> {
@@ -36,7 +38,7 @@ export async function handleMcp(request: Request, financial?: FinancialContext):
   const server = new McpServer({ name: service.service, version: service.version });
   if (financial) {
     requirePermission(financial.principal, 'instruments:read');
-    const securitySchemes = [{ type: 'oauth2', scopes: ['mcp:read', 'portfolio:read'] }];
+    const securitySchemes = [{ type: 'oauth2', scopes: [...(financial.oauthScopes ?? ['mcp:read', 'portfolio:read'])] }];
     const annotations = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false };
     const guarded = async (action: () => Promise<Record<string, unknown>>) => {
       try {

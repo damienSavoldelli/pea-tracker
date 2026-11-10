@@ -184,10 +184,18 @@ for policy, verification limits and remaining hosted-provider gates. This increm
 does not implement an authorization server, immediate JWT revocation, real collector
 ingestion or live ChatGPT/Claude OAuth linking.
 
-The separate `src/entrypoints/oauth-poc.ts` prepares genuine Auth0 verification over
-synthetic Memory data. Its closed Wrangler template is not a deployment approval;
-see [phase-3 setup and evidence](aidd_docs/tasks/2026_11/2026_11_08_oauth-authentication/interop-evidence.md)
-for required tenant settings, separate-host approval and hosted-client test gates.
+The PoC template now selects `src/entrypoints/access-poc.ts`: owner-only Access JWT
+verification, synthetic Memory reads and no REST financial routes. workers.dev is
+prepared for a separately approved deployment; no endpoint is published by editing
+the template. See [Access setup and evidence](aidd_docs/tasks/2026_11/2026_11_08_oauth-authentication/access-implementation.md)
+for required variables, Access policies and the deployment proposal. The prior
+Auth0 composition remains in `src/entrypoints/oauth-poc.ts` and is not selected.
+
+For Access configuration, copy [.env.access-poc.example.json](.env.access-poc.example.json)
+to `.env.access-poc.json` only if the private file does not already exist. Replace
+all placeholders locally and set permissions with `chmod 600 .env.access-poc.json`.
+The example is versioned; the private file stays ignored. Never commit actual
+issuer/account identifiers or tokens. Deployment requires separate approval.
 
 ## Cloudflare development and production environments
 

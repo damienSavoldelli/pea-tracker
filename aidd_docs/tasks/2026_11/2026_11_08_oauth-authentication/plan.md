@@ -5,6 +5,13 @@ status: blocked
 
 # Plan: OAuth authentication and authorization
 
+2026-11-09 owner decision supersedes the Auth0-first priority below: implement
+Access Managed OAuth as the primary read-only synthetic PoC, keeping the existing
+domain/services/ports. Free activation/Beta availability are owner-reported. Local
+Access integration is authorized; remote Access configuration, secret provisioning
+and deployment still require explicit approval. See [Access implementation](access-implementation.md).
+Hosted phase-3 acceptance remains blocked on those approvals and real-client tests.
+
 Source: owner's OAuth evaluation/resume request, baseline 7668ad9,
 [technical evaluation](evaluation.md), [authorization matrix](authorization.md),
 [threat model](threat-model.md), [cost assessment](costs.md),
