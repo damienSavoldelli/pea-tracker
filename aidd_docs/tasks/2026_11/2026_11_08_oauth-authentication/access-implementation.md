@@ -1,4 +1,13 @@
-# Access Managed OAuth PoC — local integration
+# Access Managed OAuth PoC — integration
+
+Current status, 2026-11-10: the owner authorized the second deployment, which
+activated the separate PoC with the prepared Access configuration. The owner then
+reported a successful ChatGPT OAuth connection and `list_instruments` returning
+the sole synthetic instrument. `get_instrument`, renewal/revocation and remaining
+hosted security checks are pending; see [current evidence](interop-evidence.md).
+The historical preparation/approval sequence below is retained as an operator guide,
+not a statement that deployment approval is still missing. No new deployment is
+authorized by this status update.
 
 Owner decision, 2026-11-09: Zero Trust Free is active and Managed OAuth Beta is
 available in the dashboard (owner-reported). Auth0 testing is suspended. Local
@@ -151,8 +160,11 @@ the dedicated owner-only Access application and Managed OAuth enabled. No activa
 deployment or hosted client OAuth success is claimed. No private configuration
 values, account IDs or tokens are recorded here.
 
-Hosted Access, ChatGPT, Claude, PKCE, refresh and revocation remain untested: local injected assertions
-simulate the edge-to-Worker boundary only. No claim of completed phase 3 is made.
+At the time of the initial closed-deployment evidence above, hosted interoperability
+was untested. The subsequent ChatGPT connection/list success is recorded in
+[current evidence](interop-evidence.md); Claude, negative hosted PKCE tests,
+refresh and revocation remain unverified. Local injected assertions simulate only
+the edge-to-Worker boundary. Full phase 3/4 completion is not claimed.
 
 Sources reused: [Managed OAuth](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/managed-oauth/)
 and [JWT validation](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/validating-json/).

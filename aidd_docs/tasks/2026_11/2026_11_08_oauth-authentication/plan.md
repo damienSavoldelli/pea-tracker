@@ -1,9 +1,16 @@
 ---
 objective: "Validate a single-owner OAuth authorization boundary for shared REST/MCP services using synthetic data, without changing the connected diagnostic Worker."
-status: blocked
+status: in_progress
 ---
 
 # Plan: OAuth authentication and authorization
+
+Current status, 2026-11-10: approved Access PoC activation was deployed separately;
+the owner reports real ChatGPT OAuth and `list_instruments` success with synthetic
+data. `get_instrument` and bounded security/renewal closure checks remain pending.
+See [current evidence](interop-evidence.md) and [V1 resumption](v1-resumption.md).
+This update supersedes the historical blocked/approval status below, without
+closing phase 4, approving real data or changing the architecture.
 
 2026-11-09 owner decision supersedes the Auth0-first priority below: implement
 Access Managed OAuth as the primary read-only synthetic PoC, keeping the existing

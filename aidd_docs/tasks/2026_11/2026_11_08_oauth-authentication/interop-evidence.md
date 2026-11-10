@@ -1,11 +1,61 @@
-# Phase 3 — Auth0 interoperability preparation
+# Phase 3 — OAuth interoperability evidence
+
+## Current Access / ChatGPT evidence — 2026-11-10
+
+Owner-reported real ChatGPT validation, not independently replayed by the agent:
+
+- Cloudflare Access Managed OAuth connection succeeded.
+- MCP `list_instruments` succeeded and returned one synthetic record:
+  `Synthetic Access PoC ETF`, ID `00000000-0000-4000-8000-000000000001`.
+- Pagination returned `next_cursor = null`.
+- No real portfolio or financial data was used. No tokens, owner identifiers,
+  authorization codes or client credentials are recorded here.
+- `get_instrument` has **not yet been validated in ChatGPT**. Call it with the
+  synthetic ID above and verify the same instrument; do not infer success from list.
+
+Agent-observed activation evidence from the preceding authorized deployment:
+GET/POST `/mcp` without authentication returned 401 with an OAuth Bearer challenge;
+the referenced protected-resource metadata returned 200 and identified the MCP
+resource and Access authorization server. GET/POST REST instruments returned 401
+at Access, proving anonymous denial, not an authenticated origin-level 404.
+The DEV version was unchanged and its health endpoint returned 200. Deployment
+output masked the three Access configuration values; Worker observability is disabled.
+Public discovery advertised S256, code/refresh grants and client authentication
+methods `none`, `client_secret_basic` and `client_secret_post`.
+
+The prior registration error is no longer a demonstrated blocker. Its exact cause,
+any callback/allowlist adjustment, and the final client registration method were
+not supplied with this success report; do not retrospectively assert a cause.
+Discovery and successful login do not prove negative PKCE or renewal behavior.
+
+### Remaining essentials for closing the synthetic ChatGPT PoC
+
+| Check | Minimum evidence still needed |
+| --- | --- |
+| Instrument get | ChatGPT `get_instrument` returns the seeded record; unknown synthetic ID returns the expected API/tool error without disclosure |
+| Owner and token boundary | A non-owner cannot obtain usable access; missing/invalid bearer is denied. Reuse existing local signature/issuer/audience/expiry tests rather than repeating their implementation |
+| Read-only boundary | An authenticated MCP session exposes only read tools; its credential cannot administer REST or ingest quotations. No financial REST routes are mounted in this PoC; confirm rejection with valid MCP access, not just anonymous requests |
+| OAuth flow protection | In an approved controlled test, wrong PKCE verifier, reused authorization code and unapproved redirect URI are rejected. S256 metadata alone is not enforcement evidence |
+| Renewal and recovery | After the actual access-token lifetime, ChatGPT can still read through renewal; revoke the test grant and verify renewal fails and retained access ends within the observed expiry/tolerance window. Record durations/results only, never token material; identify the owner-operated Access disable/revocation procedure |
+
+These are proposed tests, not permission to change remote settings, create test
+clients, revoke grants or deploy. Request approval for any such action. Until
+observed, refresh, revocation and negative hosted flows remain unverified.
+Claude is untested and is not a prerequisite for closing this ChatGPT-only PoC;
+no Claude compatibility or full phase-4/private-data readiness is claimed.
+
+Business work can resume locally with synthetic data while these checks finish.
+See the [V1 resumption sequence](v1-resumption.md); architecture and release gates
+are unchanged. This documentation update performs no remote action or Git write.
+
+## Historical Auth0 preparation
 
 Historical Auth0 preparation below. Owner switched priority to Access Managed OAuth
 on 2026-11-09; the PoC Wrangler config now targets the separate Access entrypoint.
 See [Access integration and deployment proposal](access-implementation.md) for current
 configuration and evidence. No prior Auth0 result is a hosted Access success claim.
 
-Status: local preparation implemented; hosted execution blocked pending exact setup
+Historical Auth0 status: local preparation implemented; hosted execution blocked pending exact setup
 and separate owner approval. No actual Auth0 tenant or hosted client was accessed.
 No OAuth connection, PKCE exchange, refresh or revocation success is claimed.
 
