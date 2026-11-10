@@ -15,6 +15,8 @@
 
 ## Entry points
 
+- Opening-state/position slice: `src/domain/portfolio.ts`, `src/application/portfolio.ts`, `src/ports/portfolio.ts` and `src/adapters/{memory,d1,rest}/portfolio.ts`; `migrations/0003_opening_portfolio.sql` adds complete immutable revisions and durable outcomes. REST and optional read-only MCP tools are explicitly injected, not mounted by deployed entrypoints. See [contract and local setup](../tasks/2026_11/2026_11_10_opening-positions/contract.md); portfolio contract/HTTP/restart suites cover Memory and native local D1.
+
 - `src/index.ts` exports the diagnostic-only app from `src/app.ts`. That factory optionally mounts instruments only with explicit service/auth dependencies. `src/adapters/rest/health.ts` and `src/adapters/mcp/handler.ts` independently expose diagnostics from `src/diagnostics.ts`.
 - `src/domain/instruments.ts`, `src/application/{instruments,authorization,errors}.ts`, `src/ports/instruments.ts` and `src/adapters/{rest,memory}/instruments.ts` implement metadata, policies, shared services, bounded REST and per-app memory persistence.
 - `scripts/dev-instruments.mjs` launches the loopback fixture from `tests/helpers/instruments-http-server.mjs`; fixed synthetic roles are outside deployment source. Instrument unit/repository/HTTP/network/contract/regression tests live in `tests/instruments.*.test.ts`.

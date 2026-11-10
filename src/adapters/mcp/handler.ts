@@ -6,9 +6,11 @@ import { requirePermission, type Principal } from '../../application/authorizati
 import type { InstrumentService } from '../../application/instruments';
 import { instrumentIdSchema, instrumentSchema } from '../../domain/instruments';
 import { ApplicationError } from '../../application/errors';
+import type { PortfolioService } from '../../application/portfolio';
 
 export interface ProtectedMcpDependencies {
   service: InstrumentService;
+  portfolio?: PortfolioService;
   authenticate(request: Request): Promise<Principal>;
   challenge(status: 401 | 403): string;
   metadata?: { resource: string; authorization_servers: string[]; scopes_supported: string[]; bearer_methods_supported: string[] };
@@ -18,6 +20,7 @@ export interface ProtectedMcpDependencies {
 interface FinancialContext {
   principal: Principal;
   service: InstrumentService;
+  portfolio?: PortfolioService;
   challenge(status: 401 | 403): string;
   oauthScopes?: readonly string[];
 }
@@ -57,6 +60,15 @@ export async function handleMcp(request: Request, financial?: FinancialContext):
       annotations, _meta: { securitySchemes } }, input => guarded(() => financial.service.list(financial.principal, input)));
     server.registerTool('get_instrument', { description: 'Read authorized instrument metadata.', inputSchema: z.object({ id: instrumentIdSchema }).strict(), outputSchema: instrumentSchema,
       annotations, _meta: { securitySchemes } }, input => guarded(() => financial.service.get(financial.principal, input.id)));
+    if (financial.portfolio && financial.principal.permissions.includes('portfolio:read')) {
+      const portfolio = financial.portfolio;
+      server.registerTool('get_opening_state', { description: 'Read a declared opening-state revision. Corrections are not trades.',
+        inputSchema: z.object({ revision: z.number().int().positive().max(Number.MAX_SAFE_INTEGER).optional() }).strict(),
+        annotations, _meta: { securitySchemes } }, input => guarded(() => portfolio.get(financial.principal, input.revision)));
+      server.registerTool('get_positions', { description: 'Read opening positions and declared PRU; no reconstructed historical cost or performance.',
+        inputSchema: z.object({ limit: z.number().int().min(1).max(100).optional(), cursor: z.string().max(256).optional() }).strict(),
+        annotations, _meta: { securitySchemes } }, input => guarded(() => portfolio.positions(financial.principal, input)));
+    }
   }
   server.registerTool('ping', {
     description: 'Return public diagnostic information. No portfolio data is available.',

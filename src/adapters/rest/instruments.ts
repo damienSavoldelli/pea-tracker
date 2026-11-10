@@ -9,14 +9,14 @@ export interface InstrumentHttpDependencies {
   challenge?: (status: 401 | 403, request: Request) => string;
 }
 
-const titles: Record<ErrorStatus, string> = {
+export const titles: Record<ErrorStatus, string> = {
   400: 'Bad Request', 401: 'Unauthorized', 403: 'Forbidden', 404: 'Not Found',
   405: 'Method Not Allowed', 406: 'Not Acceptable', 409: 'Conflict', 412: 'Precondition Failed',
   413: 'Content Too Large', 415: 'Unsupported Media Type', 422: 'Unprocessable Content',
   428: 'Precondition Required', 429: 'Too Many Requests', 500: 'Internal Server Error', 503: 'Service Unavailable',
 };
 
-function acceptsJson(value: string | null) {
+export function acceptsJson(value: string | null) {
   if (value === null) return true;
   let specificity = -1;
   let quality = 0;
@@ -34,11 +34,10 @@ function acceptsJson(value: string | null) {
   return quality > 0;
 }
 
-async function readJson(request: Request): Promise<unknown> {
+export async function readJson(request: Request, maximum = 16 * 1024): Promise<unknown> {
   if (request.headers.get('Content-Type')?.split(';')[0]?.trim().toLowerCase() !== 'application/json') {
     throw new ApplicationError(415, 'unsupported_media_type');
   }
-  const maximum = 16 * 1024;
   const length = request.headers.get('Content-Length');
   if (length && Number(length) > maximum) throw new ApplicationError(413, 'body_too_large');
   const reader = request.body?.getReader();

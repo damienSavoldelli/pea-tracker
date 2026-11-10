@@ -4,8 +4,9 @@ import { join } from 'node:path';
 
 // Test-owned real process boundary. No credentials, remote CLI flags or generic
 // executable/config arguments can be supplied by callers.
-export async function startD1ServerProcess(directory) {
-  const child = spawn(process.execPath, [join(projectRoot, 'scripts/dev-instruments-d1.mjs'), '--principal', 'admin', '--port', '0', '--state', directory], {
+export async function startD1ServerProcess(directory, portfolio = false) {
+  const child = spawn(process.execPath, [join(projectRoot, 'scripts/dev-instruments-d1.mjs'), '--principal', 'admin', '--port', '0', '--state', directory,
+    ...(portfolio ? ['--portfolio', 'true'] : [])], {
     cwd: projectRoot, detached: true, env: { ...process.env, WRANGLER_SEND_METRICS: 'false' }, stdio: ['ignore', 'pipe', 'pipe'],
   });
   let exited = false;

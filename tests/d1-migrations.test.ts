@@ -4,7 +4,7 @@ import { migrationFixture } from './helpers/d1-migration-fixtures.mjs';
 
 const originalId = '10000000-0000-4000-8000-000000000001';
 const time = '2026-11-08T10:00:00.000Z';
-const migrationNames = ['0001_instruments.sql', '0002_instrument_create_outcomes.sql'];
+const migrationNames = ['0001_instruments.sql', '0002_instrument_create_outcomes.sql', '0003_opening_portfolio.sql'];
 
 async function seedOriginal(db: D1Database) {
   await db.prepare(`INSERT INTO instruments
@@ -22,7 +22,7 @@ describe('Wrangler local versioned migrations', () => {
   let local: LocalD1 | undefined;
   afterEach(async () => { await local?.cleanup(); local = undefined; });
 
-  it('applies both source versions and does not reapply them', async () => {
+  it('applies all source versions and does not reapply them', async () => {
     local = await openLocalD1();
     expect(await applied(local.db)).toEqual(migrationNames);
     await seedOriginal(local.db);
@@ -64,5 +64,22 @@ describe('Wrangler local versioned migrations', () => {
     expect(await applied(local.db)).toEqual(migrationNames);
     expect(await local.db.prepare("SELECT count(*) AS count FROM sqlite_master WHERE name = 'migration_must_rollback'").first('count')).toBe(0);
     expect(await local.db.prepare('SELECT name FROM instruments WHERE id = ?').bind(originalId).first('name')).toBe('Synthetic migration fixture');
+  }, 60000);
+
+  it('upgrades populated v2 catalog/outcomes to v3 without inventing an opening state', async () => {
+    local = await openLocalD1({ migrate: false });
+    const directory = local.directory;
+    await local.dispose();
+    const v2 = await migrationFixture(directory, 'v2');
+    await runLocalMigrations(directory, { migrationsDirectory: v2 });
+    local = await openLocalD1({ directory, migrate: false });
+    await seedOriginal(local.db);
+    await local.dispose();
+    await runLocalMigrations(directory);
+    local = await openLocalD1({ directory, migrate: false });
+    expect(await applied(local.db)).toEqual(migrationNames);
+    expect(await local.db.prepare('SELECT name FROM instruments WHERE id = ?').bind(originalId).first('name')).toBe('Synthetic migration fixture');
+    expect(await local.db.prepare('SELECT count(*) n FROM opening_revisions').first('n')).toBe(0);
+    expect((await local.db.prepare('PRAGMA foreign_key_check').all()).results).toEqual([]);
   }, 60000);
 });

@@ -33,7 +33,8 @@ export async function startLocalInstrumentServer(options = {}) {
       if (!incoming.url?.startsWith('/') || incoming.url.startsWith('//')) { problem(400, 'invalid_request'); return; }
       const chunks = [];
       let size = 0;
-      const maximum = incoming.url.startsWith('/api/v1/instruments') ? 16 * 1024 : 64 * 1024;
+      const maximum = incoming.url.startsWith('/api/v1/instruments') ? 16 * 1024
+        : incoming.url.startsWith('/api/v1/portfolio/') ? 128 * 1024 : 64 * 1024;
       for await (const chunk of incoming) {
         const bytes = chunk;
         size += bytes.byteLength;

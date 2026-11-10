@@ -3,7 +3,7 @@
   "info": {
     "title": "PEA Tracker REST API",
     "version": "0.1.0",
-    "description": "Financial Instruments REST contract. Default Worker exposes health and MCP ping only. Instruments are implemented for isolated synthetic apps and the explicit loopback-only HTTP harness; no public instrument exposure or selected OAuth provider."
+    "description": "Financial Instruments REST contract. Default Worker exposes health and MCP ping only. Instruments are implemented for isolated synthetic apps and the explicit loopback-only HTTP harness; no public instrument exposure or selected OAuth provider. Dated opening-state revisions and position reads are implemented only in explicitly injected local synthetic compositions; Access authentication and deployed entrypoints are unchanged."
   },
   "servers": [
     {
@@ -16,12 +16,15 @@
     },
     {
       "name": "Instruments"
+    },
+    {
+      "name": "Portfolio"
     }
   ],
   "x-contract-status": "implemented-synthetic-local-only",
   "x-auth-policy": "Private endpoints require approved authentication, verified owner/API audience and operation-specific permissions before any public exposure. Default app has diagnostics only; synthetic principals are injected in tests, never selected by HTTP headers.",
   "x-first-adapter": "Memory per isolated application instance, plus native D1 in explicitly isolated local synthetic tooling. D1 atomically persists original create outcomes and optimistic versions across tested local process restarts; no remote recovery or production authentication evidence. The public Worker remains diagnostic-only.",
-  "x-http-policy": "Instrument responses are no-store/nosniff without permissive CORS. Authenticate/authorize before repository access. Mutation body limit 16 KiB. Unknown/repeated query parameters rejected. Undeclared methods on mounted instrument routes return authenticated 405 with Allow; HEAD is explicitly rejected rather than inherited from GET. Errors use application/problem+json; safe request IDs only.",
+  "x-http-policy": "Instrument responses are no-store/nosniff without permissive CORS. Authenticate/authorize before repository access. Mutation body limit 16 KiB. Unknown/repeated query parameters rejected. Undeclared methods on mounted instrument routes return authenticated 405 with Allow; HEAD is explicitly rejected rather than inherited from GET. Errors use application/problem+json; safe request IDs only. Portfolio opening-state requests are separately bounded at 128 KiB; its POST always requires If-Match (0 for the first revision).",
   "paths": {
     "/health": {
       "get": {
@@ -465,6 +468,349 @@
           }
         }
       }
+    },
+    "/portfolio/opening-state": {
+      "get": {
+        "operationId": "getOpeningState",
+        "tags": [
+          "Portfolio"
+        ],
+        "x-status": "implemented-synthetic-local-only",
+        "x-required-capability": "portfolio:read",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized declared opening state / positions; no historical-cost or performance calculation.",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^\"[1-9][0-9]*\"$"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpeningState"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          },
+          "406": {
+            "$ref": "#/components/responses/NotAcceptable"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          }
+        }
+      },
+      "post": {
+        "operationId": "appendOpeningState",
+        "tags": [
+          "Portfolio"
+        ],
+        "x-status": "implemented-synthetic-local-only",
+        "x-required-capability": "portfolio:admin",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Immutable revision created or original idempotent outcome replayed.",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^\"[1-9][0-9]*\"$"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store"
+                }
+              },
+              "Location": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^/api/v1/portfolio/opening-state/revisions/[1-9][0-9]*$"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpeningState"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          },
+          "406": {
+            "$ref": "#/components/responses/NotAcceptable"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "412": {
+            "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "413": {
+            "$ref": "#/components/responses/ContentTooLarge"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableContent"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          }
+        },
+        "description": "Singleton complete immutable opening state; If-Match 0 for initial creation, current revision for correction. Corrections preserve effective_at and require correction_reason; never a trade. Durable subject/operation/key canonical replay precedes CAS. No automatic grant mapping from existing OAuth/Access identities.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "If-Match",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\"(?:0|[1-9][0-9]*)\"$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "128 KiB maximum. Unknown fields, duplicate instruments, unsupported signs/currencies, excess precision, future date and missing instrument references rejected.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpeningStateInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/portfolio/opening-state/revisions/{revision}": {
+      "get": {
+        "operationId": "getOpeningRevision",
+        "tags": [
+          "Portfolio"
+        ],
+        "x-status": "implemented-synthetic-local-only",
+        "x-required-capability": "portfolio:read",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized declared opening state / positions; no historical-cost or performance calculation.",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^\"[1-9][0-9]*\"$"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpeningState"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          },
+          "406": {
+            "$ref": "#/components/responses/NotAcceptable"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "revision",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          }
+        ]
+      }
+    },
+    "/portfolio/positions": {
+      "get": {
+        "operationId": "getPositions",
+        "tags": [
+          "Portfolio"
+        ],
+        "x-status": "implemented-synthetic-local-only",
+        "x-required-capability": "portfolio:read",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized declared opening state / positions; no historical-cost or performance calculation.",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^\"[1-9][0-9]*\"$"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PositionPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          },
+          "406": {
+            "$ref": "#/components/responses/NotAcceptable"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          }
+        },
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          }
+        ],
+        "description": "Current declared opening positions only. Cursor pins an immutable revision across corrections. No ledger, valuation, inferred total cost or historical performance; no arbitrary as_of support. Unknown/repeated query parameters rejected."
+      }
     }
   },
   "components": {
@@ -822,6 +1168,293 @@
             "type": "array",
             "items": {
               "const": "header"
+            }
+          }
+        }
+      },
+      "OpeningProvenance": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source",
+          "reference"
+        ],
+        "properties": {
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]+$"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512,
+                "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]+$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "OpeningPosition": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "instrument_id",
+          "quantity",
+          "declared_pru",
+          "currency",
+          "provenance"
+        ],
+        "properties": {
+          "instrument_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "quantity": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^[0-9]+(?:\\.[0-9]{1,12})?$",
+            "description": "Exact decimal, max 30 significant digits; positive quantity. Excess input scale is rejected before zero normalization.",
+            "not": {
+              "pattern": "^0+(?:\\.0+)?$"
+            }
+          },
+          "declared_pru": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^[0-9]+(?:\\.[0-9]{1,12})?$",
+            "description": "Authoritative declared unit PRU from the broker, max 30 significant digits/12 decimal places, nonnegative. Not reconstructed historical total cost."
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/OpeningProvenance"
+          }
+        }
+      },
+      "OpeningStateInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "effective_at",
+          "provenance",
+          "positions",
+          "cash",
+          "correction_reason"
+        ],
+        "properties": {
+          "effective_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$",
+            "description": "UTC reference time inherited by every position; cannot be future or changed by a correction."
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/OpeningProvenance"
+          },
+          "positions": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/OpeningPosition"
+            },
+            "description": "Complete replacement set, unique instrument IDs, canonical UUID ordering in responses; zero quantity lines omitted."
+          },
+          "cash": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "currency",
+                  "amount"
+                ],
+                "properties": {
+                  "currency": {
+                    "const": "EUR"
+                  },
+                  "amount": {
+                    "type": "string",
+                    "maxLength": 64,
+                    "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$",
+                    "description": "Nonnegative declared cash, max 30 significant digits; no FX."
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null means unknown, not zero."
+          },
+          "correction_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512,
+                "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]+$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null on initial creation; required nonempty reason on later complete immutable revisions."
+          }
+        }
+      },
+      "OpeningState": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "effective_at",
+          "provenance",
+          "positions",
+          "cash",
+          "correction_reason",
+          "id",
+          "revision",
+          "recorded_at"
+        ],
+        "properties": {
+          "effective_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$",
+            "description": "UTC reference time inherited by every position; cannot be future or changed by a correction."
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/OpeningProvenance"
+          },
+          "positions": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/OpeningPosition"
+            },
+            "description": "Complete replacement set, unique instrument IDs, canonical UUID ordering in responses; zero quantity lines omitted."
+          },
+          "cash": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "currency",
+                  "amount"
+                ],
+                "properties": {
+                  "currency": {
+                    "const": "EUR"
+                  },
+                  "amount": {
+                    "type": "string",
+                    "maxLength": 64,
+                    "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$",
+                    "description": "Nonnegative declared cash, max 30 significant digits; no FX."
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null means unknown, not zero."
+          },
+          "correction_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512,
+                "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]+$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null on initial creation; required nonempty reason on later complete immutable revisions."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "recorded_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PositionPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "revision",
+          "effective_at",
+          "data",
+          "page",
+          "history"
+        ],
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "effective_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpeningPosition"
+            }
+          },
+          "page": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "next_cursor"
+            ],
+            "properties": {
+              "next_cursor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "history": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "performance_available",
+              "reason"
+            ],
+            "properties": {
+              "performance_available": {
+                "const": false
+              },
+              "reason": {
+                "const": "opening_state_only"
+              }
             }
           }
         }

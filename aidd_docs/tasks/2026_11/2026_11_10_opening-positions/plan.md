@@ -1,6 +1,6 @@
 ---
 objective: "Record dated synthetic opening state and expose positions through shared REST/MCP services with local D1 persistence."
-status: blocked
+status: implemented
 ---
 
 # Dated opening state → positions
@@ -12,22 +12,23 @@ Owner authorized local synthetic implementation on 2026-11-10, following the
 This is independent of the remaining OAuth PoC tests. No authentication, deployed
 Worker, cloud configuration or existing repository interface is changed.
 
-## Required decisions — requested, not approved
+## Owner-approved decisions — 2026-11-10
 
-The PRD explicitly leaves opening-state/correction conventions open. No detailed
-opening-state REST/OpenAPI contract or portfolio repository exists in the codebase;
-the older resource table is a proposal, not an approved contract.
+These decisions resolve the opening-state questions in the approved PRD for this
+bounded slice; they do not settle later fee, ledger or performance conventions.
 
-1. Authoritative opening cost input: supplied total cost basis with PRU calculation
-   deferred, or supplied unit PRU with total-cost calculation deferred. Do not infer
-   either from the other or invent fee treatment.
-2. Correction model: recommended complete immutable replacement revision retaining
-   the original effective timestamp and prior revisions, or separately specified
-   line-level corrections. No silent overwrite or fabricated historical trade.
+1. Bourse Direct's explicitly supplied unit PRU is authoritative. Retain quantity,
+   declared PRU, currency, provenance and reference timestamp as exact values.
+   Never reconstruct historical total cost from rounded PRU or invent fees.
+   Declared and calculated values must remain distinct. This slice calculates none.
+2. Corrections append complete immutable revisions preserving history, effective
+   timestamp and traceability. A correction is not a stock-market transaction.
+   A later line-level UI may assemble a complete revision; no financial PATCH or
+   silent overwrite is introduced.
 
-Pending these choices, do not freeze financial DTOs, migrations or position semantics.
-There is no runtime portfolio endpoint yet. This blocker concerns these contracts,
-not the approved independent decimal representation work below.
+Implementation is authorized with synthetic data and local D1 only. The detailed
+[slice contract](contract.md) records supported bounds and endpoints. No provider,
+scope mapping or deployed Worker is changed; open OAuth checks stay separate.
 
 ## Increment 1 — exact decimal boundary
 
@@ -50,7 +51,10 @@ checks. The full suite used normal sandbox escalation for local ports/logs. No
 Docker rerun, OpenAPI validation or Worker build was needed for this unmounted
 domain-only change. No new dependency, migration or deployed composition exists.
 
-## Remaining implementation after decisions
+## Increment 2 — opening state and position reads
+
+Implemented and validated locally on 2026-11-10. Each task below is done for the
+bounded synthetic contract; it grants no hosted exposure or private-data release.
 
 1. Record the decisions and bounded DTOs/OpenAPI: opening-state administration/read
    and current position reads, effective versus recorded timestamps, provenance,
@@ -72,3 +76,30 @@ Quotes, valuation, ledger accounting and return methodologies are subsequent sli
 No historical performance may be inferred from the opening state. All data stays
 synthetic; real-data security/correctness/recovery gates remain mandatory.
 No staging, commit, push, deployment or cloud provisioning is authorized here.
+
+## Implementation evidence
+
+| Check | Observed final result |
+| --- | --- |
+| Host TypeScript + full Vitest | Pass; 344 tests across 23 suites |
+| Docker existing-image check | Pass; strict TypeScript + same 344 tests; no image build, pull or dependency installation |
+| OpenAPI structure/data schemas | Pass in contract suite; representative real HTTP responses validated for Memory and D1 |
+| Repository/service parity | Pass; declared decimals, full corrections/history, version-pinned pagination, permissions, idempotency and concurrent initial/correction writes |
+| Native D1 integrity/atomicity | Pass; SQL/FK failure rolls back revisions, positions and outcomes; UPDATE/DELETE denied; no key consumed on conflict |
+| Restart persistence | Pass; both proxy reopen and independent Node/workerd process restart preserve original outcomes and complete revisions |
+| Migrations | Pass; fresh/repeat, populated v1/v2 upgrade, failed migration rollback; no opening state fabricated from catalog |
+| Real REST/MCP | Pass; loopback-only, official MCP SDK, shared results and no portfolio write tool; default routes absent |
+| Worker dry-runs | DEV/production pass at 1499.94 KiB (gzip 260.59); Access PoC passes at 1552.79 KiB (gzip 274.76); no bindings/private configuration loaded |
+
+The first regression pass exposed the old local startup guard's hard-coded two
+migrations. Updating that explicit allowlist to the three reviewed migrations
+resolved the failure; the final host/Docker passes include the original restart
+test. No auth control was weakened. The optional local `--portfolio true` fixture
+is outside deployment source and uses only synthetic startup principals. Dockerfile
+and Compose include the new migration; a fresh Docker image build was not run.
+
+Limits: 100 positions, EUR nonnegative cash or explicit unknown, no shorts/FX,
+no transactions/valuation/historical-cost derivation. Existing OAuth grants are not
+automatically extended to portfolio permissions. Hosted OAuth closure, remote D1,
+backup/restore, production CPU and real-data gates remain separate and unverified.
+Fee/ledger/valuation conventions remain open for subsequent dependent slices.

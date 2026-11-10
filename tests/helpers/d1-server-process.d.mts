@@ -1,1 +1,1 @@
-export function startD1ServerProcess(directory: string): Promise<{ url: string; stop(): Promise<void> }>;
+export function startD1ServerProcess(directory: string, portfolio?: boolean): Promise<{ url: string; stop(): Promise<void> }>;
