@@ -1,0 +1,68 @@
+# Scoped local tools only; never allow arbitrary node/npm/script execution.
+# Tests/builds execute repository code: review that code and config first.
+root = "/Users/damiensavodelli/Documents/www-dev/pea-tracker"
+
+# Vitest ignores filters after --. Pin existing targets before the marker;
+# appended options cannot enable API/config/execArgv/snapshot changes.
+test_files = [
+    "tests/auth.access.test.ts", "tests/auth.http.test.ts",
+    "tests/auth.mcp.test.ts", "tests/auth.poc.test.ts",
+    "tests/auth.policy.test.ts", "tests/auth.verifier.test.ts",
+    "tests/auth.workerd.test.ts", "tests/d1-local-runtime.test.ts",
+    "tests/d1-migrations.test.ts", "tests/instruments.contract.test.ts",
+    "tests/instruments.d1-integrity.test.ts", "tests/instruments.d1-restart.test.ts",
+    "tests/instruments.d1.test.ts", "tests/instruments.http.test.ts",
+    "tests/instruments.network.test.ts", "tests/instruments.regression.test.ts",
+    "tests/instruments.repository.test.ts", "tests/instruments.service.test.ts",
+    "tests/worker.test.ts",
+]
+for executable in [
+    ["node", "node_modules/vitest/vitest.mjs"],
+    ["npx", "--no-install", "vitest"],
+    ["vitest"],
+]:
+    prefix_rule(
+        pattern = executable + ["run", "--"],
+        decision = "allow",
+        justification = "Local Vitest full suite with options terminated by --",
+    )
+    prefix_rule(
+        pattern = executable + ["run", test_files, "--"],
+        decision = "allow",
+        justification = "Local Vitest existing test file; options terminated by --",
+    )
+    prefix_rule(
+        pattern = executable + ["run", test_files, test_files, "--"],
+        decision = "allow",
+        justification = "Local Vitest pair of existing test files; options terminated by --",
+    )
+
+# TypeScript does not accept an end-of-options marker. This narrow executable
+# prefix permits trailing compiler options; it is not a no-output guarantee.
+for executable in [
+    ["node", "node_modules/typescript/bin/tsc"],
+    ["npx", "--no-install", "tsc"],
+    ["tsc"],
+]:
+    prefix_rule(
+        pattern = executable + ["--noEmit"],
+        decision = "allow",
+        justification = "Local TypeScript check; no build/clean or arbitrary Node prefix",
+    )
+
+# Vite is currently transitive through Vitest; no frontend app is configured.
+# Keep build output local and disable automatic output-directory deletion.
+for executable in [
+    ["node", "node_modules/vite/bin/vite.js"],
+    ["npx", "--no-install", "vite"],
+    ["vite"],
+]:
+    for command in [
+        ["build", root, "--outDir", root + "/dist/vite", "--emptyOutDir", "false", "--"],
+        [root, "--host", "127.0.0.1", "--strictPort", "--"],
+    ]:
+        prefix_rule(
+            pattern = executable + command,
+            decision = "allow",
+            justification = "Fixed local Vite build or loopback dev server; options terminated by --",
+        )

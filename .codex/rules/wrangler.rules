@@ -1,0 +1,36 @@
+# Reviewed command templates only. The final -- is mandatory: prefix rules
+# otherwise allow trailing options to override --env, --local or --dry-run.
+# Use from this repository with the installed Wrangler. Recheck after upgrades
+# or changes to the referenced configurations. No task/deployment authorization
+# is granted; AGENTS.md still applies.
+root = "/Users/damiensavodelli/Documents/www-dev/pea-tracker"
+config = root + "/wrangler.jsonc"
+local_d1 = root + "/tests/fixtures/wrangler.d1-local.jsonc"
+poc = root + "/tests/fixtures/wrangler.oauth-poc.jsonc"
+
+commands = [
+    ["--version", "--"],
+    ["--help", "--"],
+    ["dev", root + "/src/index.ts", "--config", config, "--env", "dev", "--local", "--ip", "127.0.0.1", "--"],
+    ["deploy", root + "/src/index.ts", "--config", config, "--env", "dev", "--dry-run", "--outdir", root + "/dist/diagnostic-dev", "--"],
+    ["deploy", root + "/src/entrypoints/access-poc.ts", "--config", poc, "--dry-run", "--outdir", root + "/dist/oauth-poc", "--"],
+    # Fixed dev Worker only. Provisioning is explicitly disabled.
+    ["deploy", "--env", "dev", "--config", config, "--name", "pea-tracker-dev", "--no-experimental-provision", "--no-experimental-auto-create", "--"],
+    # Local synthetic database only. Arbitrary SQL/file execution is NOT allowed.
+    ["d1", "migrations", "list", "pea-tracker-instruments-local", "--config", local_d1, "--local", "--"],
+    ["d1", "migrations", "apply", "pea-tracker-instruments-local", "--config", local_d1, "--local", "--"],
+    ["d1", "execute", "pea-tracker-instruments-local", "--config", local_d1, "--local", "--command", "SELECT 1 AS ok", "--"],
+]
+
+for executable in [
+    ["node", "node_modules/wrangler/bin/wrangler.js"],
+    ["npx", "wrangler"],
+    ["npx", "--no-install", "wrangler"],
+    ["wrangler"],
+]:
+    for command in commands:
+        prefix_rule(
+            pattern = executable + command,
+            decision = "allow",
+            justification = "Fixed reviewed Wrangler options terminated by --; explicit task authorization remains required",
+        )
