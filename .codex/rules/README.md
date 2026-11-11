@@ -97,3 +97,59 @@ currently exists, so permission does not establish a working frontend build.
 Vite production *builds* are local artifacts, not production deployments.
 Existing Wrangler and Git restrictions remain in force. Sandbox/host policy may
 still prompt even when these files return `allow`.
+
+## Python collector
+
+`python.rules` permits only reviewed collector checks and synthetic qualification:
+
+```sh
+# From the repository root
+collector/.venv/bin/python -m pea_collector.checks --
+collector/.venv/bin/python -m pea_collector.qualify --offline --
+# From collector/
+.venv/bin/python -m pea_collector.checks --
+.venv/bin/python -m pea_collector.qualify --offline --
+```
+
+The corresponding `./`, absolute interpreter and existing
+`../collector/.venv/bin/python` forms are included. The package must already be
+installed in this local environment. Relative paths are meaningful only from the
+documented directory; prefix rules cannot verify the working directory, environment
+or executable/module contents. Recheck after changing either launcher.
+
+Direct `python -m pytest collector/tests` remains prompted: pytest accepts trailing
+options and additional test paths, **including after `--`**. A prefix allow cannot
+restrict it to this test suite. `pea_collector.checks` instead rejects every extra
+argument, clears inherited pytest options/plugins, disables plugin autoload, and
+selects the collector test directory itself. These tests use synthetic data and
+may open loopback fixtures; reviewed repository test code still runs outside the
+sandbox. This is not permission to run unreviewed tests or transmit secrets.
+
+Qualification defaults to synthetic/offline behavior. The allowed template pins
+`--offline --`; appended arguments are rejected before any provider request.
+`qualify --live` explicitly remains prompted. General Python, pip, uv installation,
+the ingestion CLI, monitor, shell commands and live network operations receive no
+allow rule. Existing Git, Wrangler, deployment and functional-approval policies
+remain unchanged. No global rules or trust settings are modified.
+
+Validate the entire project policy without executing the candidate command:
+
+```sh
+codex execpolicy check --rules .codex/rules/git.rules --rules .codex/rules/checks.rules --rules .codex/rules/wrangler.rules --rules .codex/rules/python.rules -- collector/.venv/bin/python -m pea_collector.checks --
+codex execpolicy check --rules .codex/rules/git.rules --rules .codex/rules/checks.rules --rules .codex/rules/wrangler.rules --rules .codex/rules/python.rules -- collector/.venv/bin/python -m pea_collector.qualify --live
+```
+
+An appended argument may still match an `allow` prefix, but both approved modules
+reject it before test selection or I/O. This parser guarantee is essential; the
+rules themselves cannot enforce exact command length. Explicit `prompt` rules for
+raw pytest and `--live` take precedence over broader saved `allow` rules when the
+project layer is loaded. A check with these files does not prove that the current
+Codex session has loaded them; restart/trust and host restrictions still apply.
+
+Validation on 2026-11-11: 42 command cases with all four project rules loaded
+together matched expectations: 14 `allow`, 15 `prompt`, 13 no-match. Coverage
+includes six interpreter paths, direct pytest, live qualification, extra arguments,
+general Python/pip and ingestion commands. Actual launcher checks also reject
+extra paths/options with exit code 2 before tests/network; offline qualification
+passes from both the repository root and `collector/`. No-match is not a forbid
+rule: other active policies and sandbox controls still apply.

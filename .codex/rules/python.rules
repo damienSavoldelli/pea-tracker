@@ -1,0 +1,33 @@
+# Reviewed collector entrypoints only. Do not allow general Python or raw pytest:
+# pytest accepts additional executable test paths even after the -- marker.
+root = "/Users/damiensavodelli/Documents/www-dev/pea-tracker"
+python_paths = [
+    "collector/.venv/bin/python",
+    "./collector/.venv/bin/python",
+    root + "/collector/.venv/bin/python",
+    ".venv/bin/python",
+    "./.venv/bin/python",
+    "../collector/.venv/bin/python",
+]
+
+for executable in python_paths:
+    for command in [
+        ["-m", "pea_collector.checks", "--"],
+        ["-m", "pea_collector.qualify", "--offline", "--"],
+    ]:
+        prefix_rule(
+            pattern = [executable] + command,
+            decision = "allow",
+            justification = "Reviewed fixed collector checks or synthetic offline qualification; strict parser rejects trailing arguments",
+        )
+
+    prefix_rule(
+        pattern = [executable, "-m", "pytest"],
+        decision = "prompt",
+        justification = "Raw pytest can load extra tests, plugins and configurations; use the fixed collector checks entrypoint",
+    )
+    prefix_rule(
+        pattern = [executable, "-m", "pea_collector.qualify", "--live"],
+        decision = "prompt",
+        justification = "Live qualification performs real Yahoo requests and requires explicit task and system approval",
+    )
