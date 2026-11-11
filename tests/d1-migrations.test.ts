@@ -1,10 +1,12 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { openLocalD1, runLocalMigrations, type LocalD1 } from './helpers/d1-local.mjs';
 import { migrationFixture } from './helpers/d1-migration-fixtures.mjs';
+import { D1PortfolioRepository } from '../src/adapters/d1/portfolio';
+import { openingStateSchema } from '../src/domain/portfolio';
 
 const originalId = '10000000-0000-4000-8000-000000000001';
 const time = '2026-11-08T10:00:00.000Z';
-const migrationNames = ['0001_instruments.sql', '0002_instrument_create_outcomes.sql', '0003_opening_portfolio.sql'];
+const migrationNames = ['0001_instruments.sql', '0002_instrument_create_outcomes.sql', '0003_opening_portfolio.sql', '0004_quotations.sql'];
 
 async function seedOriginal(db: D1Database) {
   await db.prepare(`INSERT INTO instruments
@@ -66,7 +68,7 @@ describe('Wrangler local versioned migrations', () => {
     expect(await local.db.prepare('SELECT name FROM instruments WHERE id = ?').bind(originalId).first('name')).toBe('Synthetic migration fixture');
   }, 60000);
 
-  it('upgrades populated v2 catalog/outcomes to v3 without inventing an opening state', async () => {
+  it('upgrades populated v2 catalog/outcomes to current schema without inventing an opening state', async () => {
     local = await openLocalD1({ migrate: false });
     const directory = local.directory;
     await local.dispose();
@@ -80,6 +82,27 @@ describe('Wrangler local versioned migrations', () => {
     expect(await applied(local.db)).toEqual(migrationNames);
     expect(await local.db.prepare('SELECT name FROM instruments WHERE id = ?').bind(originalId).first('name')).toBe('Synthetic migration fixture');
     expect(await local.db.prepare('SELECT count(*) n FROM opening_revisions').first('n')).toBe(0);
+    expect((await local.db.prepare('PRAGMA foreign_key_check').all()).results).toEqual([]);
+  }, 60000);
+  it('upgrades populated v3 opening state to v4 without altering declarations or inventing prices', async () => {
+    local = await openLocalD1({ migrate: false });
+    const directory = local.directory;
+    await local.dispose();
+    const v3 = await migrationFixture(directory, 'v3');
+    await runLocalMigrations(directory, { migrationsDirectory: v3 });
+    local = await openLocalD1({ directory, migrate: false });
+    await seedOriginal(local.db);
+    const state = openingStateSchema.parse({ id: '00000000-0000-4000-8000-000000000001', revision: 1,
+      effective_at: time, recorded_at: time, correction_reason: null, cash: null,
+      provenance: { source: 'Synthetic v3 migration', reference: null },
+      positions: [{ instrument_id: originalId, quantity: '2', declared_pru: '3.12', currency: 'EUR', provenance: { source: 'Synthetic v3 migration', reference: null } }] });
+    await new D1PortfolioRepository(local.db).append(state, 0, { subject: 'synthetic-migration-owner', key: 'opening', canonicalInput: 'synthetic-v3-canonical' });
+    await local.dispose();
+    await runLocalMigrations(directory);
+    local = await openLocalD1({ directory, migrate: false });
+    expect(await applied(local.db)).toEqual(migrationNames);
+    expect(await new D1PortfolioRepository(local.db).get()).toEqual(state);
+    expect(await local.db.prepare('SELECT count(*) n FROM quotation_observations').first('n')).toBe(0);
     expect((await local.db.prepare('PRAGMA foreign_key_check').all()).results).toEqual([]);
   }, 60000);
 });

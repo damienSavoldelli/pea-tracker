@@ -34,7 +34,7 @@ export async function startLocalInstrumentServer(options = {}) {
       const chunks = [];
       let size = 0;
       const maximum = incoming.url.startsWith('/api/v1/instruments') ? 16 * 1024
-        : incoming.url.startsWith('/api/v1/portfolio/') ? 128 * 1024 : 64 * 1024;
+        : incoming.url.startsWith('/api/v1/portfolio/') || incoming.url.startsWith('/api/v1/quotation-batches') ? 128 * 1024 : 64 * 1024;
       for await (const chunk of incoming) {
         const bytes = chunk;
         size += bytes.byteLength;

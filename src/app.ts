@@ -5,8 +5,9 @@ import { authenticationFailure } from './adapters/auth/metadata';
 import { health } from './adapters/rest/health';
 import { instrumentRoutes, type InstrumentHttpDependencies } from './adapters/rest/instruments';
 import { portfolioRoutes, type PortfolioHttpDependencies } from './adapters/rest/portfolio';
+import { quotationRoutes, type QuotationHttpDependencies } from './adapters/rest/quotations';
 
-export function createApp(dependencies: { instruments?: InstrumentHttpDependencies; portfolio?: PortfolioHttpDependencies; mcp?: ProtectedMcpDependencies } = {}) {
+export function createApp(dependencies: { instruments?: InstrumentHttpDependencies; portfolio?: PortfolioHttpDependencies; quotations?: QuotationHttpDependencies; mcp?: ProtectedMcpDependencies } = {}) {
   const app = new Hono();
   app.use('*', async (context, next) => {
     await next();
@@ -27,7 +28,8 @@ export function createApp(dependencies: { instruments?: InstrumentHttpDependenci
         const principal = await protectedMcp.authenticate(context.req.raw);
         return await handleMcp(context.req.raw, { principal, service: protectedMcp.service, challenge: protectedMcp.challenge,
           ...(protectedMcp.oauthScopes ? { oauthScopes: protectedMcp.oauthScopes } : {}),
-          ...(protectedMcp.portfolio ? { portfolio: protectedMcp.portfolio } : {}) });
+          ...(protectedMcp.portfolio ? { portfolio: protectedMcp.portfolio } : {}),
+          ...(protectedMcp.quotations ? { quotations: protectedMcp.quotations } : {}) });
       } catch (error) { return authenticationFailure(error, protectedMcp.challenge); }
     });
   } else app.all('/mcp', context => handleMcp(context.req.raw));
@@ -36,6 +38,9 @@ export function createApp(dependencies: { instruments?: InstrumentHttpDependenci
   }
   if (dependencies.portfolio?.service && typeof dependencies.portfolio.authenticate === 'function') {
     app.route('/api/v1/portfolio', portfolioRoutes(dependencies.portfolio));
+  }
+  if (dependencies.quotations?.service && typeof dependencies.quotations.authenticate === 'function') {
+    app.route('/api/v1', quotationRoutes(dependencies.quotations));
   }
   app.onError(() => Response.json({ error: 'Internal server error' }, { status: 500 }));
   return app;

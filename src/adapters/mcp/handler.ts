@@ -7,10 +7,14 @@ import type { InstrumentService } from '../../application/instruments';
 import { instrumentIdSchema, instrumentSchema } from '../../domain/instruments';
 import { ApplicationError } from '../../application/errors';
 import type { PortfolioService } from '../../application/portfolio';
+import type { QuotationService } from '../../application/quotations';
+import { quotationHistoryQuerySchema } from '../../application/quotations';
+import { quotationSelectorSchema } from '../../domain/quotations';
 
 export interface ProtectedMcpDependencies {
   service: InstrumentService;
   portfolio?: PortfolioService;
+  quotations?: QuotationService;
   authenticate(request: Request): Promise<Principal>;
   challenge(status: 401 | 403): string;
   metadata?: { resource: string; authorization_servers: string[]; scopes_supported: string[]; bearer_methods_supported: string[] };
@@ -21,6 +25,7 @@ interface FinancialContext {
   principal: Principal;
   service: InstrumentService;
   portfolio?: PortfolioService;
+  quotations?: QuotationService;
   challenge(status: 401 | 403): string;
   oauthScopes?: readonly string[];
 }
@@ -60,6 +65,13 @@ export async function handleMcp(request: Request, financial?: FinancialContext):
       annotations, _meta: { securitySchemes } }, input => guarded(() => financial.service.list(financial.principal, input)));
     server.registerTool('get_instrument', { description: 'Read authorized instrument metadata.', inputSchema: z.object({ id: instrumentIdSchema }).strict(), outputSchema: instrumentSchema,
       annotations, _meta: { securitySchemes } }, input => guarded(() => financial.service.get(financial.principal, input.id)));
+    if (financial.quotations && financial.principal.permissions.includes('quotes:read')) {
+      const quotations = financial.quotations;
+      server.registerTool('get_quotation_status', { description: 'Read a declared price and explicit collection/market ages. No real-time guarantee.',
+        inputSchema: quotationSelectorSchema, annotations, _meta: { securitySchemes } }, input => guarded(() => quotations.status(financial.principal, input)));
+      server.registerTool('list_quotations', { description: 'Read bounded immutable provider observations, with market and fetch timestamps.',
+        inputSchema: quotationHistoryQuerySchema, annotations, _meta: { securitySchemes } }, input => guarded(() => quotations.history(financial.principal, input)));
+    }
     if (financial.portfolio && financial.principal.permissions.includes('portfolio:read')) {
       const portfolio = financial.portfolio;
       server.registerTool('get_opening_state', { description: 'Read a declared opening-state revision. Corrections are not trades.',

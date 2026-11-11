@@ -12,7 +12,7 @@ RUN npm ci --no-audit --no-fund
 COPY --chown=node:node tsconfig.json wrangler.jsonc ./
 COPY --chown=node:node src ./src
 COPY --chown=node:node tests ./tests
-COPY --chown=node:node migrations/0001_instruments.sql migrations/0002_instrument_create_outcomes.sql migrations/0003_opening_portfolio.sql ./migrations/
+COPY --chown=node:node migrations/0001_instruments.sql migrations/0002_instrument_create_outcomes.sql migrations/0003_opening_portfolio.sql migrations/0004_quotations.sql ./migrations/
 COPY --chown=node:node scripts/dev-instruments-d1.mjs ./scripts/dev-instruments-d1.mjs
 COPY --chown=node:node aidd_docs/api/openapi.json ./aidd_docs/api/openapi.json
 COPY --chown=node:node aidd_docs/api/schemas/openapi-3.1-2025-09-15.json ./aidd_docs/api/schemas/openapi-3.1-2025-09-15.json

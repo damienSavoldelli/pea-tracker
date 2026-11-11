@@ -3,7 +3,7 @@
   "info": {
     "title": "PEA Tracker REST API",
     "version": "0.1.0",
-    "description": "Financial Instruments REST contract. Default Worker exposes health and MCP ping only. Instruments are implemented for isolated synthetic apps and the explicit loopback-only HTTP harness; no public instrument exposure or selected OAuth provider. Dated opening-state revisions and position reads are implemented only in explicitly injected local synthetic compositions; Access authentication and deployed entrypoints are unchanged."
+    "description": "Financial Instruments REST contract. Default Worker exposes health and MCP ping only. Instruments are implemented for isolated synthetic apps and the explicit loopback-only HTTP harness; no public instrument exposure or selected OAuth provider. Dated opening-state revisions and position reads are implemented only in explicitly injected local synthetic compositions; Access authentication and deployed entrypoints are unchanged. Quotation provenance, immutable local ingestion and REST/MCP read capabilities are explicitly injected local synthetic features; no collector or valuation."
   },
   "servers": [
     {
@@ -19,6 +19,9 @@
     },
     {
       "name": "Portfolio"
+    },
+    {
+      "name": "Quotations"
     }
   ],
   "x-contract-status": "implemented-synthetic-local-only",
@@ -811,6 +814,338 @@
         ],
         "description": "Current declared opening positions only. Cursor pins an immutable revision across corrections. No ledger, valuation, inferred total cost or historical performance; no arbitrary as_of support. Unknown/repeated query parameters rejected."
       }
+    },
+    "/quotations": {
+      "get": {
+        "operationId": "listQuotations",
+        "tags": [
+          "Quotations"
+        ],
+        "x-status": "implemented-synthetic-local-only",
+        "x-required-capability": "quotes:read",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized synthetic/local quotation read with explicit provenance and freshness boundaries.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuotationPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          },
+          "406": {
+            "$ref": "#/components/responses/NotAcceptable"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          }
+        },
+        "parameters": [
+          {
+            "name": "instrument_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "provider",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9][a-z0-9_-]*$"
+            }
+          },
+          {
+            "name": "price_kind",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "enum": [
+                "last_trade",
+                "session_close"
+              ]
+            }
+          },
+          {
+            "name": "adjustment",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "const": "unadjusted"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "Z$"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "Z$"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            }
+          }
+        ],
+        "description": "Successful provider observations, inclusive market-time window <=366 days, ordered market_timestamp/fetched_at/id. Required full selector; cursor bound to normalized selector/window. No automatic corporate-action adjustment. Immutable observations, not a frozen multi-page snapshot under concurrent backfills."
+      }
+    },
+    "/quotation-status": {
+      "get": {
+        "operationId": "getQuotationStatus",
+        "tags": [
+          "Quotations"
+        ],
+        "x-status": "implemented-synthetic-local-only",
+        "x-required-capability": "quotes:read",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized synthetic/local quotation read with explicit provenance and freshness boundaries.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuotationStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          },
+          "406": {
+            "$ref": "#/components/responses/NotAcceptable"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          }
+        },
+        "parameters": [
+          {
+            "name": "instrument_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            }
+          },
+          {
+            "name": "provider",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9][a-z0-9_-]*$"
+            }
+          },
+          {
+            "name": "price_kind",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "enum": [
+                "last_trade",
+                "session_close"
+              ]
+            }
+          },
+          {
+            "name": "adjustment",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "const": "unadjusted"
+            }
+          }
+        ],
+        "description": "Explicit provider/kind/adjustment selector; no automatic feed selection. Failure retains last successful observation and successful fetch timestamp. Collection, market age and provider delay are distinct; no realtime guarantee. Market context is server-side, unknown by default."
+      }
+    },
+    "/quotation-batches": {
+      "post": {
+        "operationId": "ingestQuotations",
+        "tags": [
+          "Quotations"
+        ],
+        "x-status": "implemented-synthetic-local-only",
+        "x-required-capability": "quotes:ingest",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Accepted immutable batch, or original durable replay.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuotationBatchOutcome"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          },
+          "406": {
+            "$ref": "#/components/responses/NotAcceptable"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/ContentTooLarge"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableContent"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          }
+        },
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "128 KiB limit; all-or-nothing batch <=50 observations. Collector/provider/instrument grants are server-configured; admin/read do not imply ingestion. Conflict under selector/fetched_at fails atomically; exact duplicate observations reuse original IDs. No remote collector is installed.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuotationBatchInput"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1456,6 +1791,771 @@
                 "const": "opening_state_only"
               }
             }
+          }
+        }
+      },
+      "QuotationSelector": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "instrument_id",
+          "provider",
+          "price_kind",
+          "adjustment"
+        ],
+        "properties": {
+          "instrument_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "provider": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9][a-z0-9_-]*$"
+          },
+          "price_kind": {
+            "enum": [
+              "last_trade",
+              "session_close"
+            ]
+          },
+          "adjustment": {
+            "const": "unadjusted"
+          }
+        }
+      },
+      "QuotationObservationInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "instrument_id",
+          "provider",
+          "price_kind",
+          "adjustment",
+          "fetched_at",
+          "outcome",
+          "price",
+          "currency",
+          "price_unit",
+          "market_timestamp",
+          "session_date",
+          "provider_delay_seconds",
+          "error_code",
+          "provenance"
+        ],
+        "properties": {
+          "instrument_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "provider": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9][a-z0-9_-]*$"
+          },
+          "price_kind": {
+            "enum": [
+              "last_trade",
+              "session_close"
+            ]
+          },
+          "adjustment": {
+            "const": "unadjusted"
+          },
+          "fetched_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          },
+          "outcome": {
+            "enum": [
+              "success",
+              "unavailable"
+            ]
+          },
+          "price": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64,
+                "pattern": "^[0-9]+(?:\\.[0-9]{1,12})?$",
+                "not": {
+                  "pattern": "^0+(?:\\.0+)?$"
+                },
+                "description": "Positive exact decimal string; at most 30 significant digits and 12 fractional digits; no rounding, currency/unit conversion or float boundary."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Z]{3}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "price_unit": {
+            "anyOf": [
+              {
+                "enum": [
+                  "currency_unit",
+                  "hundredth_currency_unit"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "market_timestamp": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "Z$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "session_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "provider_delay_seconds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 86400
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "enum": [
+                  "provider_unavailable",
+                  "rate_limited",
+                  "invalid_provider_data"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/OpeningProvenance"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "outcome": {
+                  "const": "success"
+                }
+              },
+              "required": [
+                "outcome"
+              ]
+            },
+            "then": {
+              "properties": {
+                "price": {
+                  "type": "string",
+                  "maxLength": 64,
+                  "pattern": "^[0-9]+(?:\\.[0-9]{1,12})?$",
+                  "not": {
+                    "pattern": "^0+(?:\\.0+)?$"
+                  },
+                  "description": "Positive exact decimal string; at most 30 significant digits and 12 fractional digits; no rounding, currency/unit conversion or float boundary."
+                },
+                "currency": {
+                  "type": "string",
+                  "pattern": "^[A-Z]{3}$"
+                },
+                "price_unit": {
+                  "enum": [
+                    "currency_unit",
+                    "hundredth_currency_unit"
+                  ]
+                },
+                "market_timestamp": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "Z$"
+                },
+                "session_date": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "error_code": {
+                  "type": "null"
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "price": {
+                  "type": "null"
+                },
+                "currency": {
+                  "type": "null"
+                },
+                "price_unit": {
+                  "type": "null"
+                },
+                "market_timestamp": {
+                  "type": "null"
+                },
+                "session_date": {
+                  "type": "null"
+                },
+                "provider_delay_seconds": {
+                  "type": "null"
+                },
+                "error_code": {
+                  "enum": [
+                    "provider_unavailable",
+                    "rate_limited",
+                    "invalid_provider_data"
+                  ]
+                }
+              }
+            }
+          }
+        ],
+        "description": "Immutable provider declaration. market_timestamp <= fetched_at <= recorded_at. Required nulls on failure; no invented price. Currency and unit must match referenced instrument."
+      },
+      "QuotationObservation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "instrument_id",
+          "provider",
+          "price_kind",
+          "adjustment",
+          "fetched_at",
+          "outcome",
+          "price",
+          "currency",
+          "price_unit",
+          "market_timestamp",
+          "session_date",
+          "provider_delay_seconds",
+          "error_code",
+          "provenance",
+          "id",
+          "recorded_at",
+          "source_price",
+          "value_origin"
+        ],
+        "properties": {
+          "instrument_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "provider": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9][a-z0-9_-]*$"
+          },
+          "price_kind": {
+            "enum": [
+              "last_trade",
+              "session_close"
+            ]
+          },
+          "adjustment": {
+            "const": "unadjusted"
+          },
+          "fetched_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          },
+          "outcome": {
+            "enum": [
+              "success",
+              "unavailable"
+            ]
+          },
+          "price": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64,
+                "pattern": "^[0-9]+(?:\\.[0-9]{1,12})?$",
+                "not": {
+                  "pattern": "^0+(?:\\.0+)?$"
+                },
+                "description": "Positive exact decimal string; at most 30 significant digits and 12 fractional digits; no rounding, currency/unit conversion or float boundary."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Z]{3}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "price_unit": {
+            "anyOf": [
+              {
+                "enum": [
+                  "currency_unit",
+                  "hundredth_currency_unit"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "market_timestamp": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "Z$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "session_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "provider_delay_seconds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 86400
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "enum": [
+                  "provider_unavailable",
+                  "rate_limited",
+                  "invalid_provider_data"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/OpeningProvenance"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "recorded_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          },
+          "source_price": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64,
+                "pattern": "^[0-9]+(?:\\.[0-9]{1,12})?$",
+                "not": {
+                  "pattern": "^0+(?:\\.0+)?$"
+                },
+                "description": "Positive exact decimal string; at most 30 significant digits and 12 fractional digits; no rounding, currency/unit conversion or float boundary."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "value_origin": {
+            "const": "provider_declared"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "outcome": {
+                  "const": "success"
+                }
+              },
+              "required": [
+                "outcome"
+              ]
+            },
+            "then": {
+              "properties": {
+                "price": {
+                  "type": "string",
+                  "maxLength": 64,
+                  "pattern": "^[0-9]+(?:\\.[0-9]{1,12})?$",
+                  "not": {
+                    "pattern": "^0+(?:\\.0+)?$"
+                  },
+                  "description": "Positive exact decimal string; at most 30 significant digits and 12 fractional digits; no rounding, currency/unit conversion or float boundary."
+                },
+                "currency": {
+                  "type": "string",
+                  "pattern": "^[A-Z]{3}$"
+                },
+                "price_unit": {
+                  "enum": [
+                    "currency_unit",
+                    "hundredth_currency_unit"
+                  ]
+                },
+                "market_timestamp": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "Z$"
+                },
+                "session_date": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "error_code": {
+                  "type": "null"
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "price": {
+                  "type": "null"
+                },
+                "currency": {
+                  "type": "null"
+                },
+                "price_unit": {
+                  "type": "null"
+                },
+                "market_timestamp": {
+                  "type": "null"
+                },
+                "session_date": {
+                  "type": "null"
+                },
+                "provider_delay_seconds": {
+                  "type": "null"
+                },
+                "error_code": {
+                  "enum": [
+                    "provider_unavailable",
+                    "rate_limited",
+                    "invalid_provider_data"
+                  ]
+                }
+              }
+            }
+          }
+        ],
+        "description": "price is the exact canonical declared value; source_price retains lexical source precision. No calculated financial value. Later retrievals are separate immutable observations."
+      },
+      "QuotationBatchInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "observations"
+        ],
+        "properties": {
+          "observations": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 50,
+            "items": {
+              "$ref": "#/components/schemas/QuotationObservationInput"
+            }
+          }
+        }
+      },
+      "QuotationBatchOutcome": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "accepted"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "maxItems": 50,
+            "items": {
+              "$ref": "#/components/schemas/QuotationObservation"
+            }
+          },
+          "accepted": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          }
+        }
+      },
+      "QuotationPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "page"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/QuotationObservation"
+            }
+          },
+          "page": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "next_cursor"
+            ],
+            "properties": {
+              "next_cursor": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 2048
+              }
+            }
+          }
+        }
+      },
+      "QuotationFreshness": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "reason",
+          "collection_age_seconds",
+          "market_age_seconds",
+          "provider_delay_seconds",
+          "delivery",
+          "realtime_guaranteed",
+          "policy_version"
+        ],
+        "properties": {
+          "status": {
+            "enum": [
+              "unavailable",
+              "unknown",
+              "within_target",
+              "warning",
+              "stale",
+              "last_completed_session"
+            ]
+          },
+          "reason": {
+            "enum": [
+              "no_successful_observation",
+              "clock_inconsistent",
+              "market_calendar_unknown",
+              "expected_session_missing",
+              "market_closed",
+              "successful_fetch_unknown",
+              "collection_over_60_minutes",
+              "collection_over_45_minutes",
+              "collection_within_45_minutes"
+            ]
+          },
+          "collection_age_seconds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "market_age_seconds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "provider_delay_seconds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 86400
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "delivery": {
+            "enum": [
+              "unknown",
+              "delayed",
+              "no_delay_declared"
+            ]
+          },
+          "realtime_guaranteed": {
+            "const": false
+          },
+          "policy_version": {
+            "const": 1
+          }
+        }
+      },
+      "QuotationStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "selector",
+          "quote",
+          "availability",
+          "last_attempt",
+          "last_successful_fetch_at",
+          "market_context",
+          "freshness",
+          "evaluated_at"
+        ],
+        "properties": {
+          "selector": {
+            "$ref": "#/components/schemas/QuotationSelector"
+          },
+          "quote": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuotationObservation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "availability": {
+            "enum": [
+              "available",
+              "missing",
+              "unavailable"
+            ]
+          },
+          "last_attempt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuotationObservation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "last_successful_fetch_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "Z$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "market_context": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "phase",
+              "expected_session_date"
+            ],
+            "properties": {
+              "phase": {
+                "enum": [
+                  "open",
+                  "closed",
+                  "unknown"
+                ]
+              },
+              "expected_session_date": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          },
+          "freshness": {
+            "$ref": "#/components/schemas/QuotationFreshness"
+          },
+          "evaluated_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
           }
         }
       }
