@@ -75,10 +75,9 @@ jobs:
           COLLECTOR_SECURITY_APPROVED: ${{ vars.COLLECTOR_SECURITY_APPROVED }}
           COLLECTOR_MAPPING_JSON: ${{ secrets.COLLECTOR_MAPPING_JSON }}
           COLLECTOR_API_ORIGIN: ${{ secrets.COLLECTOR_API_ORIGIN }}
-          COLLECTOR_TOKEN_URL: ${{ secrets.COLLECTOR_TOKEN_URL }}
-          COLLECTOR_CLIENT_ID: ${{ secrets.COLLECTOR_CLIENT_ID }}
-          COLLECTOR_CLIENT_SECRET: ${{ secrets.COLLECTOR_CLIENT_SECRET }}
-          COLLECTOR_AUDIENCE: ${{ secrets.COLLECTOR_AUDIENCE }}
+          COLLECTOR_AUTH_MODE: cloudflare_access
+          COLLECTOR_ACCESS_CLIENT_ID: ${{ secrets.COLLECTOR_ACCESS_CLIENT_ID }}
+          COLLECTOR_ACCESS_CLIENT_SECRET: ${{ secrets.COLLECTOR_ACCESS_CLIENT_SECRET }}
           COLLECTOR_HEARTBEAT_URL: ${{ secrets.COLLECTOR_HEARTBEAT_URL }}
         # No artifacts/cache containing journal, mapping, cookies or tokens.
         # A rerun with no private original journal fails closed, never recollects.

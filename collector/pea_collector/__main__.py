@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 import sys
 
-from .http import ClientCredentials, IngestionClient, StaticToken, HttpTransport, checked_url
+from .http import AccessServiceCredentials, IngestionClient, StaticToken, HttpTransport, checked_url
 from .model import CollectorError, parse_mappings
 from .provider import YFinanceProvider
 from .runner import run
@@ -30,16 +30,24 @@ class SyntheticProvider:
 def machine_client(environment, *, local=False):
     """Build a dedicated ingestion client from private environment configuration.
 
-    Loopback tests use an injected short-lived token. Live delivery obtains a
-    machine token through client credentials, independently of interactive MCP.
+    Production uses the dedicated Cloudflare Access service credential pair.
+    Only explicit loopback tests may select a synthetic bearer identity.
     """
     origin = environment.get("COLLECTOR_API_ORIGIN", "")
-    if local:
+    mode = environment.get("COLLECTOR_AUTH_MODE", "synthetic_bearer" if local else "cloudflare_access")
+    legacy_oauth = ("COLLECTOR_TOKEN_URL", "COLLECTOR_CLIENT_ID", "COLLECTOR_CLIENT_SECRET", "COLLECTOR_AUDIENCE")
+    access_names = ("COLLECTOR_ACCESS_CLIENT_ID", "COLLECTOR_ACCESS_CLIENT_SECRET")
+    if mode == "synthetic_bearer" and local:
+        if any(environment.get(name) for name in (*legacy_oauth, *access_names)):
+            raise CollectorError("mixed_machine_configuration")
         tokens = StaticToken(environment.get("COLLECTOR_ACCESS_TOKEN", ""))
+    elif mode == "cloudflare_access":
+        if any(environment.get(name) for name in (*legacy_oauth, "COLLECTOR_ACCESS_TOKEN")):
+            raise CollectorError("mixed_machine_configuration")
+        tokens = AccessServiceCredentials(environment.get("COLLECTOR_ACCESS_CLIENT_ID", ""),
+                                         environment.get("COLLECTOR_ACCESS_CLIENT_SECRET", ""))
     else:
-        # No human interactive MCP identity, refresh token or Cloudflare credential.
-        tokens = ClientCredentials(environment.get("COLLECTOR_TOKEN_URL", ""), environment.get("COLLECTOR_CLIENT_ID", ""),
-                                   environment.get("COLLECTOR_CLIENT_SECRET", ""), environment.get("COLLECTOR_AUDIENCE", ""))
+        raise CollectorError("invalid_machine_auth_mode")
     return IngestionClient(origin, tokens, allow_loopback=local)
 
 

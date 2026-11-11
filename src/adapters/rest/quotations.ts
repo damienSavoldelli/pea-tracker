@@ -7,6 +7,7 @@ import { acceptsJson, readJson, titles } from './instruments';
 export interface QuotationHttpDependencies {
   service: QuotationService;
   ingestionOnly?: boolean;
+  challenge?: () => string;
   authenticate(request: Request): Principal | null | Promise<Principal | null>;
 }
 export function quotationRoutes(dependencies: QuotationHttpDependencies) {
@@ -35,7 +36,7 @@ export function quotationRoutes(dependencies: QuotationHttpDependencies) {
       return Response.json(kind === 'status' ? await dependencies.service.status(principal, query) : await dependencies.service.history(principal, query), { headers });
     } catch (error) {
       const failure = error instanceof ApplicationError ? error : new ApplicationError(500, 'internal_error');
-      if (failure.status === 401) headers.set('WWW-Authenticate', 'Bearer');
+      if (failure.status === 401) headers.set('WWW-Authenticate', dependencies.challenge?.() ?? 'Bearer');
       if (failure.status === 405) headers.set('Allow', method);
       headers.set('Content-Type', 'application/problem+json');
       return Response.json({ type: 'about:blank', title: titles[failure.status], status: failure.status, code: failure.code,

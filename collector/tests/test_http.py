@@ -76,7 +76,11 @@ def test_endpoint_must_be_clean_https_origin(url):
         IngestionClient(url, StaticToken("synthetic-token"))
 
 
-def test_http_never_follows_redirect_with_machine_credentials():
+@pytest.mark.parametrize("credentials", [
+    {"Authorization": "Bearer synthetic-token"},
+    {"CF-Access-Client-Id": "synthetic-collector.access", "CF-Access-Client-Secret": "synthetic-access-secret-fixture"},
+])
+def test_http_never_follows_redirect_with_machine_credentials(credentials):
     """A real loopback redirect cannot cause credentials to reach a second path."""
     received = []
 
@@ -95,7 +99,7 @@ def test_http_never_follows_redirect_with_machine_credentials():
     server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
     try:
-        status, _ = HttpTransport().post(f"http://127.0.0.1:{server.server_port}/ingest", b"{}", {"Authorization": "Bearer synthetic-token"})
+        status, _ = HttpTransport().post(f"http://127.0.0.1:{server.server_port}/ingest", b"{}", credentials)
         assert status == 302 and received == ["/ingest"]
     finally:
         server.shutdown(); server.server_close(); thread.join()

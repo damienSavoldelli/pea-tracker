@@ -1,5 +1,6 @@
 """Small bounded HTTPS transport. Never log URLs, headers, bodies or exceptions."""
 import json
+import re
 import time
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode, urlsplit
@@ -70,9 +71,29 @@ class StaticToken:
         """Return the injected token without performing authentication requests."""
         return self.value
 
+    def headers(self) -> dict[str, str]:
+        """Build the bearer header used only by explicit synthetic/legacy callers."""
+        return {"Authorization": "Bearer " + self.get()}
+
+
+class AccessServiceCredentials:
+    """Present a dedicated Cloudflare Access service token on every ingestion request."""
+
+    def __init__(self, client_id: str, client_secret: str):
+        """Reject incomplete or unsafe header values without exposing credentials."""
+        if not isinstance(client_id, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,128}\.access", client_id):
+            raise CollectorError("invalid_access_credentials")
+        if not isinstance(client_secret, str) or not 16 <= len(client_secret) <= 512 or not re.fullmatch(r"[\x21-\x7e]+", client_secret):
+            raise CollectorError("invalid_access_credentials")
+        self.client_id, self.client_secret = client_id, client_secret
+
+    def headers(self) -> dict[str, str]:
+        """Return the Access pair without an OAuth bearer, cookie or token request."""
+        return {"CF-Access-Client-Id": self.client_id, "CF-Access-Client-Secret": self.client_secret}
+
 
 class ClientCredentials:
-    """Obtain short-lived machine tokens limited to quotation ingestion."""
+    """Retain the legacy OAuth adapter for explicitly constructed compatibility clients."""
 
     def __init__(self, url: str, client_id: str, secret: str, audience: str, transport=None):
         """Validate private client configuration for an approved token issuer."""
@@ -104,6 +125,10 @@ class ClientCredentials:
         except (ValueError, TypeError, KeyError, AttributeError):
             raise CollectorError("invalid_machine_response") from None
 
+    def headers(self) -> dict[str, str]:
+        """Request a legacy token only when this adapter was explicitly selected."""
+        return {"Authorization": "Bearer " + self.get()}
+
 
 class IngestionClient:
     """Deliver immutable batches to the existing protected REST ingestion route."""
@@ -124,12 +149,13 @@ class IngestionClient:
         """
         if len(body) > 128 * 1024 or not 1 <= expected <= 20:
             raise CollectorError("invalid_batch")
-        # Obtain credentials just before delivery, after potentially slow fetching.
-        token = self.tokens.get()
+        # Prepare credentials after collection and preserve them with the payload
+        # across delivery attempts. Access validates the service pair on each request.
+        authentication = self.tokens.headers()
         for attempt in range(3):
             try:
                 status, data = self.transport.post(self.url, body, {"Content-Type": "application/json", "Accept": "application/json",
-                                                               "Idempotency-Key": key, "Authorization": "Bearer " + token})
+                                                               "Idempotency-Key": key, **authentication})
             except CollectorError as error:
                 if str(error) != "network_failure":
                     raise

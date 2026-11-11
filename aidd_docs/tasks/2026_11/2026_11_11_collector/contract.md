@@ -1,5 +1,11 @@
 # Collector contract — local implementation, hosted activation gated
 
+2026-11-11 update: the generic OAuth Client Credentials placeholder below is
+superseded for the production collector by [dedicated Cloudflare Access Service
+Auth](../2026_11_11_remote-ingestion/contract.md). The legacy JWT composition remains
+tested compatibility code; production Python now selects the Access credential pair,
+with no bearer/OAuth fallback. Hosted activation is still gated.
+
 Authority: [owner-approved plan](plan.md), [ingestion](../2026_11_11_quotations/contract.md),
 [public repository/local usage](../../../../collector/README.md).
 

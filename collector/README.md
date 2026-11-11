@@ -78,17 +78,28 @@ Transient network/5xx failures retry the exact bytes/key at most three times.
 401/403/409/422 and rate limits stop; do not automatically change a key after 409.
 Failure observations have null prices; the backend preserves the last usable quote.
 
-A new short-lived OAuth Client Credentials token is requested **after** collection:
-`quotes:ingest` only, no refresh token. Configure an approved machine issuer/client,
-distinct audience and stable internal subject in the existing JWT verifier policy;
-never reuse the interactive Cloudflare MCP owner assertion/token. The optional
-`src/collector-app.ts` composition reuses that verifier and mounts ingestion only.
-It is not imported by deployed entrypoints. No identity provider, secret, D1 binding
-or endpoint has been configured remotely by this work.
+Production uses **Cloudflare Access Service Tokens + Service Auth**. The selected
+`COLLECTOR_AUTH_MODE` is `cloudflare_access` (the production default). Each request
+sends only `CF-Access-Client-Id` and `CF-Access-Client-Secret`; no OAuth token endpoint,
+bearer, refresh token or interactive MCP owner identity is used. Access checks the
+pair and forwards its signed assertion to the Worker. The backend checks its fixed
+issuer, distinct ingestion application AUD, signed service identity and time bounds,
+then grants only `quotes:ingest` with server-side provider/instrument allowlists.
 
-Only synthetic loopback integration uses `--deliver-local` with an ephemeral
-`COLLECTOR_ACCESS_TOKEN`. Live mode forbids this option. Tests pass tokens through
-the child environment, never process arguments or logs.
+The optional collector composition is not imported by deployed entrypoints. It
+does not expose MCP, portfolio/admin routes or quotation reads. No Access app,
+service token, secret, D1 binding or endpoint has been configured remotely here.
+Use the [machine-ingestion runbook](../aidd_docs/tasks/2026_11/2026_11_11_remote-ingestion/contract.md)
+for the approval-gated configuration, rotation and revocation procedure.
+
+Synthetic loopback integration uses `--deliver-local`; it defaults to the existing
+ephemeral `COLLECTOR_ACCESS_TOKEN` fixture. Setting `COLLECTOR_AUTH_MODE` explicitly
+to `cloudflare_access` permits the synthetic Access pair against a simulated local
+edge. Live mode forbids `--deliver-local`. Tests pass credentials through the child
+environment, never process arguments or logs. Production rejects mixed Access,
+bearer and legacy OAuth variables rather than choosing an implicit fallback.
+The old ClientCredentials class remains only for explicitly constructed compatibility
+clients/tests; the production CLI cannot select it.
 
 Delivery journals preserve original payload/key across local process restarts.
 Fresh GitHub runners do not retain private journals: run attempt >1 fails closed
@@ -118,8 +129,8 @@ can be auto-created by GitHub without protection. Configure and review protectio
 before enabling any gate. No environment or variable was created by this work.
 
 Put these values in that Environment's **Actions Secrets**, never workflow/source
-files: `COLLECTOR_MAPPING_JSON`, `COLLECTOR_API_ORIGIN`, `COLLECTOR_TOKEN_URL`,
-`COLLECTOR_CLIENT_ID`, `COLLECTOR_CLIENT_SECRET`, `COLLECTOR_AUDIENCE`, and optionally
+files: `COLLECTOR_MAPPING_JSON`, `COLLECTOR_API_ORIGIN`,
+`COLLECTOR_ACCESS_CLIENT_ID`, `COLLECTOR_ACCESS_CLIENT_SECRET`, and optionally
 `COLLECTOR_HEARTBEAT_URL` for an already approved independent dead-man checker.
 No secrets are passed to dependency installation or synthetic tests. Never echo the
 mapping: automatic masking of structured JSON is not sufficient by itself.

@@ -1067,6 +1067,10 @@
         "security": [
           {
             "BearerAuth": []
+          },
+          {
+            "CloudflareAccessClientId": [],
+            "CloudflareAccessClientSecret": []
           }
         ],
         "responses": {
@@ -1144,7 +1148,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Explicit trusted composition selects either the existing machine JWT policy or dedicated Cloudflare Access Service Auth. Access mode requires both service headers at the edge and verifies its signed assertion at the origin; no automatic fallback. Machine capability is quotes:ingest only, with independent subject/provider/instrument grants. Deployed entrypoints are unchanged."
       }
     },
     "/portfolio/valuation": {
@@ -1261,6 +1266,18 @@
         "type": "http",
         "scheme": "bearer",
         "description": "Explicit protected local composition validates RS256 access JWTs against pinned issuer/JWKS, route audience, exact owner/client and delegated scope ceilings. Default Worker remains diagnostic-only; live Auth0 integration is unverified."
+      },
+      "CloudflareAccessClientId": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "CF-Access-Client-Id",
+        "description": "Dedicated service-token Client ID for the ingestion Access application; always paired with its Client Secret. The origin verifies the Access-signed JWT; these raw headers alone never authenticate the Worker."
+      },
+      "CloudflareAccessClientSecret": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "CF-Access-Client-Secret",
+        "description": "Private machine credential sent over HTTPS to Access on every request. No interactive MCP identity or bearer token is used in this mode."
       }
     },
     "schemas": {
