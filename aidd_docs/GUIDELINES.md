@@ -11,6 +11,15 @@ Project-specific conventions for AI-assisted work on PEA Tracker.
 - Never put actual holdings, PRU values, transactions, credentials, tokens, account identifiers or private financial exports in documentation, memory, examples or logs. Label invented numeric examples as synthetic.
 - Preserve Codex sandbox settings. Dependencies, cloud resources, hooks, paid services and deployments require explicit authorization; follow [VCS approval rules](memory/vcs.md).
 
+## Adaptive orchestration and delegation
+
+- At the start of each development slice, assess whether parallel agents or AIDD Orchestrator would improve delivery; consider dependencies, integration effort and coordination cost.
+- Prefer one agent for simple or strongly sequential work. Delegate independent tasks to parallel Codex subagents only when the expected time or quality gain is concrete; do not multiply agents without that benefit.
+- For complex work across components, dependencies or cross-validation, evaluate AIDD Orchestrator when available to organize responsibilities and integration. Direct delegation is sufficient when it meets the need; Orchestrator is not mandatory.
+- Before delegation, define each agent's deliverable, dependencies and distinct file ownership. Keep shared-file edits sequential and coordinate changes to shared contracts before implementation.
+- Keep the primary agent accountable for technical coherence, integration, tests and final validation. Review delegated results before treating the slice as complete.
+- Preserve approved business and architecture decisions and all existing security and authorization boundaries. Delegation does not expand permissions; unavailable orchestration tooling does not authorize installation or framework changes.
+
 ## Validation depth
 
 - For documentation changes, check local links, AIDD memory references, marker integrity, whitespace and the intended file scope; inspect both working-tree and staged changes without staging files.
