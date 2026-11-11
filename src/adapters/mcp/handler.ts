@@ -10,11 +10,14 @@ import type { PortfolioService } from '../../application/portfolio';
 import type { QuotationService } from '../../application/quotations';
 import { quotationHistoryQuerySchema } from '../../application/quotations';
 import { quotationSelectorSchema } from '../../domain/quotations';
+import type { ValuationService } from '../../application/valuation';
+import { valuationQuerySchema } from '../../domain/valuation';
 
 export interface ProtectedMcpDependencies {
   service: InstrumentService;
   portfolio?: PortfolioService;
   quotations?: QuotationService;
+  valuation?: ValuationService;
   authenticate(request: Request): Promise<Principal>;
   challenge(status: 401 | 403): string;
   metadata?: { resource: string; authorization_servers: string[]; scopes_supported: string[]; bearer_methods_supported: string[] };
@@ -26,6 +29,7 @@ interface FinancialContext {
   service: InstrumentService;
   portfolio?: PortfolioService;
   quotations?: QuotationService;
+  valuation?: ValuationService;
   challenge(status: 401 | 403): string;
   oauthScopes?: readonly string[];
 }
@@ -71,6 +75,11 @@ export async function handleMcp(request: Request, financial?: FinancialContext):
         inputSchema: quotationSelectorSchema, annotations, _meta: { securitySchemes } }, input => guarded(() => quotations.status(financial.principal, input)));
       server.registerTool('list_quotations', { description: 'Read bounded immutable provider observations, with market and fetch timestamps.',
         inputSchema: quotationHistoryQuerySchema, annotations, _meta: { securitySchemes } }, input => guarded(() => quotations.history(financial.principal, input)));
+    }
+    if (financial.valuation && financial.principal.permissions.includes('portfolio:read') && financial.principal.permissions.includes('quotes:read')) {
+      const valuation = financial.valuation;
+      server.registerTool('get_portfolio_valuation', { description: 'Estimate EUR market values from explicit provider/kind, with exact amounts, coverage and quote warnings. No gains or realtime guarantee.',
+        inputSchema: valuationQuerySchema, annotations, _meta: { securitySchemes } }, input => guarded(() => valuation.get(financial.principal, input)));
     }
     if (financial.portfolio && financial.principal.permissions.includes('portfolio:read')) {
       const portfolio = financial.portfolio;

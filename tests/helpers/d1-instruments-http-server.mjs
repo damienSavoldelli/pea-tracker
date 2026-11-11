@@ -7,6 +7,7 @@ import { D1PortfolioRepository } from '../../src/adapters/d1/portfolio.ts';
 import { ApplicationError } from '../../src/application/errors.ts';
 import { QuotationService } from '../../src/application/quotations.ts';
 import { D1QuotationRepository } from '../../src/adapters/d1/quotations.ts';
+import { ValuationService } from '../../src/application/valuation.ts';
 
 export async function startD1InstrumentServer(db, options) {
   // Fail at startup if migrations have not been explicitly applied. Never run DDL
@@ -32,7 +33,9 @@ export async function startD1InstrumentServer(db, options) {
     instruments: { service, authenticate: () => principal },
     ...(options.portfolio ? { portfolio: { service: portfolio, authenticate: () => principal } } : {}),
     ...(options.quotations ? { quotations: { service: quotations, authenticate: () => principal } } : {}),
-    mcp: { service, ...(options.portfolio ? { portfolio } : {}), ...(options.quotations ? { quotations } : {}), authenticate: async () => {
+    ...(options.portfolio && options.quotations ? { valuation: { service: new ValuationService(portfolio, quotations), authenticate: () => principal } } : {}),
+    mcp: { service, ...(options.portfolio ? { portfolio } : {}), ...(options.quotations ? { quotations } : {}),
+      ...(options.portfolio && options.quotations ? { valuation: new ValuationService(portfolio, quotations) } : {}), authenticate: async () => {
       if (!principal) throw new ApplicationError(401, 'unauthenticated');
       return principal;
     }, challenge: () => 'Bearer', oauthScopes: [] },

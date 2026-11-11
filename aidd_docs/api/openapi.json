@@ -1146,6 +1146,113 @@
           }
         }
       }
+    },
+    "/portfolio/valuation": {
+      "get": {
+        "operationId": "getPortfolioValuation",
+        "tags": [
+          "Portfolio"
+        ],
+        "x-status": "implemented-synthetic-local-only",
+        "x-required-capabilities": [
+          "portfolio:read",
+          "quotes:read"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Explicit provider/kind, no fallback or FX. Stale/delayed/unknown observations remain labelled estimates. Missing prices excluded; partial subtotal never a complete total. Exact sums before half-even EUR display. Pins opening revision and quote IDs, not an atomic cross-instrument snapshot. Only explicitly injected local composition.",
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9][a-z0-9_-]*$"
+            }
+          },
+          {
+            "name": "price_kind",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "enum": [
+                "last_trade",
+                "session_close"
+              ]
+            }
+          },
+          {
+            "name": "adjustment",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "const": "unadjusted"
+            }
+          },
+          {
+            "name": "revision",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "description": "Opening revision only; not a historical quotation as_of."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "EUR estimate with exact inputs, partial coverage, cash knowledge and freshness warnings. No realtime guarantee or performance.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortfolioValuation"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "405": {
+            "$ref": "#/components/responses/MethodNotAllowed"
+          },
+          "406": {
+            "$ref": "#/components/responses/NotAcceptable"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2556,6 +2663,431 @@
             "type": "string",
             "format": "date-time",
             "pattern": "Z$"
+          }
+        }
+      },
+      "ValuationAmount": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "exact",
+          "display",
+          "currency"
+        ],
+        "properties": {
+          "exact": {
+            "type": "string",
+            "maxLength": 128,
+            "pattern": "^[0-9]+(?:\\.[0-9]+)?$"
+          },
+          "display": {
+            "type": "string",
+            "maxLength": 128,
+            "pattern": "^[0-9]+\\.[0-9]{2}$"
+          },
+          "currency": {
+            "const": "EUR"
+          }
+        }
+      },
+      "ValuationPosition": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "instrument_id",
+          "quantity",
+          "declared_pru",
+          "currency",
+          "provenance",
+          "quotation",
+          "market_value",
+          "status",
+          "reasons",
+          "warnings"
+        ],
+        "properties": {
+          "instrument_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "quantity": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^[0-9]+(?:\\.[0-9]{1,12})?$",
+            "description": "Exact decimal, max 30 significant digits; positive quantity. Excess input scale is rejected before zero normalization.",
+            "not": {
+              "pattern": "^0+(?:\\.0+)?$"
+            }
+          },
+          "declared_pru": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^[0-9]+(?:\\.[0-9]{1,12})?$",
+            "description": "Authoritative declared unit PRU from the broker, max 30 significant digits/12 decimal places, nonnegative. Not reconstructed historical total cost."
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/OpeningProvenance"
+          },
+          "quotation": {
+            "$ref": "#/components/schemas/QuotationStatus"
+          },
+          "market_value": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ValuationAmount"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "enum": [
+              "valued",
+              "not_valued"
+            ]
+          },
+          "reasons": {
+            "type": "array",
+            "maxItems": 5,
+            "items": {
+              "enum": [
+                "unsupported_currency",
+                "currency_mismatch",
+                "quotation_unavailable",
+                "quotation_missing",
+                "quotation_clock_inconsistent"
+              ]
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "maxItems": 5,
+            "items": {
+              "enum": [
+                "freshness_unknown",
+                "freshness_warning",
+                "freshness_stale",
+                "freshness_last_completed_session",
+                "freshness_unavailable",
+                "delivery_delayed",
+                "delivery_unknown",
+                "latest_retrieval_failed",
+                "quote_predates_opening_state"
+              ]
+            }
+          }
+        }
+      },
+      "PortfolioValuation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "calculation_version",
+          "evaluated_at",
+          "estimate",
+          "realtime_guaranteed",
+          "selection",
+          "opening_state",
+          "positions",
+          "cash",
+          "coverage",
+          "securities_subtotal",
+          "securities_total",
+          "known_assets_subtotal",
+          "portfolio_total",
+          "calculation",
+          "history"
+        ],
+        "properties": {
+          "calculation_version": {
+            "const": 1
+          },
+          "evaluated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "estimate": {
+            "const": true
+          },
+          "realtime_guaranteed": {
+            "const": false
+          },
+          "selection": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "provider",
+              "price_kind",
+              "adjustment"
+            ],
+            "properties": {
+              "provider": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[a-z0-9][a-z0-9_-]*$"
+              },
+              "price_kind": {
+                "enum": [
+                  "last_trade",
+                  "session_close"
+                ]
+              },
+              "adjustment": {
+                "const": "unadjusted"
+              }
+            }
+          },
+          "opening_state": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "revision",
+              "effective_at",
+              "recorded_at",
+              "provenance"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "effective_at": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "Z$",
+                "description": "UTC reference time inherited by every position; cannot be future or changed by a correction."
+              },
+              "recorded_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "provenance": {
+                "$ref": "#/components/schemas/OpeningProvenance"
+              }
+            }
+          },
+          "positions": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/ValuationPosition"
+            }
+          },
+          "cash": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "status",
+              "declared",
+              "market_value",
+              "effective_at",
+              "provenance"
+            ],
+            "properties": {
+              "status": {
+                "enum": [
+                  "known",
+                  "unknown"
+                ]
+              },
+              "declared": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "currency",
+                      "amount"
+                    ],
+                    "properties": {
+                      "currency": {
+                        "const": "EUR"
+                      },
+                      "amount": {
+                        "type": "string",
+                        "maxLength": 64,
+                        "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$",
+                        "description": "Nonnegative declared cash, max 30 significant digits; no FX."
+                      }
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Null means unknown, not zero."
+              },
+              "market_value": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/ValuationAmount"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "effective_at": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "Z$",
+                "description": "UTC reference time inherited by every position; cannot be future or changed by a correction."
+              },
+              "provenance": {
+                "$ref": "#/components/schemas/OpeningProvenance"
+              }
+            }
+          },
+          "coverage": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "positions",
+              "valued",
+              "not_valued",
+              "securities_complete",
+              "cash_known",
+              "total_complete",
+              "reasons"
+            ],
+            "properties": {
+              "positions": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "valued": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "not_valued": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "securities_complete": {
+                "type": "boolean"
+              },
+              "cash_known": {
+                "type": "boolean"
+              },
+              "total_complete": {
+                "type": "boolean"
+              },
+              "reasons": {
+                "type": "array",
+                "maxItems": 2,
+                "items": {
+                  "enum": [
+                    "positions_not_valued",
+                    "cash_unknown"
+                  ]
+                }
+              }
+            }
+          },
+          "securities_subtotal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ValuationAmount"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "securities_total": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ValuationAmount"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "known_assets_subtotal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ValuationAmount"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "portfolio_total": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ValuationAmount"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "calculation": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "rounding",
+              "display_scale",
+              "currency",
+              "aggregate_before_rounding",
+              "holdings_basis",
+              "consistency"
+            ],
+            "properties": {
+              "rounding": {
+                "const": "half_even"
+              },
+              "display_scale": {
+                "const": 2
+              },
+              "currency": {
+                "const": "EUR"
+              },
+              "aggregate_before_rounding": {
+                "const": true
+              },
+              "holdings_basis": {
+                "const": "opening_state_only"
+              },
+              "consistency": {
+                "const": "revision_pinned_individual_quotation_reads"
+              }
+            }
+          },
+          "history": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "performance_available",
+              "reason"
+            ],
+            "properties": {
+              "performance_available": {
+                "const": false
+              },
+              "reason": {
+                "const": "opening_state_only"
+              }
+            }
           }
         }
       }

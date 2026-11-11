@@ -56,11 +56,24 @@ export class QuotationService {
   }
 
   async status(principal: Principal | null, input: unknown) {
+    const result = await this.statuses(principal, [input]);
+    return result.data[0]!;
+  }
+
+  // One evaluation clock for a bounded portfolio read, not a cross-instrument
+  // database snapshot. Trusted services call directly, never through HTTP.
+  async statuses(principal: Principal | null, inputs: readonly unknown[]) {
     requirePermission(principal, 'quotes:read');
-    const query = parse(quotationSelectorSchema, input, 400);
+    const queries = parse(z.array(quotationSelectorSchema).max(100), inputs, 400);
+    const now = this.clock();
+    const data = [];
+    for (const query of queries) data.push(await this.statusAt(query, now));
+    return { evaluated_at: now, data };
+  }
+
+  private async statusAt(query: QuotationSelector, now: string) {
     if (!await this.instruments.get(query.instrument_id)) throw new ApplicationError(404, 'instrument_not_found');
     const snapshot = await this.repository.snapshot(query);
-    const now = this.clock();
     const marketContext = this.market(query, now);
     return { selector: query, quote: snapshot.quote,
       availability: snapshot.quote ? 'available' : snapshot.lastAttempt ? 'unavailable' : 'missing',

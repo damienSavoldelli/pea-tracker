@@ -15,6 +15,8 @@
 
 ## Entry points
 
+- Valuation slice: `src/domain/valuation.ts` supplies exact finite decimal products/sums and half-even EUR display; `src/application/valuation.ts` reuses PortfolioService and QuotationService over existing Memory/native D1 ports. Optional REST `/api/v1/portfolio/valuation` and read-only MCP `get_portfolio_valuation` expose input provenance, warnings and partial/complete coverage. No new migration, persisted snapshot, FX or gain calculation. [Contract](../tasks/2026_11/2026_11_11_valuation/contract.md) includes the guarded local HTTP setup; three `tests/valuation.*.test.ts` suites cover arithmetic, both persistence adapters, HTTP and official SDK.
+
 - Quotation slice: `src/domain/quotations.ts`, `src/application/quotations.ts`, `src/ports/quotations.ts`, Memory/D1/REST adapters and `0004_quotations.sql` store provider declarations and failure outcomes. Explicit local injection enables history/status reads and two read-only MCP tools; ingestion has independent subject/provider/instrument grants. [Contract](../tasks/2026_11/2026_11_11_quotations/contract.md) defines timestamps/freshness and the synthetic loopback setup; no collector/valuation or deployed route is added.
 
 - Opening-state/position slice: `src/domain/portfolio.ts`, `src/application/portfolio.ts`, `src/ports/portfolio.ts` and `src/adapters/{memory,d1,rest}/portfolio.ts`; `migrations/0003_opening_portfolio.sql` adds complete immutable revisions and durable outcomes. REST and optional read-only MCP tools are explicitly injected, not mounted by deployed entrypoints. See [contract and local setup](../tasks/2026_11/2026_11_10_opening-positions/contract.md); portfolio contract/HTTP/restart suites cover Memory and native local D1.
