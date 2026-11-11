@@ -4,9 +4,17 @@ import { ApplicationError } from './errors';
 import type { PortfolioService } from './portfolio';
 import type { QuotationService } from './quotations';
 
+/** Builds a read-only estimate from one opening revision and explicitly selected quotes. */
 export class ValuationService {
   constructor(private readonly portfolio: PortfolioService, private readonly quotations: QuotationService) {}
 
+  /** Estimates market values from a pinned opening state and selected quote stream.
+   * @param principal - Authenticated caller allowed to read both portfolio and quote data.
+   * @param input - Quote provider/type selection and optional opening-state revision.
+   * @returns Per-position values, source quote metadata, coverage, and complete/partial aggregates.
+   * @throws {ApplicationError} If authorization, selection validation, source reads, or evaluation ordering fails.
+   * @remarks No FX conversion or provider fallback is applied. Missing inputs remain unvalued, and historical performance is not inferred.
+   */
   async get(principal: Principal | null, input: unknown) {
     requirePermission(principal, 'portfolio:read');
     requirePermission(principal, 'quotes:read');

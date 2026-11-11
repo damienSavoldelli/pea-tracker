@@ -2,6 +2,9 @@ import { z } from 'zod';
 import { exactDecimalSchema } from './decimals';
 import { quotationSelectorSchema } from './quotations';
 
+/** Provider and quote type selected for a valuation, optionally pinned to a state revision.
+ * @remarks Selection is explicit; omitting a revision asks the application for its current opening state.
+ */
 export const valuationQuerySchema = quotationSelectorSchema.omit({ instrument_id: true }).extend({
   revision: z.number().int().positive().max(Number.MAX_SAFE_INTEGER).optional(),
 }).strict();
@@ -21,18 +24,34 @@ function decimal(coefficient: bigint, scale: number) {
   const fraction = digits.slice(-scale).replace(/0+$/, '');
   return digits.slice(0, -scale) + (fraction ? `.${fraction}` : '');
 }
+/** Multiplies exact quantity and price, applying the declared quote unit without rounding.
+ * @param quantity - Non-negative holding quantity as a decimal string.
+ * @param price - Positive provider price as a decimal string.
+ * @param unit - Whether the provider price is in currency units or hundredths of a unit.
+ * @returns Exact market value as a decimal string, before display rounding.
+ * @remarks Hundredth-unit prices are divided by 100; all arithmetic remains integer-backed.
+ */
 export function positionMarketValue(quantity: string, price: string, unit: 'currency_unit' | 'hundredth_currency_unit') {
   const input = exactDecimalSchema(12);
   const q = parts(input.parse(quantity));
   const p = parts(input.parse(price));
   return decimal(q.coefficient * p.coefficient, q.scale + p.scale + (unit === 'hundredth_currency_unit' ? 2 : 0));
 }
+/** Adds exact decimal amounts before any display rounding.
+ * @param values - Exact non-negative decimal amounts to aggregate.
+ * @returns Their exact sum as a decimal string.
+ */
 export function sumMarketValues(values: readonly string[]) {
   if (values.length > 101) throw new RangeError('Valuation sum exceeds portfolio bounds');
   const parsed = values.map(parts);
   const scale = Math.max(0, ...parsed.map(value => value.scale));
   return decimal(parsed.reduce((sum, value) => sum + value.coefficient * 10n ** BigInt(scale - value.scale), 0n), scale);
 }
+/** Formats an exact EUR amount to cents using the approved half-even rule.
+ * @param exact - Unrounded aggregate amount in EUR.
+ * @returns Both the unchanged exact value and its two-decimal display form.
+ * @remarks Call only after aggregating unrounded position values to avoid cumulative rounding drift.
+ */
 export function eurAmount(exact: string) {
   const { coefficient, scale } = parts(exact);
   let cents: bigint;

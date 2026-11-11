@@ -16,11 +16,18 @@ const list = z.object({ limit: z.number().int().min(1).max(100).default(50), cur
 const cursor = z.object({ version: z.literal(1), revision: z.number().int().positive().max(Number.MAX_SAFE_INTEGER), offset: z.number().int().min(1).max(99) }).strict();
 const encode = (revision: number, offset: number) => btoa(JSON.stringify({ version: 1, revision, offset })).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
+/** Manages immutable dated opening-state revisions and revision-pinned position reads. */
 export class PortfolioService {
   constructor(private readonly repository: PortfolioRepository, private readonly instruments: InstrumentRepository,
     private readonly clock: () => string = () => new Date().toISOString(),
     private readonly id: () => string = () => crypto.randomUUID()) {}
 
+  /** Loads one opening-state revision.
+   * @param principal - Authenticated caller with `portfolio:read` permission.
+   * @param revision - Optional positive revision number; omission selects the current state.
+   * @returns The complete immutable opening-state revision.
+   * @throws {ApplicationError} If authorization or revision validation fails, or no such state exists.
+   */
   async get(principal: Principal | null, revision?: unknown) {
     requirePermission(principal, 'portfolio:read');
     const selected = revision === undefined ? undefined : parse(z.number().int().positive().max(Number.MAX_SAFE_INTEGER), revision, 400);
@@ -29,6 +36,15 @@ export class PortfolioService {
     return state;
   }
 
+  /** Appends a complete initial state or correction as a new immutable revision.
+   * @param principal - Authenticated administrator whose subject scopes the idempotency record.
+   * @param input - Full dated portfolio state, including its declared provenance and known cash.
+   * @param expected - Current revision expected by the caller; zero is used only for initialization.
+   * @param key - Stable idempotency key for safely retrying the same append.
+   * @returns The newly stored revision or the original result of an idempotent replay.
+   * @throws {ApplicationError} If authorization, validation, referenced-instrument, or concurrency checks fail.
+   * @remarks Corrections replace the complete snapshot; they do not represent trades or reconstruct historical cost.
+   */
   async append(principal: Principal | null, input: unknown, expected: unknown, key: unknown) {
     requirePermission(principal, 'portfolio:admin');
     const expectedRevision = parse(version, expected, 400);
@@ -48,6 +64,13 @@ export class PortfolioService {
     return this.repository.append(state, expectedRevision, { subject: principal.subject, key: idempotencyKey, canonicalInput: JSON.stringify({ expected: expectedRevision, input: data }) });
   }
 
+  /** Lists a page of positions from one pinned opening-state revision.
+   * @param principal - Authenticated caller with `portfolio:read` permission.
+   * @param input - Page size and optional opaque cursor containing the revision and offset.
+   * @returns Position data, continuation cursor, and explicit unavailability of historical performance.
+   * @throws {ApplicationError} If authorization, query validation, or cursor validation fails.
+   * @remarks Every page stays on the cursor's revision even if a newer opening state is appended.
+   */
   async positions(principal: Principal | null, input: unknown) {
     requirePermission(principal, 'portfolio:read');
     const query = parse(list, input, 400);

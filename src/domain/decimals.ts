@@ -1,7 +1,12 @@
 import { z } from 'zod';
 
-// INSTALL's wire/storage boundary only: no arithmetic or rounding. Sign policy
-// belongs to each financial field, not this reusable representation validator.
+/** Validates and canonicalizes a plain decimal string at wire/storage boundaries.
+ *
+ * @param maximumScale - Maximum number of fractional digits accepted by the schema.
+ * @returns A schema that emits canonical decimal strings without rounding.
+ * @throws {RangeError} If the requested scale is outside the supported range.
+ * @remarks Sign policy remains field-specific; this reusable boundary does no arithmetic.
+ */
 export function exactDecimalSchema(maximumScale: number) {
   if (!Number.isInteger(maximumScale) || maximumScale < 0 || maximumScale > 18) {
     throw new RangeError('Unsupported decimal scale');

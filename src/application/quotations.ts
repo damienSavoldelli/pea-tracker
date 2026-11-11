@@ -6,6 +6,9 @@ import type { QuotationRepository } from '../ports/quotations';
 import { requirePermission, type Principal } from './authorization';
 import { ApplicationError } from './errors';
 
+/** Server-side allowlist binding an ingestion principal to providers and instruments.
+ * @remarks A permission to ingest quotes is insufficient unless all three grant fields match.
+ */
 export interface QuotationIngestionGrant { subject: string; provider: string; instrument_ids: readonly string[] }
 function parse<T>(schema: z.ZodType<T>, input: unknown, status: 400 | 422 = 422): T {
   const result = schema.safeParse(input);
@@ -19,6 +22,7 @@ export const quotationHistoryQuerySchema = quotationSelectorSchema.extend({
 });
 const encode = (value: unknown) => btoa(JSON.stringify(value)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
+/** Validates quote declarations, enforces ingestion grants, and serves quote reads. */
 export class QuotationService {
   constructor(private readonly repository: QuotationRepository, private readonly instruments: InstrumentRepository,
     private readonly grants: readonly QuotationIngestionGrant[] = [],
@@ -26,6 +30,14 @@ export class QuotationService {
     private readonly market: (selector: QuotationSelector, now: string) => MarketContext = () => ({ phase: 'unknown', expected_session_date: null }),
     private readonly id: () => string = () => crypto.randomUUID()) {}
 
+  /** Persists a bounded provider-observation batch.
+   * @param principal - Authenticated machine principal requesting ingestion.
+   * @param input - Observation batch; prices and quote units are checked against instrument metadata.
+   * @param key - Stable idempotency key for retrying the same batch.
+   * @returns Stored observations and their accepted count.
+   * @throws {ApplicationError} If authorization, grants, validation, instrument identity, or timestamp checks fail.
+   * @remarks Failed observations contain no invented price. A batch is bound to explicit subject/provider/instrument grants.
+   */
   async ingest(principal: Principal | null, input: unknown, key: unknown) {
     requirePermission(principal, 'quotes:ingest');
     const idempotencyKey = parse(z.string().min(1).max(128).regex(/^[A-Za-z0-9_-]+$/), key, 400);
@@ -55,6 +67,12 @@ export class QuotationService {
     return { data: stored, accepted: stored.length };
   }
 
+  /** Returns the current status for one explicitly selected quote stream.
+   * @param principal - Authenticated caller with `quotes:read` permission.
+   * @param input - Exact instrument, provider, price kind, and adjustment selector.
+   * @returns Quote availability, latest attempt, trusted market context, and freshness assessment.
+   * @throws {ApplicationError} If authorization, selector validation, or instrument lookup fails.
+   */
   async status(principal: Principal | null, input: unknown) {
     const result = await this.statuses(principal, [input]);
     return result.data[0]!;
@@ -62,6 +80,13 @@ export class QuotationService {
 
   // One evaluation clock for a bounded portfolio read, not a cross-instrument
   // database snapshot. Trusted services call directly, never through HTTP.
+  /** Evaluates a bounded set of quote selectors at one clock instant.
+   * @param principal - Authenticated caller with `quotes:read` permission.
+   * @param inputs - At most 100 explicit quote-stream selectors.
+   * @returns All statuses with one shared evaluation timestamp.
+   * @throws {ApplicationError} If authorization or any selector is invalid or references an absent instrument.
+   * @remarks Each repository lookup is independent; the shared timestamp does not imply an atomic cross-instrument D1 snapshot.
+   */
   async statuses(principal: Principal | null, inputs: readonly unknown[]) {
     requirePermission(principal, 'quotes:read');
     const queries = parse(z.array(quotationSelectorSchema).max(100), inputs, 400);
@@ -81,6 +106,13 @@ export class QuotationService {
       market_context: marketContext, freshness: quotationFreshness(snapshot.quote, snapshot.lastSuccess, now, marketContext), evaluated_at: now };
   }
 
+  /** Returns quote history for one explicit selector and bounded time window.
+   * @param principal - Authenticated caller with `quotes:read` permission.
+   * @param input - Selector, inclusive time bounds, page limit, and optional filter-bound cursor.
+   * @returns Historical provider declarations and an optional continuation cursor.
+   * @throws {ApplicationError} If authorization, time-window, cursor, or instrument validation fails.
+   * @remarks History preserves provider observations; it does not fill gaps or synthesize prices.
+   */
   async history(principal: Principal | null, input: unknown) {
     requirePermission(principal, 'quotes:read');
     const query = parse(quotationHistoryQuerySchema, input, 400);
