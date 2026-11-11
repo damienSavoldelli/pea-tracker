@@ -6,6 +6,20 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
+# Local databases and temporary files
+*.sqlite
+*.sqlite3
+*.db
+*.tmp
+*.temp
+.DS_Store
+
+# Editor swap files and local history
+*.swp
+*.swo
+*~
+.history/
+
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
@@ -161,6 +175,9 @@ vite.config.ts.timestamp-*
 
 # Python collector: environments, caches and private retry journals/mappings
 collector/.venv/
+.venv/
+venv/
+ENV/
 __pycache__/
 .pytest_cache/
 *.egg-info/
