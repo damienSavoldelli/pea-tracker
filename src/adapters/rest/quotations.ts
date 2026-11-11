@@ -6,6 +6,7 @@ import { acceptsJson, readJson, titles } from './instruments';
 
 export interface QuotationHttpDependencies {
   service: QuotationService;
+  ingestionOnly?: boolean;
   authenticate(request: Request): Principal | null | Promise<Principal | null>;
 }
 export function quotationRoutes(dependencies: QuotationHttpDependencies) {
@@ -41,8 +42,10 @@ export function quotationRoutes(dependencies: QuotationHttpDependencies) {
         request_id: crypto.randomUUID(), ...(failure.fieldPaths.length ? { field_paths: failure.fieldPaths } : {}) }, { status: failure.status, headers });
     }
   }
-  app.all('/quotations', c => handle(c.req.raw, 'history'));
-  app.all('/quotation-status', c => handle(c.req.raw, 'status'));
+  if (!dependencies.ingestionOnly) {
+    app.all('/quotations', c => handle(c.req.raw, 'history'));
+    app.all('/quotation-status', c => handle(c.req.raw, 'status'));
+  }
   app.all('/quotation-batches', c => handle(c.req.raw, 'batch'));
   return app;
 }

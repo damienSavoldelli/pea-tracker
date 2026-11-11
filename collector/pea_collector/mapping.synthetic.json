@@ -1,0 +1,22 @@
+[
+  {
+    "instrument_id": "00000000-0000-4000-8000-000000000001",
+    "symbol": "SYNTHETIC-A.PA",
+    "currency": "EUR",
+    "price_unit": "currency_unit",
+    "reported_currency": "EUR",
+    "exchange": "PAR",
+    "timezone": "Europe/Paris",
+    "quote_type": "EQUITY"
+  },
+  {
+    "instrument_id": "00000000-0000-4000-8000-000000000002",
+    "symbol": "SYNTHETIC-ETF.PA",
+    "currency": "EUR",
+    "price_unit": "currency_unit",
+    "reported_currency": "EUR",
+    "exchange": "PAR",
+    "timezone": "Europe/Paris",
+    "quote_type": "ETF"
+  }
+]

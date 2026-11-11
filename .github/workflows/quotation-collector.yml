@@ -1,0 +1,85 @@
+name: Quotation collector
+run-name: quotation-collector/${{ inputs.mode || 'live' }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Synthetic validation or explicitly approved live collection
+        type: choice
+        options: [synthetic, live]
+        default: synthetic
+  # Deliberately inactive. Uncomment only after explicit owner activation approval.
+  # schedule:
+  #   - cron: '17,47 6-18 * * 1-5'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quotation-collector
+  cancel-in-progress: false
+
+jobs:
+  synthetic:
+    if: github.repository == 'damienSavoldelli/pea-tracker' && github.ref == 'refs/heads/main' && inputs.mode == 'synthetic'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.14'
+      - run: python -m pip install uv==0.10.4
+      - run: uv sync --project collector --frozen
+      - run: collector/.venv/bin/python -m pytest collector/tests
+      - name: Synthetic dry run
+        working-directory: collector
+        run: .venv/bin/python -m pea_collector --cycle-id synthetic-manual
+
+  collect-live:
+    if: >-
+      github.repository == 'damienSavoldelli/pea-tracker' && github.ref == 'refs/heads/main' &&
+      (github.event_name == 'schedule' || inputs.mode == 'live') &&
+      vars.COLLECTOR_LIVE_ENABLED == 'true' && vars.COLLECTOR_PROVIDER_APPROVED == 'true' &&
+      vars.COLLECTOR_COVERAGE_APPROVED == 'true' && vars.COLLECTOR_SECURITY_APPROVED == 'true'
+    environment: collector-live
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - id: cadence
+        name: Check collection cadence
+        env:
+          COLLECTOR_EVENT: ${{ github.event_name }}
+          COLLECTOR_INTERVAL_MINUTES: ${{ vars.COLLECTOR_INTERVAL_MINUTES || '30' }}
+        run: python3 collector/pea_collector/cadence.py
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        if: steps.cadence.outputs.run == 'true'
+        with:
+          python-version: '3.14'
+      - if: steps.cadence.outputs.run == 'true'
+        run: python -m pip install uv==0.10.4
+      - if: steps.cadence.outputs.run == 'true'
+        run: uv sync --project collector --frozen --no-dev
+      - name: Run collector
+        if: steps.cadence.outputs.run == 'true'
+        working-directory: collector
+        env:
+          COLLECTOR_PROVIDER_APPROVED: ${{ vars.COLLECTOR_PROVIDER_APPROVED }}
+          COLLECTOR_COVERAGE_APPROVED: ${{ vars.COLLECTOR_COVERAGE_APPROVED }}
+          COLLECTOR_SECURITY_APPROVED: ${{ vars.COLLECTOR_SECURITY_APPROVED }}
+          COLLECTOR_MAPPING_JSON: ${{ secrets.COLLECTOR_MAPPING_JSON }}
+          COLLECTOR_API_ORIGIN: ${{ secrets.COLLECTOR_API_ORIGIN }}
+          COLLECTOR_TOKEN_URL: ${{ secrets.COLLECTOR_TOKEN_URL }}
+          COLLECTOR_CLIENT_ID: ${{ secrets.COLLECTOR_CLIENT_ID }}
+          COLLECTOR_CLIENT_SECRET: ${{ secrets.COLLECTOR_CLIENT_SECRET }}
+          COLLECTOR_AUDIENCE: ${{ secrets.COLLECTOR_AUDIENCE }}
+          COLLECTOR_HEARTBEAT_URL: ${{ secrets.COLLECTOR_HEARTBEAT_URL }}
+        # No artifacts/cache containing journal, mapping, cookies or tokens.
+        # A rerun with no private original journal fails closed, never recollects.
+        run: .venv/bin/python -m pea_collector --mode live --cycle-id "gha-${GITHUB_RUN_ID}"

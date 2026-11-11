@@ -1,0 +1,30 @@
+name: Quotation missing-cycle monitor
+on:
+  workflow_dispatch:
+  # Inactive until separate owner approval; independent from collection workflow.
+  # schedule:
+  #   - cron: '9 * * * 1-5'
+permissions:
+  contents: read
+  actions: read # Read job conclusions; no ingestion secret or write permission.
+concurrency:
+  group: quotation-monitor
+  cancel-in-progress: false
+jobs:
+  monitor:
+    if: github.repository == 'damienSavoldelli/pea-tracker' && github.ref == 'refs/heads/main' && vars.COLLECTOR_LIVE_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.14'
+      - name: Detect missing collector cycles
+        working-directory: collector
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COLLECTOR_INTERVAL_MINUTES: ${{ vars.COLLECTOR_INTERVAL_MINUTES || '30' }}
+        run: python -m pea_collector.monitor

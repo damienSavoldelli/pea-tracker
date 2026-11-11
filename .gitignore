@@ -158,3 +158,11 @@ vite.config.ts.timestamp-*
 
 # Local Wrangler state
 .wrangler/
+
+# Python collector: environments, caches and private retry journals/mappings
+collector/.venv/
+__pycache__/
+.pytest_cache/
+*.egg-info/
+.collector-state/
+*.collector.private.json

@@ -2,6 +2,8 @@
 
 ## Current state
 
+- Python collector: install the locked editable package in `collector/.venv`, then run `collector/.venv/bin/python -m pea_collector.checks --`. Synthetic pytest cases deny external network except loopback and cover normalization, delivery, recovery and inactive workflow guards. Offline qualification uses synthetic data; `qualify --live` performs explicit real provider requests and needs approval. Four host Vitest cases bridge the actual Python CLI to existing signed machine JWT/Hono services on Memory/native local D1; they explicitly skip without the venv, so a full host run with it is required for cross-language evidence. See the [collector plan](../tasks/2026_11/2026_11_11_collector/plan.md); hosted Actions/Linux, remote machine setup and Yahoo rights/full coverage remain separate gates.
+
 - `npm test` runs Vitest against the Hono app using Web-standard Request/Response and the official MCP client; it covers the complete SDK initialization/discovery/invocation path plus invalid requests.
 - `npm run typecheck` performs strict checks; `npm run build` checks Worker bundling. A local Wrangler smoke test complements Node-based tests; these do not prove deployed CPU budgets or ChatGPT connectivity.
 - Python/pytest and financial correctness tests are deferred until those components exist.

@@ -312,6 +312,13 @@ If limits still fail, document alternatives and any paid plan before requesting 
 
 ### Collection, freshness and recovery
 
+2026-11-11 local implementation: the owner confirmed Python/yfinance/GitHub Actions
+in the already public repository. The [collector plan](tasks/2026_11/2026_11_11_collector/plan.md)
+records synthetic local implementation, machine-authorized API-only ingestion and
+inactive workflows. No remote collector endpoint, D1 binding, credential or schedule
+is activated by that implementation; provider rights/full coverage and operational
+release gates below remain applicable.
+
 Run approximately every 30 minutes around applicable exchange sessions, with an
 exchange-aware calendar, holidays, early closes and DST. Offset cron minutes from
 hour boundaries. Use bounded retries/backoff, timeouts, concurrency control and
