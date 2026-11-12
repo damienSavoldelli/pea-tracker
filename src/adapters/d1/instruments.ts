@@ -45,6 +45,17 @@ export class D1InstrumentRepository implements InstrumentRepository {
     });
   }
 
+  async getMany(ids: readonly string[]): Promise<Instrument[]> {
+    const unique = [...new Set(ids)];
+    if (unique.length > 50) throw new Error('Instrument lookup limit exceeded');
+    if (!unique.length) return [];
+    return storage(async () => {
+      const rows = await this.db.prepare(`SELECT ${columns} FROM instruments WHERE id IN (${unique.map(() => '?').join(',')})`)
+        .bind(...unique).all<Record<string, unknown>>();
+      return rows.results.map(decode);
+    });
+  }
+
   async create(record: Instrument, replay: CreateReplay): Promise<Instrument> {
     const key = [replay.subject, operation, replay.key];
     let results: D1Result<Record<string, unknown>>[];

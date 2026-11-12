@@ -21,6 +21,10 @@ export interface CreateReplay {
 // not expose mutable storage references; get returns null for an absent ID.
 export interface InstrumentRepository {
   get(id: string): Promise<Instrument | null>;
+  /** Loads at most 50 distinct IDs in one storage request; absent IDs are omitted.
+   * @remarks Result order is unspecified; returned records are detached snapshots.
+   */
+  getMany(ids: readonly string[]): Promise<Instrument[]>;
   list(query: RepositoryPage): Promise<Instrument[]>;
   // Valid create record is initial state: version=1, equal created_at/updated_at,
   // and metadata matching canonicalInput. Record + original outcome commit atomically.

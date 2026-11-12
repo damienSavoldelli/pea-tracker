@@ -43,13 +43,19 @@ export class QuotationService {
     const idempotencyKey = parse(z.string().min(1).max(128).regex(/^[A-Za-z0-9_-]+$/), key, 400);
     const data = parse(batch, input);
     const now = this.clock();
+    const allowed = (observation: typeof data.observations[number]) => this.grants.some(grant =>
+      grant.subject === principal.subject && grant.provider === observation.provider && grant.instrument_ids.includes(observation.instrument_id));
+    // Prefetch only authorized identities, deduplicated across observations.
+    // Each observation still undergoes grant and instrument validation below.
+    const ids = [...new Set(data.observations.filter(allowed).map(observation => observation.instrument_id))];
+    const instruments = new Map((await this.instruments.getMany(ids)).map(instrument => [instrument.id, instrument]));
     const identities = new Set<string>();
     const records = [];
     for (const observation of data.observations) {
-      if (!this.grants.some(grant => grant.subject === principal.subject && grant.provider === observation.provider && grant.instrument_ids.includes(observation.instrument_id))) {
+      if (!allowed(observation)) {
         throw new ApplicationError(403, 'quotation_ingestion_not_allowed');
       }
-      const instrument = await this.instruments.get(observation.instrument_id);
+      const instrument = instruments.get(observation.instrument_id);
       if (!instrument) throw new ApplicationError(422, 'unknown_instrument');
       observation.fetched_at = new Date(observation.fetched_at).toISOString();
       if (observation.market_timestamp) observation.market_timestamp = new Date(observation.market_timestamp).toISOString();

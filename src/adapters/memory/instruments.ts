@@ -18,6 +18,15 @@ export class MemoryInstrumentRepository implements InstrumentRepository {
       .slice(0, query.limit).map(record => structuredClone(record));
   }
 
+  async getMany(ids: readonly string[]) {
+    const unique = [...new Set(ids)];
+    if (unique.length > 50) throw new Error('Instrument lookup limit exceeded');
+    return unique.flatMap(id => {
+      const record = this.records.get(id);
+      return record ? [structuredClone(record)] : [];
+    });
+  }
+
   async create(record: Instrument, replay: CreateReplay) {
     // No await inside the critical section: checks, record and replay outcome form
     // a single synchronous mutation within this instance, not a distributed lock.

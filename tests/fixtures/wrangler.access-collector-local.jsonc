@@ -1,0 +1,23 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "pea-tracker-access-collector-local",
+  "main": "../../src/entrypoints/access-collector.ts",
+  "compatibility_date": "2026-11-11",
+  "workers_dev": false,
+  "preview_urls": false,
+  "d1_databases": [
+    {
+      "binding": "INSTRUMENTS_DB",
+      "database_name": "pea-tracker-access-collector-local",
+      "remote": false,
+      "migrations_dir": "../../migrations"
+    }
+  ],
+  "vars": {
+    "ACCESS_TEAM_DOMAIN": "https://synthetic-team.cloudflareaccess.com",
+    "ACCESS_INGESTION_AUD": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "ACCESS_INGESTION_ENABLED": "true",
+    "ACCESS_SERVICE_CLIENT_IDS": "[\"synthetic-github-collector.access\"]",
+    "COLLECTOR_INGESTION_GRANTS": "[{\"provider\":\"yahoo\",\"instrument_ids\":[\"00000000-0000-4000-8000-000000000001\",\"00000000-0000-4000-8000-000000000002\"]}]"
+  }
+}

@@ -32,6 +32,75 @@ reads, positions, administration, diagnostics and MCP are absent. Method, body,
 idempotency and safe error rules remain those of the existing ingestion contract.
 Default/deployed Worker entrypoints and the MCP Access application stay unchanged.
 
+## Local Worker composition evidence
+
+`src/entrypoints/access-collector.ts` now composes the existing Access Service Auth
+adapter, `QuotationService`, and native D1 instrument/quotation repositories. Its
+only application route is the protected batch-ingestion endpoint. Missing or
+invalid bindings/configuration produce a generic `503` with `no-store`; there is
+no permissive or in-memory fallback. Machine identity still maps only to the
+fixed `quotes:ingest` principal and the configured provider/instrument grants.
+
+`tests/fixtures/wrangler.access-collector-local.jsonc` is a **local-only** fixture:
+it uses a distinct Worker name, `workers_dev: false`, `preview_urls: false`,
+`remote: false`, synthetic Access values and synthetic instrument grants. It
+reuses the existing migration directory and schema; no migration or alternate
+financial store was added. The configuration intentionally has no remote D1 ID,
+chosen hostname or production audience and is not a deployment manifest. Keep
+private instrument grant lists in secret storage when they reveal portfolio
+scope; the fixture's values are synthetic. Its compatibility date is pinned to
+`2026-11-11` because that is the newest date supported by the installed Wrangler
+4.158 local runtime; advance it after upgrading the Worker runtime toolchain.
+
+The local Worker test runs the existing Python client through a synthetic Service
+Auth edge and Hono into native local D1, then verifies durable quote outcomes,
+idempotent replay, denied identities, absent out-of-scope routes and fail-closed
+configuration. A Wrangler dry-run bundles the dedicated entrypoint. These checks
+do not establish hosted Access behavior, remote D1 readiness or deployment. No
+Worker, GitHub secret, schedule or remote resource was changed, and collection
+remains inactive.
+
+### D1 Free budget and review corrections
+
+The REST contract still accepts 50 observations. `InstrumentRepository` gains an
+additive `getMany` operation, implemented by both Memory and D1: at most 50 unique
+IDs, missing records omitted, detached results and no ordering guarantee. Existing
+method signatures and financial rules are unchanged. The service deduplicates
+authorized instrument IDs before one bound D1 `SELECT ... IN (...)`; it does not
+load instruments outside the caller's grants. Each observation is still validated
+against its grant and instrument metadata before any write.
+
+An accepted ingestion attempt or idempotent replay makes **two D1 binding calls**:
+one grouped instrument read and one native atomic write/receipt/read batch. This
+leaves 48 calls below the Free limit of 50 D1 calls per invocation. A `db.batch()`
+counts as one call for this limit, although it contains three SQL statements; the
+write transaction, conflict handling and immutable outcomes are unchanged. JWKS
+HTTP retrieval remains separate from D1 and subject to the existing bounded cache
+and timeout behavior. See [official D1 limits](https://developers.cloudflare.com/d1/platform/limits/).
+
+The dedicated Worker suite measures actual binding operations against native local
+D1 for both 50 distinct instruments and 50 observations of one instrument, checks
+the deduplicated bound IDs, replays each lot unchanged, and verifies 50 stored
+observations. Shared Memory/D1 contract tests cover grouped lookup bounds, missing
+IDs, duplicate IDs and snapshot isolation. Only the Python interoperability case
+requires Python; security/configuration checks no longer skip with its absence.
+Additional cases cover partial configuration, malformed client/grant JSON, invalid
+issuer/AUD, empty grants, the exported handler's successful ingestion/replay and
+JWKS cache reuse, plus isolation between environments with different security
+settings. Local call-count evidence does not prove hosted CPU/latency limits or
+actual Access policy behavior; hosted acceptance below remains mandatory.
+
+Validation evidence (2026-11-12, synthetic/local only):
+
+- Targeted Worker, quotation and Memory/D1 repository suites: 75 tests / 4 files.
+- Full TypeScript suite: 505 tests / 33 files, including OpenAPI document/response
+  validation, existing atomic rollback/restart and diagnostic/MCP regressions.
+- Strict TypeScript passes. Dedicated Wrangler 4.158 dry-run exits 0 and bundles
+  1261.90 KiB / gzip 224.68 KiB; sandbox restrictions prevent Wrangler writing its
+  external log file, without preventing bundling. No upload is performed.
+- Full scoped diff, whitespace and synthetic-data checks completed; no migrations,
+  deployed Worker configurations, OAuth policy, workflows or real secrets changed.
+
 ## Approval-gated setup order
 
 1. Approve the future ingestion destination and environment. No real hostname,

@@ -79,6 +79,23 @@ export function instrumentRepositoryContract(
       expect(await peer.get(missingId)).toBeNull();
     });
 
+    it('groups instrument reads, omits missing IDs, deduplicates and detaches snapshots', async () => {
+      const values = [record(1), record(2, { active: false })];
+      for (const value of values) await create(repository, value, `group-${value.id}`);
+      expect(await peer.getMany([])).toEqual([]);
+      expect(await peer.getMany([missingId])).toEqual([]);
+      const found = await peer.getMany([id(2), missingId, id(1), id(2)]);
+      expect(found.sort((a, b) => a.id.localeCompare(b.id))).toEqual(values);
+      found[0]!.name = 'Synthetic caller mutation';
+      expect(await repository.get(id(1))).toEqual(values[0]);
+    });
+
+    it('accepts 50 unique instrument lookups and rejects a larger grouped read', async () => {
+      const ids = Array.from({ length: 50 }, (_, index) => id(index + 1));
+      expect(await repository.getMany([...ids, ids[0]!])).toEqual([]);
+      await expect(repository.getMany([...ids, id(51)])).rejects.toThrow('Instrument lookup limit exceeded');
+    });
+
     it('round trips Unicode, optional nulls, false and quotation metadata without coercion', async () => {
       const value = record(1, {
         name: 'Synthetic Café e\u0301 😀', kind: 'stock', quote_currency: 'GBP',
