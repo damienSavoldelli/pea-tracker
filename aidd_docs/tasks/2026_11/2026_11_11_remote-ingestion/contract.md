@@ -60,6 +60,70 @@ do not establish hosted Access behavior, remote D1 readiness or deployment. No
 Worker, GitHub secret, schedule or remote resource was changed, and collection
 remains inactive.
 
+## Remote deployment template (not provisioned)
+
+`tests/fixtures/wrangler.access-collector-remote.template.jsonc` proposes the
+dedicated Worker and D1 name `pea-tracker-quotes-ingestion`, Access application
+`PEA Tracker Quote Ingestion` with a Service Auth policy, and machine principal
+`collector:github-actions` mapped only to `quotes:ingest`. The Worker has no
+workers.dev or preview hostname. Bind a separately approved Access-protected
+hostname before deployment; do not reuse either existing Worker hostname.
+
+The template has replacement markers for the D1 ID, team issuer and dedicated
+Access AUD. It is intentionally not deployable as checked in. After approved
+resource creation, copy it to the ignored
+`tests/fixtures/wrangler.access-collector-remote.private.jsonc`, replace the
+markers from Cloudflare's returned values, and set the two required Worker secrets there. Keep
+`ACCESS_INGESTION_ENABLED` false through the first closed deployment. The D1
+binding uses the existing `migrations/` directory; apply all four migrations to
+the new remote database explicitly before enabling the Worker. Do not deploy from
+the template or permit Wrangler auto-provisioning.
+
+Approved-operation sequence (examples only; not executed):
+
+1. Approve the account, hostname and names. Create D1 explicitly, capture its
+   returned ID privately, then prepare the ignored config:
+
+   ```sh
+   npx wrangler d1 create pea-tracker-quotes-ingestion
+   ```
+2. Apply and inspect migrations against that database:
+
+   ```sh
+   npx wrangler d1 migrations apply pea-tracker-quotes-ingestion --config <private-config> --remote
+   npx wrangler d1 migrations list pea-tracker-quotes-ingestion --config <private-config> --remote
+   ```
+
+   Confirm migrations `0001`–`0004` before continuing.
+3. Create the distinct Access application and Service Auth policy. Pin its
+   dedicated service token Client ID in `ACCESS_SERVICE_CLIENT_IDS`; place the
+   exact approved provider/instrument grants in `COLLECTOR_INGESTION_GRANTS`.
+   Enter each secret via secure input, never command arguments:
+
+   ```sh
+   npx wrangler secret put ACCESS_SERVICE_CLIENT_IDS --config <private-config>
+   npx wrangler secret put COLLECTOR_INGESTION_GRANTS --config <private-config>
+   ```
+
+4. Dry-run the completed config, then verify account, Worker, D1 ID, hostname,
+   Access protection, audience, allowlists and disabled flag. Deploy only after
+   separate explicit approval:
+
+   ```sh
+   npx wrangler deploy --dry-run --config <private-config>
+   npx wrangler deploy --config <private-config>
+   ```
+
+5. Test anonymous/invalid identities, absent read/MCP/admin routes and one
+   synthetic authorized batch plus replay. Enabling ingestion and adding protected
+   `collector-live` GitHub secrets each require separate approval. The schedule
+   stays disabled.
+
+No account, remote ID, hostname, audience, service token, grant list, database or
+deployment has been selected or created. These values require owner decisions.
+The template enables observability; review retention before use and ensure logs
+never contain assertions, credentials or quote payloads.
+
 ### D1 Free budget and review corrections
 
 The REST contract still accepts 50 observations. `InstrumentRepository` gains an

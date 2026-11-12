@@ -1,0 +1,31 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "pea-tracker-quotes-ingestion",
+  "main": "../../src/entrypoints/access-collector.ts",
+  "compatibility_date": "2026-11-11",
+  "workers_dev": false,
+  "preview_urls": false,
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 0.1,
+    "logs": { "enabled": true, "invocation_logs": true, "persist": true },
+    "traces": { "enabled": true, "persist": true, "head_sampling_rate": 0.05 }
+  },
+  "d1_databases": [
+    {
+      "binding": "INSTRUMENTS_DB",
+      "database_name": "pea-tracker-quotes-ingestion",
+      "database_id": "__REPLACE_AFTER_APPROVED_D1_CREATION__",
+      "remote": true,
+      "migrations_dir": "../../migrations"
+    }
+  ],
+  "vars": {
+    "ACCESS_TEAM_DOMAIN": "__SET_TO_APPROVED_CLOUDFLARE_ACCESS_TEAM_ISSUER__",
+    "ACCESS_INGESTION_AUD": "__SET_TO_DEDICATED_ACCESS_APPLICATION_AUD__",
+    "ACCESS_INGESTION_ENABLED": "false"
+  },
+  "secrets": {
+    "required": ["ACCESS_SERVICE_CLIENT_IDS", "COLLECTOR_INGESTION_GRANTS"]
+  }
+}

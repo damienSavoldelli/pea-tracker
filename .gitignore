@@ -88,6 +88,7 @@ web_modules/
 # Local Wrangler secrets
 .dev.vars
 .dev.vars.*
+tests/fixtures/wrangler.access-collector-remote.private.jsonc
 
 # Local documentation review archive
 pea-tracker-aidd-review.zip
