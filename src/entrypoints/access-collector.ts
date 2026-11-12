@@ -11,7 +11,7 @@ const providerSchema = z.string().min(1).max(64).regex(/^[a-z0-9][a-z0-9_-]*$/);
 const grantSchema = z.array(z.object({
   provider: providerSchema,
   instrument_ids: z.array(instrumentIdSchema).min(1).max(20),
-}).strict()).min(1).max(20).superRefine((grants, context) => {
+}).strict()).max(20).superRefine((grants, context) => {
   const seen = new Set<string>();
   for (const grant of grants) {
     for (const instrumentId of grant.instrument_ids) {

@@ -101,7 +101,8 @@ describe('dedicated Access quote-ingestion Worker', () => {
       { ACCESS_TEAM_DOMAIN: 'https://untrusted.example.invalid' },
       { ACCESS_INGESTION_AUD: 'invalid-audience' },
       { ACCESS_SERVICE_CLIENT_IDS: '[]' },
-      { COLLECTOR_INGESTION_GRANTS: '[]' },
+      { COLLECTOR_INGESTION_GRANTS: '[{}]' },
+      { COLLECTOR_INGESTION_GRANTS: JSON.stringify([{ provider: 'yahoo', instrument_ids: [] }]) },
       { ACCESS_INGESTION_ENABLED: 'yes' },
     ])('fails closed for partial or invalid configuration %j', async patch => {
       const keys = vi.fn(auth.keys);
@@ -116,6 +117,23 @@ describe('dedicated Access quote-ingestion Worker', () => {
       }
       expect(keys).not.toHaveBeenCalled();
       expect(await f.local!.db.prepare('SELECT count(*) n FROM quotation_observations').first('n')).toBe(0);
+    });
+
+    it('treats an empty grant list as deny-all without accessing D1 when ingestion is enabled', async () => {
+      const measured = measuredD1(f.local!.db);
+      const denyAll = createAccessCollectorWorker({ ...env, INSTRUMENTS_DB: measured.binding,
+        COLLECTOR_INGESTION_GRANTS: '[]' }, { fetch: auth.keys });
+      const response = await denyAll.fetch(new Request('https://synthetic.invalid/api/v1/quotation-batches', {
+        method: 'POST', headers: { 'Cf-Access-Jwt-Assertion': await auth.token(), 'Content-Type': 'application/json',
+          'Idempotency-Key': 'synthetic-empty-grants' },
+        body: JSON.stringify({ observations: [observation({ provider: 'yahoo', instrument_id: firstId })] }),
+      }));
+
+      expect(response.status).toBe(403);
+      expect(await response.json()).toMatchObject({ code: 'quotation_ingestion_not_allowed' });
+      expect(measured.calls).toMatchObject({ reads: 0, batches: 0, other: 0 });
+      expect(await f.local!.db.prepare('SELECT count(*) n FROM quotation_observations').first('n')).toBe(0);
+      expect(await f.local!.db.prepare('SELECT count(*) n FROM quotation_batch_outcomes').first('n')).toBe(0);
     });
 
     it('uses the exported handler and reuses its JWKS cache only for the same environment', async () => {

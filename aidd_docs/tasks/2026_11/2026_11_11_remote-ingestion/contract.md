@@ -27,6 +27,11 @@ is `quotes:ingest`, regardless of asserted scopes, roles or permissions. Existin
 QuotationService checks additionally bind that subject to exact provider and
 instrument allowlists. Missing grants deny ingestion.
 
+An empty `COLLECTOR_INGESTION_GRANTS` array is a valid deny-all configuration for the
+closed first deployment. It grants no provider/instrument pair; even an authenticated
+machine principal with `quotes:ingest` is denied before any D1 lookup or write. Non-empty
+grants retain the same strict provider, instrument-ID, count, and duplicate constraints.
+
 The opt-in ingestion composition mounts only `/api/v1/quotation-batches`; quotation
 reads, positions, administration, diagnostics and MCP are absent. Method, body,
 idempotency and safe error rules remain those of the existing ingestion contract.
@@ -157,11 +162,16 @@ actual Access policy behavior; hosted acceptance below remains mandatory.
 Validation evidence (2026-11-12, synthetic/local only):
 
 - Targeted Worker, quotation and Memory/D1 repository suites: 75 tests / 4 files.
-- Full TypeScript suite: 505 tests / 33 files, including OpenAPI document/response
+- Full TypeScript suite: 507 tests / 33 files, including OpenAPI document/response
   validation, existing atomic rollback/restart and diagnostic/MCP regressions.
+- With an empty grant list and machine authentication enabled, the local Worker
+  returns `403 quotation_ingestion_not_allowed` before any D1 binding call; no
+  quotation or idempotency outcome is written. Malformed and non-empty grant
+  validation remains enforced.
 - Strict TypeScript passes. Dedicated Wrangler 4.158 dry-run exits 0 and bundles
   1261.90 KiB / gzip 224.68 KiB; sandbox restrictions prevent Wrangler writing its
-  external log file, without preventing bundling. No upload is performed.
+  external log file, without preventing bundling. A second dry-run with the ignored
+  private secrets file also exits 0 without displaying its values or uploading.
 - Full scoped diff, whitespace and synthetic-data checks completed; no migrations,
   deployed Worker configurations, OAuth policy, workflows or real secrets changed.
 
