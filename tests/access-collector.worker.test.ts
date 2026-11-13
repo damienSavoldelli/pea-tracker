@@ -257,16 +257,35 @@ describe('dedicated Access quote-ingestion Worker', () => {
       expect(wrongMethod.status).toBe(405);
     });
 
-    it('does not access JWKS or ingest when the machine grant is disabled', async () => {
-      const disabledEnv = { ...env, ACCESS_INGESTION_ENABLED: 'false' };
+    it('verifies machine assertions before denying disabled ingestion, without accessing D1', async () => {
+      const measured = measuredD1(f.local!.db);
+      const disabledEnv = { ...env, INSTRUMENTS_DB: measured.binding, ACCESS_INGESTION_ENABLED: 'false' };
       const keys = vi.fn(auth.keys);
       const disabled = createAccessCollectorWorker(disabledEnv, { fetch: keys });
-      const response = await disabled.fetch(new Request('https://synthetic.invalid/api/v1/quotation-batches', {
-        method: 'POST', headers: { 'Cf-Access-Jwt-Assertion': await auth.token() }, body: '{}',
-      }));
-      expect(response.status).toBe(503);
-      expect(keys).not.toHaveBeenCalled();
+      const request = (assertion: string) => new Request('https://synthetic.invalid/api/v1/quotation-batches', {
+        method: 'POST', headers: { 'Cf-Access-Jwt-Assertion': assertion }, body: '{}',
+      });
+
+      const valid = await disabled.fetch(request(await auth.token()));
+      expect(valid.status).toBe(503);
+      expect(await valid.json()).toMatchObject({ code: 'ingestion_disabled' });
+
+      const rejectedAssertions = [
+        await auth.token({ exp: auth.issuedAt - 60 }),
+        await auth.token({ aud: 'a'.repeat(64) }),
+        await auth.token({ iss: 'https://other-synthetic.cloudflareaccess.com' }),
+        await auth.token({ exp: auth.issuedAt + 301 }),
+        await auth.token({ common_name: 'synthetic-unknown.access' }),
+      ];
+      for (const assertion of rejectedAssertions) {
+        const response = await disabled.fetch(request(assertion));
+        expect([401, 403]).toContain(response.status);
+      }
+
+      expect(keys).toHaveBeenCalled();
+      expect(measured.calls).toMatchObject({ reads: 0, batches: 0, other: 0 });
       expect(await f.local!.db.prepare('SELECT count(*) n FROM quotation_observations').first('n')).toBe(0);
+      expect(await f.local!.db.prepare('SELECT count(*) n FROM quotation_batch_outcomes').first('n')).toBe(0);
     });
   });
 });

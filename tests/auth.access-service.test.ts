@@ -86,8 +86,8 @@ describe('Cloudflare Access machine-only assertion policy', () => {
     expect((await revoked.authenticate(f.request(newToken))).subject).toBe(collectorSubject);
     const keys = vi.fn(f.keys);
     const disabled = new AccessServiceAuthenticator({ ...serviceConfig, enabled: false }, { fetch: keys });
-    await expect(disabled.authenticate(f.request(newToken))).rejects.toMatchObject({ status: 503, code: 'ingestion_disabled' });
-    expect(keys).not.toHaveBeenCalled();
+    await expect(disabled.authenticate(f.request(await f.token()))).rejects.toMatchObject({ status: 503, code: 'ingestion_disabled' });
+    expect(keys).toHaveBeenCalledTimes(1);
   });
   it.each([{}, { ...serviceConfig, enabled: undefined }, { ...serviceConfig, serviceClientIds: [] },
     { ...serviceConfig, serviceClientIds: ['invalid'] }, { ...serviceConfig, serviceClientIds: ['same.access', 'same.access'] },

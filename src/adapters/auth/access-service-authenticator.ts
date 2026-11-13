@@ -23,7 +23,6 @@ export class AccessServiceAuthenticator {
   }
 
   async authenticate(request: Request): Promise<Principal> {
-    if (!this.enabled) throw new ApplicationError(503, 'ingestion_disabled');
     const payload = await this.verifier.verify(request);
     // Service-token application JWTs have an empty sub and signed common_name.
     // Never accept the interactive owner, raw CF-Access-Client-Id, scope or azp.
@@ -31,6 +30,7 @@ export class AccessServiceAuthenticator {
       throw new ApplicationError(403, 'access_denied');
     }
     if (payload.exp! - payload.iat! > 300) throw new ApplicationError(401, 'invalid_token');
+    if (!this.enabled) throw new ApplicationError(503, 'ingestion_disabled');
     return Object.freeze({ subject: collectorSubject, permissions: Object.freeze(['quotes:ingest'] as const) });
   }
 }
