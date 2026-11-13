@@ -95,3 +95,67 @@ describe('Cloudflare Access machine-only assertion policy', () => {
     expect(() => new AccessServiceAuthenticator(config)).toThrow();
   });
 });
+
+
+describe('fixed-code internal Access diagnostics', () => {
+  it.each([
+    [{ iss: 'https://untrusted.cloudflareaccess.com' }, {}, false, 'issuer_rejected'],
+    [{ aud: 'c'.repeat(64) }, {}, false, 'audience_rejected'],
+    [{ aud: [serviceConfig.audience, 'c'.repeat(64)] }, {}, false, 'audience_rejected'],
+    [{ exp: 1 }, {}, false, 'expired'],
+    [{ nbf: 99999999999 }, {}, false, 'not_before_rejected'],
+    [{ iat: 99999999999 }, {}, false, 'issued_at_rejected'],
+    [{ exp: undefined }, {}, false, 'expiration_rejected'],
+    [{ sub: undefined }, {}, false, 'subject_rejected'],
+    [{ type: 'org' }, {}, false, 'token_type_rejected'],
+    [{}, { kid: 'unknown' }, false, 'key_not_found'],
+    [{}, { kid: '' }, false, 'header_rejected'],
+    [{}, { jku: 'https://untrusted.invalid' }, false, 'header_rejected'],
+    [{}, { kid: 'synthetic-key-1' }, true, 'signature_invalid'],
+  ] as const)('reports only a fixed reason while keeping the public error generic (%s)', async (claims, header, second, code) => {
+    const f = await accessServiceFixture();
+    const diagnostic = vi.fn();
+    const verifier = new AccessServiceAuthenticator({ ...serviceConfig, enabled: false }, { fetch: f.keys, onDiagnostic: diagnostic });
+    await expect(verifier.authenticate(f.request(await f.token(claims, header, second))))
+      .rejects.toMatchObject({ status: 401, code: 'invalid_token', message: 'invalid_token' });
+    expect(diagnostic.mock.calls).toEqual([[code]]);
+  });
+
+  it.each([301, 3600])('identifies excessive lifetime %i after cryptographic verification', async lifetime => {
+    const f = await accessServiceFixture();
+    const diagnostic = vi.fn();
+    const verifier = new AccessServiceAuthenticator({ ...serviceConfig, enabled: false }, { fetch: f.keys, onDiagnostic: diagnostic });
+    await expect(verifier.authenticate(f.request(await f.token({ exp: f.issuedAt + lifetime }))))
+      .rejects.toMatchObject({ status: 401, code: 'invalid_token' });
+    expect(diagnostic.mock.calls).toEqual([['assertion_lifetime_exceeded']]);
+  });
+
+  it('accepts exactly 300 seconds then applies the disabled gate, with no rejection diagnostic', async () => {
+    const f = await accessServiceFixture();
+    const diagnostic = vi.fn();
+    const verifier = new AccessServiceAuthenticator({ ...serviceConfig, enabled: false }, { fetch: f.keys, onDiagnostic: diagnostic });
+    await expect(verifier.authenticate(f.request(await f.token())))
+      .rejects.toMatchObject({ status: 503, code: 'ingestion_disabled' });
+    expect(diagnostic).not.toHaveBeenCalled();
+  });
+
+  it('does not let a failing diagnostic sink alter the rejection', async () => {
+    const f = await accessServiceFixture();
+    const verifier = new AccessServiceAuthenticator(serviceConfig, { fetch: f.keys,
+      onDiagnostic: () => { throw new Error('synthetic-private-marker'); } });
+    await expect(verifier.authenticate(f.request(await f.token({ exp: f.issuedAt + 3600 }))))
+      .rejects.toMatchObject({ status: 401, message: 'invalid_token' });
+  });
+
+  it('reports missing assertions, machine identity mismatches, and JWKS outages without values', async () => {
+    const f = await accessServiceFixture();
+    const diagnostic = vi.fn();
+    const verifier = new AccessServiceAuthenticator(serviceConfig, { fetch: f.keys, onDiagnostic: diagnostic });
+    await expect(verifier.authenticate(f.request())).rejects.toMatchObject({ status: 401 });
+    await expect(verifier.authenticate(f.request(await f.token({ common_name: 'synthetic-other.access' }))))
+      .rejects.toMatchObject({ status: 403 });
+    const unavailable = new AccessServiceAuthenticator(serviceConfig, { fetch: async () => { throw new Error('synthetic-private-marker'); }, onDiagnostic: diagnostic });
+    await expect(unavailable.authenticate(f.request(await f.token()))).rejects.toMatchObject({ status: 503 });
+    expect(diagnostic.mock.calls).toEqual([['assertion_missing_or_malformed'], ['machine_identity_rejected'], ['jwks_unavailable']]);
+  });
+});

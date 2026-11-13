@@ -53,7 +53,13 @@ export function createAccessCollectorWorker(env: AccessCollectorEnv, options: Ac
     audience: config.ACCESS_INGESTION_AUD,
     enabled: config.ACCESS_INGESTION_ENABLED === 'true',
     serviceClientIds,
-  }, options);
+  }, {
+    ...options,
+    onDiagnostic: options.onDiagnostic ?? (code => {
+      // Fixed codes only: do not log requests, JOSE errors, or decoded claims.
+      console.warn(JSON.stringify({ event: 'access_auth_rejected', code }));
+    }),
+  });
   const instruments = new D1InstrumentRepository(config.INSTRUMENTS_DB);
   const quotations = new D1QuotationRepository(config.INSTRUMENTS_DB);
   const grants = configuredGrants.map(grant => ({ ...grant, subject: collectorSubject }));

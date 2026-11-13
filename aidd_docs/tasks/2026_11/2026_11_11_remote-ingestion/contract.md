@@ -284,3 +284,44 @@ coverage, independent alerts and private-data release gates.
 
 Official references: [Access application token shape](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/application-token/)
 and [service credential setup/lifecycle](https://developers.cloudflare.com/cloudflare-one/access-controls/service-credentials/service-tokens/).
+
+## Local diagnostic preparation — 2026-11-13
+
+The owner reports hosted `401 invalid_token` responses matching the Worker problem
+contract while Access recorded successful Service Token authentication. This proves
+application rejection for the matching requests, not the failing JWT predicate.
+An assertion lifetime exceeding 300 seconds remains a hypothesis; the configured
+Access session duration alone does not establish the actual assertion lifetime.
+
+Local instrumentation emits only `{event: "access_auth_rejected", code: <fixed code>}`
+in the dedicated ingestion Worker. It distinguishes missing assertions, rejected
+headers, missing keys, invalid signatures, unavailable JWKS, claim-validation
+categories, machine identity rejection and `assertion_lifetime_exceeded`. JOSE
+messages, claim values, headers, assertions and credentials are never passed to
+the diagnostic sink. Sink failures cannot change authorization decisions. Public
+responses remain generic; all existing checks, including the exact 300-second
+bound, still precede the disabled-ingestion gate and any D1 operation.
+
+Cloudflare's documented Service Token application JWT uses RS256, `type: app`,
+array AUD, numeric `iat`/`exp`, empty `sub` and a Client ID in `common_name`, matching
+our accepted schema. This is documentary compatibility, not inspection of the
+actual hosted assertion. Reference:
+<https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/application-token/>.
+
+Confirmation remains approval-gated: deploy the instrumented ingestion Worker
+with ingestion disabled and grants empty, then perform one explicitly authorized
+machine request using the masked client. Inspect only the fixed event/code in
+Worker logs for that invocation. `assertion_lifetime_exceeded` means the signature,
+issuer, audience, timestamps and machine identity passed before the duration
+check failed; no numeric claim values or JWT capture are necessary. Logs are
+sampled, so a missing event is inconclusive. Do not relax the bound or change
+Access policy based on the hypothesis. No deployment or new hosted request has
+been performed for this diagnostic preparation.
+
+Local validation: 85 Access owner/machine authentication tests and 29 dedicated
+Worker/Python-client integration tests passed (114 total). Coverage includes
+300/301/3600-second boundaries, fixed-code-only sinks, throwing sinks, missing
+assertions, issuer/AUD/clock/header/key/signature failures, unavailable JWKS,
+machine identity rejection, generic public errors and zero D1 calls on rejection.
+Strict TypeScript and `git diff --check` passed. Integration tests used local
+loopback/D1 outside the restrictive sandbox; no hosted endpoint was contacted.

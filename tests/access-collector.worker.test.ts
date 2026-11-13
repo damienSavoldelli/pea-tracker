@@ -257,6 +257,26 @@ describe('dedicated Access quote-ingestion Worker', () => {
       expect(wrongMethod.status).toBe(405);
     });
 
+    it('logs only a fixed lifetime rejection code and keeps the HTTP response generic with zero D1 calls', async () => {
+      const measured = measuredD1(f.local!.db);
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      try {
+        const disabled = createAccessCollectorWorker({ ...env, INSTRUMENTS_DB: measured.binding,
+          ACCESS_INGESTION_ENABLED: 'false', COLLECTOR_INGESTION_GRANTS: '[]' }, { fetch: auth.keys });
+        const assertion = await auth.token({ exp: auth.issuedAt + 3600 });
+        const response = await disabled.fetch(new Request('https://synthetic.invalid/api/v1/quotation-batches', {
+          method: 'POST', headers: { 'Cf-Access-Jwt-Assertion': assertion }, body: '{}',
+        }));
+        expect(response.status).toBe(401);
+        expect(response.headers.get('WWW-Authenticate')).toBe('CF-Access-Service-Token');
+        const problem = await response.json();
+        expect(problem).toMatchObject({ type: 'about:blank', status: 401, code: 'invalid_token' });
+        expect(JSON.stringify(problem)).not.toContain('assertion_lifetime_exceeded');
+        expect(warn.mock.calls).toEqual([[JSON.stringify({ event: 'access_auth_rejected', code: 'assertion_lifetime_exceeded' })]]);
+        expect(measured.calls).toMatchObject({ reads: 0, batches: 0, other: 0, bindings: [] });
+      } finally { warn.mockRestore(); }
+    });
+
     it('verifies machine assertions before denying disabled ingestion, without accessing D1', async () => {
       const measured = measuredD1(f.local!.db);
       const disabledEnv = { ...env, INSTRUMENTS_DB: measured.binding, ACCESS_INGESTION_ENABLED: 'false' };
