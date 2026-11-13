@@ -41,6 +41,14 @@ Use the exact templates in its `commands` list; other argument orders require
 the existing approval policy. The installed Wrangler parser was checked offline:
 flags after `--` remain positional arguments and can cause CLI errors.
 
+Codex 0.167.0 parses `CI=true ...` as an opaque shell invocation, not as a direct `node` command. The official rule semantics define `allow` as running outside the sandbox, so no new auto-allow was added for remote diagnostics; doing so would broaden sandbox/network access. Wrangler's `d1 migrations list` also creates its migrations table (locally or remotely), so it is not read-only. The exact previously used remote-list command has a project `prompt` rule; `execpolicy check` evaluates this file with the other project rules, but does not inspect saved approvals outside those files. `whoami`, D1 `info`, dry-run and other remote checks remain governed by the existing host approval and sandbox policies.
+
+Validate the exact prompt override with all project rules:
+
+```sh
+codex execpolicy check --rules .codex/rules/git.rules --rules .codex/rules/checks.rules --rules .codex/rules/wrangler.rules --rules .codex/rules/python.rules -- /bin/zsh -lc 'CI=true WRANGLER_SEND_METRICS=false node node_modules/wrangler/bin/wrangler.js d1 migrations list pea-tracker-quotes-ingestion --config tests/fixtures/wrangler.access-collector-remote.private.jsonc --remote'
+```
+
 Supported launchers: `node node_modules/wrangler/bin/wrangler.js`, `npx wrangler`,
 `npx --no-install wrangler` and `wrangler`; prefer the installed Node invocation.
 Allowed templates cover loopback development, dev/PoC dry-runs, the fixed

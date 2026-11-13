@@ -34,3 +34,15 @@ for executable in [
             decision = "allow",
             justification = "Fixed reviewed Wrangler options terminated by --; explicit task authorization remains required",
         )
+
+# In this Wrangler version, remote `d1 migrations list` creates the tracking
+# table before reading it. Override any saved allow for the known invocation.
+prefix_rule(
+    pattern = [
+        "/bin/zsh",
+        "-lc",
+        "CI=true WRANGLER_SEND_METRICS=false node node_modules/wrangler/bin/wrangler.js d1 migrations list pea-tracker-quotes-ingestion --config tests/fixtures/wrangler.access-collector-remote.private.jsonc --remote",
+    ],
+    decision = "prompt",
+    justification = "Wrangler initializes the remote D1 migrations table during list; review and approve this remote write explicitly",
+)
