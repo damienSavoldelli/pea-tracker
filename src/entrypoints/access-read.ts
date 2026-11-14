@@ -11,6 +11,7 @@ import { PortfolioService } from '../application/portfolio';
 import { ValuationService } from '../application/valuation';
 import type { Principal } from '../application/authorization';
 import { createApp } from '../app';
+import { createMarketCalendar } from '../adapters/calendar/market-calendar';
 
 /** Mounts the existing REST/MCP readers, leaving every mutation route absent.
  * @remarks Authorization remains enforced by the shared services. This route
@@ -66,11 +67,14 @@ const configuration = z.object({
  * so existing quotation-only deployments do not silently expose portfolio data.
  */
 export function createAccessReadWorker(environment: D1LocalEnv & Record<string, unknown>, options: AccessJwtOptions = {}) {
-  const config = configuration.parse(environment);
+  const { MARKET_CALENDAR_ASSIGNMENTS, ...readEnvironment } = environment;
+  const config = configuration.parse(readEnvironment);
   const owner = new AccessAuthenticator({ issuer: config.ACCESS_TEAM_DOMAIN,
     audience: config.ACCESS_READ_AUD, ownerSubject: config.ACCESS_OWNER_SUB }, options);
   const instruments = new D1InstrumentRepository(config.INSTRUMENTS_DB);
-  const quotations = new QuotationService(new D1QuotationRepository(config.INSTRUMENTS_DB), instruments);
+  const market = createMarketCalendar(MARKET_CALENDAR_ASSIGNMENTS);
+  const quotations = new QuotationService(new D1QuotationRepository(config.INSTRUMENTS_DB), instruments,
+    [], undefined, (_selector, now, instrument) => market(instrument, now));
   const portfolio = config.ACCESS_PORTFOLIO_READ_ENABLED === 'true'
     ? new PortfolioService(new D1PortfolioRepository(config.INSTRUMENTS_DB), instruments) : undefined;
   const app = createAccessReadApp(new InstrumentService(instruments), quotations, async request => {

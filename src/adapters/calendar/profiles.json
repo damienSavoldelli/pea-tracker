@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "reviewed_on": "2026-11-14",
+  "profiles": [
+    {
+      "id": "xpar-continuous-core-v1",
+      "mic": "XPAR",
+      "timezone": "Europe/Paris",
+      "verified_years": [2025, 2026, 2027],
+      "regular_open": "09:00",
+      "regular_close": "17:30",
+      "closed_rules": ["new_year", "good_friday", "easter_monday", "labour_day", "christmas", "boxing_day"],
+      "unknown_session_days": ["12-24", "12-31"],
+      "admission": "Explicitly verified continuous-trading instruments only; never infer a profile from the MIC or instrument kind.",
+      "exclusions": ["ALXP", "fixing", "auctions", "extended sessions", "unannounced suspensions", "intraday half-day hours", "unreviewed years"],
+      "sources": [
+        {
+          "role": "independent rule corroboration",
+          "url": "https://github.com/gerrymanoim/exchange_calendars/blob/master/exchange_calendars/exchange_calendar_xpar.py",
+          "license": "Apache-2.0",
+          "copyright": "Copyright 2018 Quantopian, Inc.",
+          "reuse": "No upstream source code is copied, bundled or imported. The local generator independently expresses the bounded calendar rules."
+        },
+        {
+          "role": "official cross-check only",
+          "url": "https://www.euronext.com/en/trading/trading-hours-holidays",
+          "editions": "Paris columns of the published 2025, 2026 and 2027 calendars, consulted 2026-11-14",
+          "reuse": "No official file, table, text or image is copied or redistributed. Public access is not treated as an open data licence."
+        }
+      ]
+    }
+  ]
+}

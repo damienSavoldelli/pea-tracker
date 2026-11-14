@@ -11,6 +11,7 @@ import { D1PortfolioRepository } from '../src/adapters/d1/portfolio';
 import { PortfolioService } from '../src/application/portfolio';
 import { ValuationService } from '../src/application/valuation';
 import { openingInput, portfolioAdmin } from './helpers/portfolio';
+import { InstrumentService } from '../src/application/instruments';
 
 describe('owner-only D1 quotation reader', () => {
   let f: Awaited<ReturnType<typeof quotationFixture>>;
@@ -226,5 +227,54 @@ describe('owner-only D1 quotation reader', () => {
       } finally { await client.close(); await server.close(); }
       expect(prepare).not.toHaveBeenCalled();
     } finally { prepare.mockRestore(); }
+  });
+
+  it('isolates optional calendar configuration and returns the same established context over REST and MCP', async () => {
+    const id = '00000000-0000-4000-8000-000000000003';
+    await new InstrumentService(f.instruments, () => f.clock.now, () => id).create(portfolioAdmin,
+      { name: 'Synthetic calendar read', kind: 'stock', quote_currency: 'EUR', price_unit: 'currency_unit', exchange_mic: 'XPAR' }, 'calendar-read-instrument');
+    f.grants[0]!.instrument_ids.push(id);
+    await f.service.ingest(quotationCollector, { observations: [observation({ instrument_id: id })] }, 'calendar-read-observation');
+    const selected = { ...selector, instrument_id: id };
+    const path = `/api/v1/quotation-status?${new URLSearchParams(selected)}`;
+    const assignments = JSON.stringify([{ instrument_id: id, mic: 'XPAR', profile_id: 'xpar-continuous-core-v1' }]);
+    const options = { fetch: auth.keys, clock: () => auth.issuedAt * 1000 };
+    const token = await auth.token();
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-09T10:02:00.000Z'));
+    try {
+      const enabled = createAccessReadWorker({ ...env, MARKET_CALENDAR_ASSIGNMENTS: assignments }, options);
+      const get = (target: ReturnType<typeof createAccessReadWorker>) => target.fetch(new Request(`https://synthetic-read.invalid${path}`,
+        { headers: { 'Cf-Access-Jwt-Assertion': token } }));
+      const response = await get(enabled);
+      expect(response.status).toBe(200);
+      await assertContractResponse('GET', path, response);
+      const rest = await response.json();
+      expect(rest).toMatchObject({ market_context: { phase: 'open', expected_session_date: '2026-11-09' },
+        freshness: { status: 'within_target', policy_version: 1, collection_age_seconds: 60 } });
+      const server = await startOAuthHttpFixture(enabled);
+      const client = new Client({ name: 'synthetic-calendar-reader', version: '1' });
+      try {
+        await client.connect(new StreamableHTTPClientTransport(new URL('/mcp', server.url), {
+          requestInit: { headers: { 'Cf-Access-Jwt-Assertion': token } },
+        }));
+        expect((await client.callTool({ name: 'get_quotation_status', arguments: selected })).structuredContent).toEqual(rest);
+      } finally { await client.close(); await server.close(); }
+
+      for (const value of [undefined, '', 'invalid', '{}', 42, JSON.stringify([{ instrument_id: id, mic: 'ALXP', profile_id: 'xpar-continuous-core-v1' }])]) {
+        const result = await get(createAccessReadWorker({ ...env, MARKET_CALENDAR_ASSIGNMENTS: value }, options));
+        expect(result.status).toBe(200);
+        expect(await result.json()).toMatchObject({ market_context: { phase: 'unknown', expected_session_date: null },
+          freshness: { status: 'unknown', reason: 'market_calendar_unknown' } });
+      }
+      expect(() => createAccessReadWorker({ ...env, MARKET_CALENDAR_ASSIGNMENTS: assignments, UNEXPECTED_KEY: 'invalid' }, options)).toThrow();
+      expect(() => createAccessReadWorker({ ...env, MARKET_CALENDAR_ASSIGNMENTS: 'invalid', ACCESS_READ_AUD: 'invalid' }, options)).toThrow();
+      const unauthenticated = await enabled.fetch(new Request(`https://synthetic-read.invalid${path}`));
+      expect(unauthenticated.status).toBe(401);
+      for (const [writePath, method] of [['/api/v1/instruments', 'POST'], ['/api/v1/quotation-batches', 'POST']] as const) {
+        expect((await enabled.fetch(new Request(`https://synthetic-read.invalid${writePath}`,
+          { method, headers: { 'Cf-Access-Jwt-Assertion': token } }))).status).toBe(404);
+      }
+    } finally { vi.useRealTimers(); }
   });
 });

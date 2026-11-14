@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { exactDecimalSchema } from '../domain/decimals';
+import type { Instrument } from '../domain/instruments';
 import { observationIdentity, observationInputSchema, quotationRecordSchema, quotationSelectorSchema, quotationFreshness, type MarketContext, type QuotationSelector } from '../domain/quotations';
 import type { InstrumentRepository } from '../ports/instruments';
 import type { QuotationRepository } from '../ports/quotations';
@@ -27,7 +28,7 @@ export class QuotationService {
   constructor(private readonly repository: QuotationRepository, private readonly instruments: InstrumentRepository,
     private readonly grants: readonly QuotationIngestionGrant[] = [],
     private readonly clock: () => string = () => new Date().toISOString(),
-    private readonly market: (selector: QuotationSelector, now: string) => MarketContext = () => ({ phase: 'unknown', expected_session_date: null }),
+    private readonly market: (selector: QuotationSelector, now: string, instrument: Instrument) => MarketContext = () => ({ phase: 'unknown', expected_session_date: null }),
     private readonly id: () => string = () => crypto.randomUUID()) {}
 
   /** Persists a bounded provider-observation batch.
@@ -103,9 +104,10 @@ export class QuotationService {
   }
 
   private async statusAt(query: QuotationSelector, now: string) {
-    if (!await this.instruments.get(query.instrument_id)) throw new ApplicationError(404, 'instrument_not_found');
+    const instrument = await this.instruments.get(query.instrument_id);
+    if (!instrument) throw new ApplicationError(404, 'instrument_not_found');
     const snapshot = await this.repository.snapshot(query);
-    const marketContext = this.market(query, now);
+    const marketContext = this.market(query, now, instrument);
     return { selector: query, quote: snapshot.quote,
       availability: snapshot.quote ? 'available' : snapshot.lastAttempt ? 'unavailable' : 'missing',
       last_attempt: snapshot.lastAttempt, last_successful_fetch_at: snapshot.lastSuccess?.fetched_at ?? null,

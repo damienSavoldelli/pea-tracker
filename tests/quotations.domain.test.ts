@@ -46,6 +46,15 @@ describe('explicit collection freshness versus market/provider time', () => {
     expect(quotationFreshness(record, record, '2026-11-09T10:02:00.000Z', { phase: 'open', expected_session_date: '2026-11-09' }))
       .toMatchObject({ status: 'within_target', market_age_seconds: 7320, collection_age_seconds: 60, delivery: 'unknown', realtime_guaranteed: false });
   });
+  it('advances collection age independently of an unchanged price or previous-session trade', () => {
+    const record = { ...quote(), market_timestamp: '2026-11-09T08:00:00.000Z', provider_delay_seconds: null };
+    const fetchedAgain = { ...record, fetched_at: '2026-11-10T10:01:00.000Z' };
+    const result = quotationFreshness(record, fetchedAgain, '2026-11-10T10:02:00.000Z',
+      { phase: 'open', expected_session_date: '2026-11-10' });
+    expect(result).toMatchObject({ status: 'stale', reason: 'expected_session_missing', collection_age_seconds: 60,
+      market_age_seconds: 93720, policy_version: 1, realtime_guaranteed: false });
+    expect(fetchedAgain.price).toBe(record.price);
+  });
   it('does not turn a clock rollback into a fresh observation', () => {
     const record = quote();
     expect(quotationFreshness(record, record, '2026-11-09T09:00:00.000Z', { phase: 'open', expected_session_date: '2026-11-09' }))
