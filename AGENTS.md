@@ -34,6 +34,15 @@
 - **Fan out genuinely independent subtasks when coordination costs less than serial work.**
 - **Name by intention, scope by responsibility** ; not mechanism.
 
+## AIDD and Technical Skills
+
+- At the start of each new mission, briefly assess whether an available AIDD or technical skill adds concrete value. Select proportionately to the task's complexity and risk; do not run every workflow or multiply sub-agents by default.
+- Prefer relevant existing skills for feasibility studies and targeted PoCs, durable decisions and contracts, planning and implementation, tests/reviews/quality checks, and memory/context updates. Use the project-local `git-commit` skill for Git commits.
+- Before using a skill, read its actual `SKILL.md` and the action-specific instructions needed for the task. Use the current available-skills catalog; do not invent commands or assume an older workflow still applies.
+- Reuse existing PRDs, contracts, plans, tests and evidence. Do not repeat completed audits or general exploration; investigate only the unresolved questions needed for the current mission.
+- Update AIDD memory at useful milestones, within the authorized scope, distinguishing validated facts, hypotheses and contemplated changes. Preserve generated sections and historical evidence; skill selection does not expand permissions.
+- Keep reliability of the real PEA, simplicity, security and maintainability as the permanent priorities.
+
 ## Project Boundaries
 
 - Architecture baseline: [aidd_docs/INSTALL.md](aidd_docs/INSTALL.md); current scope: [aidd_docs/roadmap.md](aidd_docs/roadmap.md). V1 financial reads and ingestion are functional according to prior operational evidence; the diagnostic Worker is a separate composition. Protect the real PEA first.
