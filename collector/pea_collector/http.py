@@ -1,12 +1,77 @@
 """Small bounded HTTPS transport. Never log URLs, headers, bodies or exceptions."""
 import json
 import re
+import ssl
 import time
+from dataclasses import dataclass
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode, urlsplit
 from urllib.request import HTTPRedirectHandler, HTTPSHandler, ProxyHandler, Request, build_opener
 
 from .model import CollectorError
+
+USER_AGENT = "pea-tracker-collector/0.1.0"
+APPLICATION_ERROR_CODES = frozenset({
+    "invalid_token", "access_denied", "ingestion_disabled", "ingestion_unavailable",
+    "authentication_unavailable", "unauthenticated", "forbidden", "invalid_request",
+    "invalid_quotation", "unknown_instrument", "invalid_quotation_timestamps",
+    "quotation_unit_mismatch", "duplicate_batch_observation",
+    "quotation_ingestion_not_allowed", "idempotency_conflict",
+    "quotation_observation_conflict", "internal_error", "unsupported_media_type",
+    "not_acceptable", "method_not_allowed", "origin_forbidden", "payload_too_large",
+})
+
+
+@dataclass(frozen=True)
+class HttpDiagnostic:
+    """Safe response summary containing no bodies, claims or arbitrary messages."""
+
+    status: int
+    content_type: str
+    origin: str
+    code: str
+    ray_id: str
+    accepted: int | None = None
+
+
+def classify_http_response(status: int, body: bytes, content_type: str,
+                           ray_id: str = "", challenged: bool = False) -> HttpDiagnostic:
+    """Project bounded JSON onto fixed codes; never forward upstream prose.
+
+    Cloudflare 1010 requires its documented boolean marker, numeric code and
+    matching HTTP status. An opaque denial remains unattributed.
+    """
+    media = content_type.split(";", 1)[0].strip().lower()
+    media = media if media in {"application/json", "application/problem+json", "text/html",
+                              "text/plain", "application/octet-stream"} else "other" if media else "missing"
+    ray = ray_id if re.fullmatch(r"[a-fA-F0-9]{16,32}(?:-[A-Z]{3})?", ray_id) else "unavailable"
+
+    def result(origin, code, accepted=None):
+        return HttpDiagnostic(status, media, origin, code, ray, accepted)
+
+    if challenged:
+        return result("cloudflare_challenge", "challenge_response")
+    if len(body) > 65536 or media not in {"application/json", "application/problem+json"}:
+        return result("undetermined", "access_or_unknown_rejection")
+    try:
+        parsed = json.loads(body)
+    except (ValueError, UnicodeError, RecursionError):
+        return result("undetermined", "invalid_json_response")
+    if not isinstance(parsed, dict):
+        return result("undetermined", "unexpected_response_shape")
+    if (status == 403 and parsed.get("status") == 403 and parsed.get("cloudflare_error") is True
+            and type(parsed.get("error_code")) is int and parsed["error_code"] == 1010):
+        return result("cloudflare_edge", "browser_integrity_1010")
+    code = parsed.get("code")
+    if (parsed.get("type") == "about:blank" and parsed.get("status") == status
+            and isinstance(code, str) and code in APPLICATION_ERROR_CODES):
+        return result("worker_contract", code)
+    if status == 201:
+        accepted, records = parsed.get("accepted"), parsed.get("data")
+        if type(accepted) is int and 1 <= accepted <= 50 and isinstance(records, list) and len(records) == accepted:
+            return result("worker_contract", "ingestion_accepted", accepted)
+        return result("worker_contract", "unexpected_ingestion_response")
+    return result("undetermined", "unrecognized_error_response")
 
 
 def checked_url(value: str, local: bool = False) -> str:
@@ -35,26 +100,50 @@ class NoRedirect(HTTPRedirectHandler):
 class HttpTransport:
     """POST with a socket timeout, bounded responses and sanitized failures."""
 
-    def __init__(self, timeout: int = 10):
-        """Disable environment proxies and redirects for the trusted destination."""
+    def __init__(self, timeout: int = 10, *, ssl_context: ssl.SSLContext | None = None):
+        """Disable proxies and redirects, optionally selecting a verified CA context.
+
+        Explicit contexts must retain certificate and hostname verification;
+        the default continues to use the interpreter's system trust settings.
+        """
         if not 1 <= timeout <= 30:
             raise ValueError("invalid_http_timeout")
+        if ssl_context is not None and (ssl_context.verify_mode != ssl.CERT_REQUIRED or not ssl_context.check_hostname):
+            raise ValueError("invalid_tls_context")
         self.timeout = timeout
-        self.opener = build_opener(ProxyHandler({}), HTTPSHandler(), NoRedirect())
+        self.opener = build_opener(ProxyHandler({}), HTTPSHandler(context=ssl_context), NoRedirect())
 
     def post(self, url: str, body: bytes, headers: dict) -> tuple[int, bytes]:
-        """Return status and a bounded success body; discard upstream error text."""
+        """Preserve the delivery API; expose only the fixed 1010 failure code."""
+        status, data, content_type, ray, challenged = self._request(url, body, headers)
+        if status == 403 and classify_http_response(status, data, content_type, ray, challenged).code == "browser_integrity_1010":
+            raise CollectorError("browser_integrity_1010")
+        return status, data if 200 <= status < 300 else b""
+
+    def post_diagnostic(self, url: str, body: bytes, headers: dict) -> HttpDiagnostic:
+        """Send once and return only safe metadata, using the same transport."""
+        return classify_http_response(*self._request(url, body, headers))
+
+    def _request(self, url: str, body: bytes, headers: dict) -> tuple[int, bytes, str, str, bool]:
+        """Share TLS, authentication headers and limits without adding retries."""
         try:
-            with self.opener.open(Request(url, data=body, headers=headers, method="POST"), timeout=self.timeout) as response:
+            request = Request(url, data=body, headers=headers, method="POST")
+            request.add_header("User-Agent", USER_AGENT)
+            try:
+                response = self.opener.open(request, timeout=self.timeout)
+            except HTTPError as error:
+                response = error
+            with response:
+                status = response.code
+                content_type = response.headers.get("Content-Type", "")
+                ray = response.headers.get("CF-Ray", "")
+                challenged = response.headers.get("cf-mitigated", "") == "challenge"
+                if not 200 <= status < 300 and content_type.split(";", 1)[0].strip().lower() not in {"application/json", "application/problem+json"}:
+                    return status, b"", content_type, ray, challenged
                 data = response.read(65537)
                 if len(data) > 65536:
                     raise CollectorError("response_too_large")
-                return response.status, data
-        except HTTPError as error:
-            # Never consume or expose untrusted error bodies (possibly HTML/login).
-            status = error.code
-            error.close()
-            return status, b""
+                return status, data, content_type, ray, challenged
         except (URLError, TimeoutError, OSError):
             raise CollectorError("network_failure") from None
 

@@ -325,3 +325,32 @@ assertions, issuer/AUD/clock/header/key/signature failures, unavailable JWKS,
 machine identity rejection, generic public errors and zero D1 calls on rejection.
 Strict TypeScript and `git diff --check` passed. Integration tests used local
 loopback/D1 outside the restrictive sandbox; no hosted endpoint was contacted.
+
+## Local HTTP client correction — 2026-11-14
+
+The shared Python transport now sends `User-Agent: pea-tracker-collector/0.1.0`
+instead of urllib's library default. Cloudflare documents rejection of default
+urllib user agents by Browser Integrity Check on its managed `workers.dev` zone,
+before Worker execution. This identifies a documented client incompatibility;
+it does not retrospectively prove the cause of a discarded hosted error body.
+
+Bounded JSON classification accepts both JSON media types and recognizes 1010
+only with HTTP/body status 403, `cloudflare_error: true` and integer `error_code:
+1010`. It emits only `browser_integrity_1010`, never upstream messages, bodies,
+claims or credentials. Other API errors retain their explicit code allowlist.
+Ordinary delivery still discards error bodies and treats 1010 as permanent.
+Transport calls do not retry; existing bounded delivery retries remain unchanged.
+
+An optional explicit TLS context must require certificate and hostname checks.
+The private operator client reuses the shared diagnostic transport with its
+installed CA bundle, masked terminal input, unchanged payload/key and one POST.
+It contains no duplicate HTTP transport or classification implementation.
+
+Validation: 146 Python tests, 12 local Python/Hono integration tests including
+OpenAPI response checks, strict TypeScript, and private-client offline simulations
+passed. Loopback tests used synthetic credentials and local Memory/D1 only.
+No hosted request, Worker deployment, Access/security setting, remote D1 operation,
+workflow activation, dependency installation or JWT lifetime change was performed.
+
+References: [workers.dev BIC behavior](https://developers.cloudflare.com/workers/configuration/routing/workers-dev/#browser-integrity-check-on-workersdev)
+and [Cloudflare structured errors](https://developers.cloudflare.com/fundamentals/reference/error-responses/).

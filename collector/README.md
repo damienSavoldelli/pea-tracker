@@ -74,6 +74,11 @@ data-use rights or proves complete instrument coverage.
 
 POST only to `/api/v1/quotation-batches` on a configured origin. Production uses
 HTTPS, no redirects or environment proxies, bounded response sizes and timeouts.
+The shared transport sends `User-Agent: pea-tracker-collector/0.1.0`, identifying
+the application rather than relying on urllib's library default, which Cloudflare
+can reject on `workers.dev`. A documented Cloudflare JSON 1010 response becomes
+the fixed, non-retryable `browser_integrity_1010` error. Optional operator diagnostics
+expose only bounded metadata and allowlisted codes, never upstream prose or bodies.
 Transient network/5xx failures retry the exact bytes/key at most three times.
 401/403/409/422 and rate limits stop; do not automatically change a key after 409.
 Failure observations have null prices; the backend preserves the last usable quote.
