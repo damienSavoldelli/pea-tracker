@@ -91,9 +91,9 @@ pair and forwards its signed assertion to the Worker. The backend checks its fix
 issuer, distinct ingestion application AUD, signed service identity and time bounds,
 then grants only `quotes:ingest` with server-side provider/instrument allowlists.
 
-The optional collector composition is not imported by deployed entrypoints. It
-does not expose MCP, portfolio/admin routes or quotation reads. No Access app,
-service token, secret, D1 binding or endpoint has been configured remotely here.
+The dedicated collector Worker exposes ingestion only, with no MCP,
+portfolio/admin routes or quotation reads. Hosted manual ingestion and Service
+Auth have been verified; unattended scheduling is a separate activation step.
 Use the [machine-ingestion runbook](../aidd_docs/tasks/2026_11/2026_11_11_remote-ingestion/contract.md)
 for the approval-gated configuration, rotation and revocation procedure.
 
@@ -114,9 +114,12 @@ Recover using the original private journal when available, or start a deliberate
 new collection cycle after checking backend status. No private artifact/cache is
 introduced as a workaround.
 
-## Inactive GitHub Actions preparation
+## GitHub Actions automation
 
-Both workflow files have only `workflow_dispatch`; their Cron entries are comments.
+Both workflow files support `workflow_dispatch` and the reviewed weekday schedules.
+The schedule change is local until an explicitly approved commit and push; it does
+not activate GitHub Actions by itself. Current hosted activation must be verified
+separately rather than inferred from the local files.
 No push/PR/fork trigger is installed. Main branch and exact repository identity are
 checked. Actions are SHA-pinned, checkout credentials are not persisted, jobs are
 bounded and concurrency never cancels an in-flight delivery.
@@ -128,10 +131,12 @@ The live job also requires these repository Variables to equal `true`:
 - `COLLECTOR_COVERAGE_APPROVED`
 - `COLLECTOR_SECURITY_APPROVED`
 
-Use a manually reviewed `collector-live` GitHub Environment, restricted to main
-with required owner approval. Do not rely on its name alone: missing environments
-can be auto-created by GitHub without protection. Configure and review protection
-before enabling any gate. No environment or variable was created by this work.
+Use the reviewed `collector-live` GitHub Environment, restricted to main. Required
+reviewers are suitable for supervised dispatches, but block every scheduled job
+until a human approves it. Unattended operation therefore requires explicit owner
+approval to remove that per-run review rule while retaining the main-only branch
+restriction, repository/ref checks and dedicated environment Secrets. Do not rely
+on its name alone: GitHub can auto-create missing environments without protection.
 
 Put these values in that Environment's **Actions Secrets**, never workflow/source
 files: `COLLECTOR_MAPPING_JSON`, `COLLECTOR_API_ORIGIN`,
@@ -146,15 +151,25 @@ collection window, not an exchange calendar. `COLLECTOR_INTERVAL_MINUTES` accept
 they do not change backend warning/stale thresholds. A separate read-only workflow
 detects missing successful **actual live steps**, excluding synthetic/skipped jobs.
 It adds `actions: read` solely to inspect run/job conclusions; no ingestion secret.
-GitHub-wide failures can stop both workflows: independent heartbeat monitoring and
-notification testing remain activation prerequisites. Public scheduled workflows
-can be disabled after 60 days without repository activity; notifications alone do
-not detect a job that never starts.
+Enable GitHub Actions email/web notifications, optionally failed workflows only,
+for both collector and monitor. Fixed failure summaries contain no private data.
+The monitor detects missing successful collection steps while GitHub is running;
+both workflows depend on GitHub, so they cannot independently detect its outage.
+The existing optional external heartbeat is unchanged and unconfigured. This
+limitation must be acknowledged in the unattended-activation decision. Public
+schedules can be disabled after 60 days without repository activity.
 
 Before any activation: approve data-use rights/full mapping, configure and test
 machine authentication/allowlists, approve remote backend/D1 work separately,
 measure CPU/query budgets with bounded batches, test monitoring/recovery, and then
-explicitly approve uncommenting schedules and remote workflow activation.
+explicitly approve publishing the prepared schedules and remote activation.
+
+Activation order: keep `COLLECTOR_LIVE_ENABLED=false`; confirm the complete private
+mapping Secret and main-only environment; configure failure notifications and
+approve the review-rule change; deploy the existing ingestion Worker with exactly
+the reviewed Yahoo instrument allowlist; publish the schedules; finally enable the
+repository gate. Stopping collection requires disabling that gate and closing the
+ingestion Worker with empty grants. Do not rerun failed cycles blindly.
 
 See [AIDD plan and evidence](../aidd_docs/tasks/2026_11/2026_11_11_collector/plan.md)
 and [contract](../aidd_docs/tasks/2026_11/2026_11_11_collector/contract.md).

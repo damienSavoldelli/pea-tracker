@@ -114,3 +114,40 @@ Follow-up verification: 65 targeted TypeScript tests across five suites passed
 OpenAPI response validation and SDK calls over loopback/native local D1.
 Strict TypeScript, reader dry-run bundling and diff whitespace checks passed.
 No reader deployment, remote opening-state write or schedule activation occurred.
+
+## Follow-up — automation activation preparation
+
+The owner prioritized finishing automation on 2026-11-14. The existing collector
+and missing-cycle schedules are now enabled in the local workflow definitions:
+`17,47 6-18 * * 1-5` and `9 * * * 1-5` respectively (UTC). This preserves the
+existing 30/60/120-minute cadence selection and broad weekday window; it does not
+introduce a market calendar. No push or remote schedule activation was performed.
+
+Repository/ref guards, four approval flags, main-only `collector-live`, pinned
+actions, least-privilege tokens, timeouts and no-cancel concurrency are retained.
+Fixed job summaries describe collection/monitor failures without quoting payloads,
+credentials or upstream messages. Existing missing-cycle logic still counts only
+successful actual live collection steps. Targeted offline validation passed 44
+Python checks, including YAML schedules and all supported cadence intervals.
+
+Remote activation requires a separately approved change to the environment's
+required-reviewer rule: leaving it enabled would block every scheduled execution.
+Main-only branch restriction and environment Secrets must remain in force. Native
+GitHub failure notifications plus the hourly checker provide the proposed V1
+monitoring; they are not independent of GitHub availability. The optional external
+heartbeat has not been provisioned and no independent-outage detection is claimed.
+This operating limitation needs owner acceptance before unattended activation.
+
+The reviewed private 20-instrument mapping and Yahoo grant are ready locally.
+Keep the repository live gate false until mapping, notification/environment
+settings, Worker deployment and publication of schedules are explicitly approved
+and complete. Existing deployed Workers remain unchanged and ingestion closed
+during this preparation. The owner deferred credential rotation to finalization;
+this work neither rotates credentials nor represents rotation as completed.
+
+The owner subsequently authorized the commit, push, persistent 20-instrument
+ingestion deployment and the described unattended-activation settings. GitHub CLI
+authentication remains invalid; environment review rules, mapping Secret contents
+and notification preferences cannot be independently confirmed through that CLI.
+Publication/deployment alone must not be reported as proof that scheduled runs
+have executed or that those dashboard settings have been applied.

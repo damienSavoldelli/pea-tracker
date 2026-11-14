@@ -1,4 +1,4 @@
-"""Check inactive workflow safety, cycle monitoring and fixed local launchers."""
+"""Check gated workflow schedules, cycle monitoring and fixed local launchers."""
 from datetime import datetime, timezone
 from pathlib import Path
 import re
@@ -41,14 +41,16 @@ def test_missing_cycle_checker_rejects_skipped_or_synthetic_runs():
     assert not missing(lambda _: (_ for _ in ()).throw(AssertionError()), now.replace(day=8), 30)
 
 
-def test_workflows_are_inactive_pinned_and_do_not_expose_secrets_to_untrusted_events():
+def test_workflows_are_scheduled_gated_pinned_and_do_not_expose_secrets_to_untrusted_events():
     """Prepared workflows retain explicit activation, branch and permission gates."""
     root = Path(__file__).parents[2]
     # BaseLoader keeps YAML's 'on' key a string, as GitHub's YAML parser does.
     for name in ["quotation-collector.yml", "quotation-monitor.yml"]:
         text = (root / ".github/workflows" / name).read_text()
         workflow = yaml.load(text, Loader=yaml.BaseLoader)
-        assert set(workflow["on"]) == {"workflow_dispatch"}
+        assert set(workflow["on"]) == {"workflow_dispatch", "schedule"}
+        expected_cron = "17,47 6-18 * * 1-5" if name == "quotation-collector.yml" else "9 * * * 1-5"
+        assert workflow["on"]["schedule"] == [{"cron": expected_cron}]
         assert workflow["permissions"]["contents"] == "read"
         assert workflow["concurrency"]["cancel-in-progress"] == "false"
         assert "pull_request_target" not in text and "upload-artifact" not in text
@@ -59,6 +61,10 @@ def test_workflows_are_inactive_pinned_and_do_not_expose_secrets_to_untrusted_ev
             for step in job["steps"]:
                 if "uses" in step:
                     assert re.fullmatch(r"actions/[a-z-]+@[a-f0-9]{40}", step["uses"])
+                if step.get("name", "").startswith("Summarize"):
+                    assert step["if"] == "failure()"
+                    assert "GITHUB_STEP_SUMMARY" in step["run"]
+                    assert "${{" not in step["run"] and "secrets." not in step["run"]
         if name == "quotation-collector.yml":
             assert workflow["permissions"] == {"contents": "read"}
             assert "secrets." not in str(workflow["jobs"]["synthetic"])
@@ -66,6 +72,15 @@ def test_workflows_are_inactive_pinned_and_do_not_expose_secrets_to_untrusted_ev
             assert live["environment"] == "collector-live"
             for name in ["COLLECTOR_LIVE_ENABLED", "COLLECTOR_PROVIDER_APPROVED", "COLLECTOR_COVERAGE_APPROVED", "COLLECTOR_SECURITY_APPROVED"]:
                 assert f"vars.{name} == 'true'" in live["if"]
+
+
+def test_schedule_reaches_all_reviewed_cadences_without_weekend_collection():
+    """Existing cron slots support configured cadence without a holiday assumption."""
+    for minutes, expected in [(30, 26), (60, 13), (120, 7)]:
+        slots = [datetime(2026, 11, 9, hour, minute, tzinfo=timezone.utc)
+                 for hour in range(6, 19) for minute in (17, 47)]
+        assert sum(due(slot, minutes) for slot in slots) == expected
+        assert not any(due(slot.replace(day=14), minutes) for slot in slots)
 
 
 def test_offline_qualification_never_calls_yahoo(monkeypatch, capsys):

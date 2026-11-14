@@ -9,9 +9,9 @@ on:
         type: choice
         options: [synthetic, live]
         default: synthetic
-  # Deliberately inactive. Uncomment only after explicit owner activation approval.
-  # schedule:
-  #   - cron: '17,47 6-18 * * 1-5'
+  # Local activation preparation; publishing and remote enablement need owner approval.
+  schedule:
+    - cron: '17,47 6-18 * * 1-5'
 
 permissions:
   contents: read
@@ -82,3 +82,7 @@ jobs:
         # No artifacts/cache containing journal, mapping, cookies or tokens.
         # A rerun with no private original journal fails closed, never recollects.
         run: .venv/bin/python -m pea_collector --mode live --cycle-id "gha-${GITHUB_RUN_ID}"
+      - name: Summarize collection failure
+        if: failure()
+        run: |
+          printf '%s\n' 'Quotation collection failed. Check the fixed error code in Run collector.' 'Do not rerun without checking ingestion outcomes; the original journal may be unavailable.' >> "$GITHUB_STEP_SUMMARY"

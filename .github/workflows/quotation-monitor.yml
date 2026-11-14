@@ -1,9 +1,9 @@
 name: Quotation missing-cycle monitor
 on:
   workflow_dispatch:
-  # Inactive until separate owner approval; independent from collection workflow.
-  # schedule:
-  #   - cron: '9 * * * 1-5'
+  # Independent read-only schedule; remote activation still needs owner approval.
+  schedule:
+    - cron: '9 * * * 1-5'
 permissions:
   contents: read
   actions: read # Read job conclusions; no ingestion secret or write permission.
@@ -28,3 +28,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           COLLECTOR_INTERVAL_MINUTES: ${{ vars.COLLECTOR_INTERVAL_MINUTES || '30' }}
         run: python -m pea_collector.monitor
+      - name: Summarize monitoring failure
+        if: failure()
+        run: |
+          printf '%s\n' 'Quotation monitoring failed: a successful live cycle may be missing or the GitHub API may be unavailable.' 'Inspect the fixed monitor code. This workflow has no ingestion credentials.' >> "$GITHUB_STEP_SUMMARY"
