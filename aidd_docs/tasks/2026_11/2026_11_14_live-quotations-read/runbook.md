@@ -1,4 +1,73 @@
-# Approved-next-operation runbook — not executed
+# Live quotations — operational runbook
+
+## Confirmed operational status — 2026-11-14
+
+- The supervised AIR.PA catalogue import and one real Yahoo collection completed.
+  D1 contains one instrument, one quotation observation and one ingestion receipt;
+  portfolio tables remain empty. Backups and detailed evidence remain private.
+- Ingestion was closed again: enabled flag false and grants `[]`.
+- The separate D1 reader was deployed with owner-only Access and Managed OAuth.
+  Anonymous MCP and quotation REST requests returned 401. The owner connected
+  ChatGPT and supplied a screenshot showing the stored AIR.PA quotation, its Yahoo
+  provenance and market/retrieval timestamps. This confirms the manual round trip.
+- Freshness remains `unknown` with `market_calendar_unknown`; this is not a
+  real-time quote or verification of a market calendar.
+- Both Actions schedules remain commented. Provider recurring-use approval,
+  protected-environment setup and monitoring readiness are not inferred from the
+  approved one-off collection. No personal portfolio data has been loaded.
+- The owner subsequently completed Actions live run #4 after replacing the
+  mapping Secret with verified complete JSON. The job succeeded; the previous
+  generic failure does not prove what the previous Secret contained.
+  Read-only D1 verification found two observations and two receipts, with the same
+  single instrument and all portfolio tables empty. Ingestion was closed again.
+  This validates a manually dispatched hosted collector, not scheduled operation.
+  Resetting the repository activation gates remains an owner-side GitHub action;
+  their reset has not been independently verified. Service Token secret rotation
+  is deferred by explicit owner decision and remains open before unattended use
+  or release of personal portfolio data.
+
+## Next operation — AIR.PA automation preparation
+
+Do not repeat catalogue import or the manual round-trip setup below.
+
+1. Review/create GitHub Environment `collector-live`: main branch only and required
+   owner approval. This is a remote configuration operation requiring authorization.
+2. Prepare its Actions Secrets from the existing private configuration:
+   `COLLECTOR_MAPPING_JSON` (AIR.PA only), `COLLECTOR_API_ORIGIN` (ingestion origin),
+   `COLLECTOR_ACCESS_CLIENT_ID`, `COLLECTOR_ACCESS_CLIENT_SECRET`. Enter the secret
+   through GitHub's protected UI; never place it in arguments, chat or tracked files.
+   Configure the approved independent heartbeat destination separately.
+3. Keep `COLLECTOR_LIVE_ENABLED=false` until the required rights, coverage, security
+   and monitoring gates are explicitly satisfied. The workflow evaluates its four
+   gates before entering the protected job, so use repository Variables for
+   `COLLECTOR_LIVE_ENABLED`, `COLLECTOR_PROVIDER_APPROVED`,
+   `COLLECTOR_COVERAGE_APPROVED`, and `COLLECTOR_SECURITY_APPROVED`.
+4. With separate authorization, deploy only the ingestion Worker with the existing
+   single Yahoo/AIR.PA grant, then dispatch `Quotation collector` on main in `live`
+   mode through the protected environment. Keep both schedules inactive. Verify the
+   receipt and quotation through D1/MCP; close ingestion again on completion/failure.
+5. Only after that run and monitoring/recovery checks, separately approve persistent
+   ingestion enablement and uncommenting both existing schedules. Keep the existing
+   30-minute cadence; do not expand the instrument allowlist implicitly.
+
+Additional instruments require an owner-supplied list and verified mappings; they
+are not a dependency of AIR.PA automation. Positions and valuation exposure remain
+a separate step subject to the existing personal-data gates.
+
+### Owner-approved supervised Actions execution
+
+On 2026-11-14 the owner approved proceeding with one real AIR.PA Actions execution
+under direct supervision, deferring the independent heartbeat until automation.
+This is a scoped exception to the pre-activation monitoring requirement above,
+not approval of unattended collection or a statement that recurring provider-use
+rights have been established. Both schedules remain commented. The four workflow
+gate variables must be true for this supervised dispatch; reset live, provider and
+security gates to false afterwards, and close ingestion with empty grants.
+GitHub CLI authentication was unavailable; dispatch/approval and reporting the run
+result must therefore use the owner's authenticated browser. Do not rerun blindly
+if delivery is uncertain; inspect the accepted receipt first.
+
+## Reference procedures
 
 All remote writes, Access setup, secrets, deployments and provider collection below
 require separate owner authorization. Do not alter DEV, the existing OAuth PoC,

@@ -81,7 +81,12 @@ def main(argv=None, environment=None) -> int:
             raw = path.read_text()
         if len(raw.encode()) > 32768:
             raise CollectorError("mapping_too_large")
-        mappings = parse_mappings(json.loads(raw))
+        try:
+            mapping_data = json.loads(raw)
+        except json.JSONDecodeError:
+            # Never include the parser message: it may contain the secret input.
+            raise CollectorError("invalid_mapping_json") from None
+        mappings = parse_mappings(mapping_data)
         provider = YFinanceProvider() if args.mode == "live" else SyntheticProvider(mappings)
         client = machine_client(environment, local=args.deliver_local) if args.mode == "live" or args.deliver_local else None
         result = run(mappings, provider, client, args.state, args.cycle_id,

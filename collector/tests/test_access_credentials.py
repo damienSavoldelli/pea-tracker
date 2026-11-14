@@ -114,3 +114,21 @@ def test_live_workflow_injects_only_the_access_pair_for_authentication():
     assert "secrets.COLLECTOR_ACCESS_CLIENT_ID" in text and "secrets.COLLECTOR_ACCESS_CLIENT_SECRET" in text
     for name in ["COLLECTOR_TOKEN_URL", "COLLECTOR_CLIENT_ID", "COLLECTOR_CLIENT_SECRET", "COLLECTOR_AUDIENCE", "COLLECTOR_ACCESS_TOKEN"]:
         assert "secrets." + name not in text
+
+
+@pytest.mark.parametrize("raw", ["", ".wrangler/catalogue-live/mapping.private.json", "{synthetic-private-marker"])
+def test_invalid_mapping_json_fails_before_provider_or_delivery(raw, tmp_path, monkeypatch, capsys):
+    """Malformed secret mappings emit a fixed code before any external operation."""
+    from pea_collector import __main__ as cli
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("Provider and HTTP client must not be constructed")
+
+    monkeypatch.setattr(cli, "YFinanceProvider", forbidden)
+    monkeypatch.setattr(cli, "machine_client", forbidden)
+    env = environment(COLLECTOR_PROVIDER_APPROVED="true", COLLECTOR_COVERAGE_APPROVED="true",
+                      COLLECTOR_SECURITY_APPROVED="true", COLLECTOR_MAPPING_JSON=raw)
+    state = tmp_path / "journal"
+    assert main(["--mode", "live", "--cycle-id", "synthetic-invalid-mapping", "--state", str(state)], env) == 1
+    assert json.loads(capsys.readouterr().out) == {"event": "cycle_failed", "code": "invalid_mapping_json"}
+    assert not state.exists()
