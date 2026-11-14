@@ -41,7 +41,27 @@ Use the exact templates in its `commands` list; other argument orders require
 the existing approval policy. The installed Wrangler parser was checked offline:
 flags after `--` remain positional arguments and can cause CLI errors.
 
-Codex 0.167.0 parses `CI=true ...` as an opaque shell invocation, not as a direct `node` command. The official rule semantics define `allow` as running outside the sandbox, so no new auto-allow was added for remote diagnostics; doing so would broaden sandbox/network access. Wrangler's `d1 migrations list` also creates its migrations table (locally or remotely), so it is not read-only. The exact previously used remote-list command has a project `prompt` rule; `execpolicy check` evaluates this file with the other project rules, but does not inspect saved approvals outside those files. `whoami`, D1 `info`, dry-run and other remote checks remain governed by the existing host approval and sandbox policies.
+Use direct commands without leading environment assignments or shell wrappers.
+Codex 0.167.0 treats `CI=true ...` as an opaque shell invocation; changing its
+arguments or redirection path can miss a saved approval. Fixed read-only templates
+now cover `whoami`, D1 info/Time Travel info for the ingestion database, and
+deployment/version lists for the four named project Workers. End each template
+with `--`; D1 templates use the absolute config path specified in `wrangler.rules`.
+These allow rules permit the reviewed diagnostics outside the sandbox, including
+network access and Wrangler log writes; they do not change the sandbox globally.
+
+Wrangler's `d1 migrations list` creates its tracking table, so it remains prompted.
+SQL execution, exports, restores, secret operations and new deployments receive no
+additional allow. Existing dev deployment rules remain unchanged. Individual
+`versions view <id>` invocations still require review. Do not wrap commands or add
+redirections expecting the direct template to match. Use `execpolicy check` with
+all project rules and, when auditing saved approvals, the global rule file as well.
+
+```sh
+node node_modules/wrangler/bin/wrangler.js whoami --
+node node_modules/wrangler/bin/wrangler.js deployments list --name pea-tracker-quotes-ingestion --json --
+node node_modules/wrangler/bin/wrangler.js versions list --name pea-tracker-financial-read --json --
+```
 
 Validate the exact prompt override with all project rules:
 

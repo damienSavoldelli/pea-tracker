@@ -11,6 +11,10 @@ poc = root + "/tests/fixtures/wrangler.oauth-poc.jsonc"
 commands = [
     ["--version", "--"],
     ["--help", "--"],
+    # Read-only diagnostics: direct invocation, fixed target, no shell wrapper.
+    ["whoami", "--"],
+    ["d1", "info", "pea-tracker-quotes-ingestion", "--config", root + "/tests/fixtures/wrangler.access-collector-remote.private.jsonc", "--json", "--"],
+    ["d1", "time-travel", "info", "pea-tracker-quotes-ingestion", "--config", root + "/tests/fixtures/wrangler.access-collector-remote.private.jsonc", "--json", "--"],
     ["dev", root + "/src/index.ts", "--config", config, "--env", "dev", "--local", "--ip", "127.0.0.1", "--"],
     ["deploy", root + "/src/index.ts", "--config", config, "--env", "dev", "--dry-run", "--outdir", root + "/dist/diagnostic-dev", "--"],
     ["deploy", root + "/src/entrypoints/access-poc.ts", "--config", poc, "--dry-run", "--outdir", root + "/dist/oauth-poc", "--"],
@@ -21,6 +25,10 @@ commands = [
     ["d1", "migrations", "apply", "pea-tracker-instruments-local", "--config", local_d1, "--local", "--"],
     ["d1", "execute", "pea-tracker-instruments-local", "--config", local_d1, "--local", "--command", "SELECT 1 AS ok", "--"],
 ]
+
+for worker in ["pea-tracker-dev", "pea-tracker-oauth-poc", "pea-tracker-quotes-ingestion", "pea-tracker-financial-read"]:
+    commands.append(["deployments", "list", "--name", worker, "--json", "--"])
+    commands.append(["versions", "list", "--name", worker, "--json", "--"])
 
 for executable in [
     ["node", "node_modules/wrangler/bin/wrangler.js"],
