@@ -4,8 +4,11 @@ import { AccessAuthenticator, accessConfiguration } from '../adapters/auth/acces
 import type { AccessJwtOptions } from '../adapters/auth/access-jwt';
 import { D1InstrumentRepository } from '../adapters/d1/instruments';
 import { D1QuotationRepository } from '../adapters/d1/quotations';
+import { D1PortfolioRepository } from '../adapters/d1/portfolio';
 import { InstrumentService } from '../application/instruments';
 import { QuotationService } from '../application/quotations';
+import { PortfolioService } from '../application/portfolio';
+import { ValuationService } from '../application/valuation';
 import type { Principal } from '../application/authorization';
 import { createApp } from '../app';
 
@@ -14,11 +17,16 @@ import { createApp } from '../app';
  * allowlist additionally prevents administrative or ingestion adapters being reached.
  */
 export function createAccessReadApp(instruments: InstrumentService, quotations: QuotationService,
-  authenticate: (request: Request) => Promise<Principal>) {
+  authenticate: (request: Request) => Promise<Principal>,
+  portfolioReads?: { portfolio: PortfolioService; valuation: ValuationService }) {
   const backend = createApp({
     instruments: { service: instruments, authenticate },
     quotations: { service: quotations, authenticate },
-    mcp: { service: instruments, quotations, authenticate, challenge: () => 'Bearer', oauthScopes: [] },
+    ...(portfolioReads ? {
+      portfolio: { service: portfolioReads.portfolio, authenticate },
+      valuation: { service: portfolioReads.valuation, authenticate },
+    } : {}),
+    mcp: { service: instruments, quotations, ...portfolioReads, authenticate, challenge: () => 'Bearer', oauthScopes: [] },
   });
   const app = new Hono();
   app.use('*', async (context, next) => {
@@ -32,6 +40,12 @@ export function createAccessReadApp(instruments: InstrumentService, quotations: 
   app.get('/api/v1/instruments/:id', context => forward(context.req.raw));
   app.get('/api/v1/quotation-status', context => forward(context.req.raw));
   app.get('/api/v1/quotations', context => forward(context.req.raw));
+  if (portfolioReads) {
+    app.get('/api/v1/portfolio/opening-state', context => forward(context.req.raw));
+    app.get('/api/v1/portfolio/opening-state/revisions/:revision', context => forward(context.req.raw));
+    app.get('/api/v1/portfolio/positions', context => forward(context.req.raw));
+    app.get('/api/v1/portfolio/valuation', context => forward(context.req.raw));
+  }
   return app;
 }
 
@@ -41,13 +55,15 @@ const configuration = z.object({
   ACCESS_READ_AUD: accessConfiguration.shape.audience,
   ACCESS_OWNER_SUB: accessConfiguration.shape.ownerSubject,
   ACCESS_READ_ENABLED: z.enum(['true', 'false']),
+  ACCESS_PORTFOLIO_READ_ENABLED: z.enum(['true', 'false']).default('false'),
 }).strict();
 
 /** Creates a D1-backed owner-only quotation reader with no write capability.
  * @param environment - Native D1 binding and independently approved Access application settings.
  * @param options - Existing JWT verifier dependencies, injectable for synthetic tests.
- * @remarks Only the verified owner gains `quotes:read`; token scope claims never
- * select permissions. The existing PoC authenticator and its grant stay unchanged.
+ * @remarks Only the verified owner gains read permissions; token scope claims never
+ * select permissions. Portfolio reads additionally require explicit configuration,
+ * so existing quotation-only deployments do not silently expose portfolio data.
  */
 export function createAccessReadWorker(environment: D1LocalEnv & Record<string, unknown>, options: AccessJwtOptions = {}) {
   const config = configuration.parse(environment);
@@ -55,11 +71,13 @@ export function createAccessReadWorker(environment: D1LocalEnv & Record<string, 
     audience: config.ACCESS_READ_AUD, ownerSubject: config.ACCESS_OWNER_SUB }, options);
   const instruments = new D1InstrumentRepository(config.INSTRUMENTS_DB);
   const quotations = new QuotationService(new D1QuotationRepository(config.INSTRUMENTS_DB), instruments);
+  const portfolio = config.ACCESS_PORTFOLIO_READ_ENABLED === 'true'
+    ? new PortfolioService(new D1PortfolioRepository(config.INSTRUMENTS_DB), instruments) : undefined;
   const app = createAccessReadApp(new InstrumentService(instruments), quotations, async request => {
     await owner.authenticate(request);
     return Object.freeze({ subject: 'owner:financial-read',
-      permissions: Object.freeze(['instruments:read', 'quotes:read'] as const) });
-  });
+      permissions: Object.freeze(['instruments:read', 'quotes:read', ...(portfolio ? ['portfolio:read' as const] : [])] as const) });
+  }, portfolio ? { portfolio, valuation: new ValuationService(portfolio, quotations) } : undefined);
   return config.ACCESS_READ_ENABLED === 'true' ? app : new Hono().all('*', () => unavailable());
 }
 

@@ -7,6 +7,10 @@ import { accessConfig, accessFixture } from './helpers/access-fixtures';
 import { quotationFixture, quotationCollector, observation, selector } from './helpers/quotations';
 import { startOAuthHttpFixture } from './helpers/oauth-http-fixture.mjs';
 import { assertContractResponse, validateOpenApi } from './helpers/openapi';
+import { D1PortfolioRepository } from '../src/adapters/d1/portfolio';
+import { PortfolioService } from '../src/application/portfolio';
+import { ValuationService } from '../src/application/valuation';
+import { openingInput, portfolioAdmin } from './helpers/portfolio';
 
 describe('owner-only D1 quotation reader', () => {
   let f: Awaited<ReturnType<typeof quotationFixture>>;
@@ -111,7 +115,8 @@ describe('owner-only D1 quotation reader', () => {
   });
 
   it.each([{}, { ACCESS_READ_AUD: 'invalid' }, { ACCESS_OWNER_SUB: '' }, { ACCESS_TEAM_DOMAIN: 'http://untrusted.invalid' },
-    { ACCESS_READ_ENABLED: 'false' }, { INSTRUMENTS_DB: undefined }])('fails closed for absent, invalid or disabled configuration %j', async patch => {
+    { ACCESS_READ_ENABLED: 'false' }, { ACCESS_PORTFOLIO_READ_ENABLED: 'invalid' },
+    { INSTRUMENTS_DB: undefined }])('fails closed for absent, invalid or disabled configuration %j', async patch => {
     const broken = Object.keys(patch).length ? { ...env, ...patch } : {};
     for (const path of ['/mcp', statusPath, '/api/v1/health']) {
       const response = await worker.fetch(new Request(`https://synthetic-read.invalid${path}`), broken as typeof env);
@@ -133,5 +138,93 @@ describe('owner-only D1 quotation reader', () => {
       expect((await read({ ...env, ACCESS_READ_AUD: 'b'.repeat(64) })).status).toBe(401);
       expect((await read({ ...env, ACCESS_OWNER_SUB: 'synthetic-other-owner' })).status).toBe(403);
     } finally { vi.unstubAllGlobals(); }
+  });
+
+  it('explicitly enables existing D1 portfolio reads and exact valuation without write routes', async () => {
+    const portfolio = new PortfolioService(new D1PortfolioRepository(f.local!.db), f.instruments);
+    const enabled = createAccessReadWorker({ ...env, ACCESS_PORTFOLIO_READ_ENABLED: 'true' }, { fetch: auth.keys });
+    const token = await auth.token({ scope: 'portfolio:admin quotes:ingest' });
+    const read = (path: string, method = 'GET') => enabled.fetch(new Request(`https://synthetic-read.invalid${path}`,
+      { method, headers: { 'Cf-Access-Jwt-Assertion': token } }));
+    const valuationPath = '/api/v1/portfolio/valuation?provider=synthetic&price_kind=last_trade&adjustment=unadjusted';
+    for (const path of ['/api/v1/portfolio/positions', valuationPath]) {
+      const missing = await read(path);
+      expect(missing.status).toBe(404);
+      expect(await missing.json()).toMatchObject({ code: 'opening_state_not_found' });
+    }
+    const input = openingInput();
+    input.positions = [{ ...input.positions[0]!, quantity: '2' }];
+    await portfolio.append(portfolioAdmin, input, 0, 'synthetic-reader-opening');
+    for (const path of ['/api/v1/portfolio/opening-state', '/api/v1/portfolio/opening-state/revisions/1',
+      '/api/v1/portfolio/positions', valuationPath]) {
+      const response = await read(path);
+      expect(response.status).toBe(200);
+      await assertContractResponse('GET', path, response);
+    }
+    expect(await (await read(valuationPath)).json()).toMatchObject({
+      securities_total: { exact: '18014398509481986.24', display: '18014398509481986.24' },
+      portfolio_total: { exact: '18014398509481998.54' },
+      coverage: { valued: 1, total_complete: true },
+      history: { performance_available: false },
+    });
+    const batch = vi.spyOn(f.local!.db, 'batch');
+    const prepare = vi.spyOn(f.local!.db, 'prepare');
+    try {
+      for (const [path, method] of [['/api/v1/portfolio/opening-state', 'POST'],
+        ['/api/v1/portfolio/positions', 'PATCH'], ['/api/v1/portfolio/valuation', 'POST'],
+        ['/api/v1/quotation-batches', 'POST'], ['/api/v1/instruments', 'POST']] as const) {
+        expect((await read(path, method)).status).toBe(404);
+      }
+      expect(batch).not.toHaveBeenCalled();
+      expect(prepare).not.toHaveBeenCalled();
+    } finally { batch.mockRestore(); prepare.mockRestore(); }
+
+    const server = await startOAuthHttpFixture(enabled);
+    const client = new Client({ name: 'synthetic-d1-portfolio-reader', version: '1' });
+    try {
+      await client.connect(new StreamableHTTPClientTransport(new URL('/mcp', server.url), {
+        requestInit: { headers: { 'Cf-Access-Jwt-Assertion': token } },
+      }));
+      const tools = (await client.listTools()).tools;
+      expect(tools.map(tool => tool.name)).toEqual(expect.arrayContaining(['get_opening_state', 'get_positions', 'get_portfolio_valuation']));
+      expect(tools.every(tool => tool.annotations?.readOnlyHint === true)).toBe(true);
+      expect((await client.callTool({ name: 'get_positions', arguments: {} })).structuredContent)
+        .toMatchObject({ revision: 1, data: [{ quantity: '2', declared_pru: '3.12' }] });
+      expect((await client.callTool({ name: 'get_portfolio_valuation', arguments: {
+        provider: 'synthetic', price_kind: 'last_trade', adjustment: 'unadjusted',
+      } })).structuredContent).toMatchObject({ securities_total: { exact: '18014398509481986.24' } });
+    } finally { await client.close(); await server.close(); }
+  });
+
+  it('denies portfolio reads before D1 access without owner authentication or portfolio permission', async () => {
+    const enabled = createAccessReadWorker({ ...env, ACCESS_PORTFOLIO_READ_ENABLED: 'true' }, { fetch: auth.keys });
+    const prepare = vi.spyOn(f.local!.db, 'prepare');
+    try {
+      for (const assertion of [undefined, await auth.token({ sub: 'synthetic-other-owner' })]) {
+        for (const path of ['/api/v1/portfolio/positions', '/api/v1/portfolio/valuation']) {
+          const response = await enabled.fetch(new Request(`https://synthetic-read.invalid${path}`,
+            { headers: assertion ? { 'Cf-Access-Jwt-Assertion': assertion } : {} }));
+          expect([401, 403]).toContain(response.status);
+        }
+      }
+      const portfolio = new PortfolioService(new D1PortfolioRepository(f.local!.db), f.instruments);
+      const limited = createAccessReadApp(f.instrumentService, f.service,
+        async () => ({ subject: 'synthetic-limited', permissions: ['instruments:read', 'quotes:read'] }),
+        { portfolio, valuation: new ValuationService(portfolio, f.service) });
+      for (const path of ['/api/v1/portfolio/positions', '/api/v1/portfolio/valuation']) {
+        expect((await limited.fetch(new Request(`https://synthetic-read.invalid${path}`))).status).toBe(403);
+      }
+      const server = await startOAuthHttpFixture(limited);
+      const client = new Client({ name: 'synthetic-limited-portfolio-reader', version: '1' });
+      try {
+        await client.connect(new StreamableHTTPClientTransport(new URL('/mcp', server.url)));
+        const names = (await client.listTools()).tools.map(tool => tool.name);
+        for (const name of ['get_opening_state', 'get_positions', 'get_portfolio_valuation']) {
+          expect(names).not.toContain(name);
+          expect((await client.callTool({ name, arguments: {} })).isError).toBe(true);
+        }
+      } finally { await client.close(); await server.close(); }
+      expect(prepare).not.toHaveBeenCalled();
+    } finally { prepare.mockRestore(); }
   });
 });

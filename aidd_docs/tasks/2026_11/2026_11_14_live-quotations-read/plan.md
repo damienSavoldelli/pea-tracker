@@ -82,3 +82,35 @@ provider/security/recovery/private-data gates remain applicable, including rotat
 revocation, monitoring and independent backups before personal financial data.
 
 See [runbook.md](runbook.md) for separately authorized operations.
+
+## Follow-up — local portfolio reader integration
+
+The owner requested continuing V1 business development after the successful hosted
+Actions collection. Existing PortfolioService, ValuationService and native
+D1PortfolioRepository are now composed by the same reader, without changing
+financial calculations, repository contracts, migrations or JWT verification.
+
+`ACCESS_PORTFOLIO_READ_ENABLED=true` explicitly opts into owner `portfolio:read`;
+omission defaults to false and preserves the quotation-only surface. An invalid
+value fails closed. Claim-provided scopes never select permissions. Existing
+private deployment settings are not changed by this local implementation.
+
+When opted in, only GET opening-state/current/revision, positions and valuation
+routes are forwarded. Existing MCP tools get_opening_state, get_positions and
+get_portfolio_valuation reuse those same services. Portfolio mutations and quote
+ingestion remain absent even when JWT scope claims request administration.
+An absent opening state returns its existing explicit 404; no holdings or cash
+are fabricated. No administrative endpoint or bootstrap of personal data is added.
+
+Local native D1/REST/OpenAPI/SDK coverage verifies exact valuation, canonical PRU,
+explicit initialization errors, authentication and permission denial before D1,
+missing write routes, and unchanged default tool exposure. Existing valuation
+tests retain coverage of partial totals, unknown cash and financial edge cases.
+Market-calendar freshness and non-atomic quotation snapshot limits remain unchanged.
+Deployment and personal-data release gates remain separately approval-bound.
+
+Follow-up verification: 65 targeted TypeScript tests across five suites passed
+(reader, valuation domain/HTTP/contracts and portfolio HTTP), including REST
+OpenAPI response validation and SDK calls over loopback/native local D1.
+Strict TypeScript, reader dry-run bundling and diff whitespace checks passed.
+No reader deployment, remote opening-state write or schedule activation occurred.
