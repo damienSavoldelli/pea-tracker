@@ -15,6 +15,13 @@
 
 ## Entry points
 
+- 2026-11-14: `src/entrypoints/access-read.ts` is a separate, closed-by-default
+  owner-only native D1 REST/MCP quotation reader. Existing DEV/PoC/ingestion entrypoints
+  remain unchanged. `scripts/catalogue-preparation.ts` captures the existing instrument
+  service/repository batch for a reviewed one-instrument bootstrap; its CLI creates
+  ignored private mapping/grant/SQL artifacts only. See [local evidence and separately
+  authorized runbook](../tasks/2026_11/2026_11_14_live-quotations-read/plan.md).
+
 - Ingestion budget: `InstrumentRepository.getMany` is implemented by Memory/native D1. `QuotationService.ingest` deduplicates authorized instrument IDs before one grouped read; the existing atomic quote batch adds one D1 call. Local max-lot tests measure two binding calls for 50 observations, including replay, without changing REST limits or financial rules.
 
 - Machine ingestion: `src/adapters/auth/access-jwt.ts` shares cryptographic verification between the MCP owner adapter and `access-service-authenticator.ts`; signed service IDs map only to ingestion. `src/entrypoints/access-collector.ts` composes the batch-only Worker with existing native D1 repositories. Its isolated local fixture is `tests/fixtures/wrangler.access-collector-local.jsonc`; no remote deployment config or binding ID is selected. Python Service Auth headers and the inactive workflow use dedicated credentials. `tests/access-collector.worker.test.ts` covers Python→synthetic edge→Hono/local D1, idempotency, denial and absent routes. [Runbook](../tasks/2026_11/2026_11_11_remote-ingestion/contract.md) distinguishes local evidence from hosted setup gates.

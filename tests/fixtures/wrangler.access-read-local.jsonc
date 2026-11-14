@@ -1,0 +1,21 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "pea-tracker-financial-read-local",
+  "main": "../../src/entrypoints/access-read.ts",
+  "compatibility_date": "2026-11-14",
+  "workers_dev": false,
+  "preview_urls": false,
+  "dev": { "ip": "127.0.0.1" },
+  "d1_databases": [{
+    "binding": "INSTRUMENTS_DB",
+    "database_name": "pea-tracker-financial-read-local",
+    "remote": false,
+    "migrations_dir": "../../migrations"
+  }],
+  "vars": {
+    "ACCESS_TEAM_DOMAIN": "https://synthetic-team.cloudflareaccess.com",
+    "ACCESS_READ_AUD": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "ACCESS_OWNER_SUB": "synthetic-access-owner",
+    "ACCESS_READ_ENABLED": "false"
+  }
+}
