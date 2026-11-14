@@ -4,9 +4,12 @@ Project-specific conventions for AI-assisted work on PEA Tracker.
 
 ## House rules
 
-- Treat [INSTALL.md](INSTALL.md) as the approved baseline; distinguish design decisions from implemented or tested capabilities.
+- Treat [INSTALL.md](INSTALL.md) as the architecture baseline and [roadmap.md](roadmap.md) as the current scope reference. Read the dated supplement of the [financial PRD](tasks/2026_11/2026_11_08-financial-backend-prd.md) alongside its original approval. Distinguish developed, locally tested, validated in operation, planned and under study.
 - Scope technical MCP connectivity work to synthetic data. Private-data production gates remain mandatory; do not invent accounting/performance rules before the PRD defines them.
-- Preserve modular REST/MCP boundaries, exact decimal arithmetic, separate administrative authorization and the open OAuth evaluation.
+- Preserve hexagonal REST/MCP boundaries, exact decimal arithmetic and separate administrative authorization. REST/MCP share services directly; Python retrieves provider data separately and delivers to ingestion. Owner Access/Managed OAuth and machine Access Service Auth are the current paths; the older OAuth comparison is historical.
+- Protect the real PEA first. V1.1 financial management is under study, without blanket feasibility approval or development authorization. Reference financial calculations belong in the domain; ChatGPT may provide distinct, explicitly indicative simulations. Trading Lab remains complementary and isolated.
+- The [V1 runbook](tasks/2026_11/2026_11_14_live-quotations-read/runbook.md) distinguishes prior operational evidence from the scheduled 16 November cycle still to confirm. Do not treat publication, screenshots or local tests as proof of scheduled success or complete recovery/security readiness.
+- Existing approvals are bounded to their original operations; they never grant permanent permission for future writes, tests, deployments or remote changes. Preserve V1 contracts and dated evidence; update historical status through explicit dated context rather than rewriting its original acceptance.
 - Explicitly read task-relevant context; links in Codex are not automatic imports. Preserve AIDD-managed markers and use the existing memory bank.
 - Never put actual holdings, PRU values, transactions, credentials, tokens, account identifiers or private financial exports in documentation, memory, examples or logs. Label invented numeric examples as synthetic.
 - Preserve Codex sandbox settings. Dependencies, cloud resources, hooks, paid services and deployments require explicit authorization; follow [VCS approval rules](memory/vcs.md).

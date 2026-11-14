@@ -36,10 +36,12 @@
 
 ## Project Boundaries
 
-- Architecture baseline: `aidd_docs/INSTALL.md`; foundation validated; initial local synthetic diagnostic Worker only.
+- Architecture baseline: [aidd_docs/INSTALL.md](aidd_docs/INSTALL.md); current scope: [aidd_docs/roadmap.md](aidd_docs/roadmap.md). V1 financial reads and ingestion are functional according to prior operational evidence; the diagnostic Worker is a separate composition. Protect the real PEA first.
 - Use synthetic data for technical MCP ping; it does not require portfolio infrastructure or satisfy production gates.
-- Do not introduce real financial data until mandatory production security and applicable release gates pass.
-- Keep OAuth selection open pending comparative evaluation. Defer accounting/performance rules to the PRD; never invent them.
+- Real-data use remains subject to mandatory production security and applicable release gates. Existing authorized V1 operation does not prove every gate passed or authorize new data loading, deployments or scope extensions.
+- Current owner reads use Cloudflare Access/Managed OAuth; ingestion uses separate Access Service Auth. The earlier Provider/Auth0 comparison is historical, not a reason to reopen the selected paths. Defer accounting/performance rules to the PRD and its dated supplement; never invent them.
+- Distinguish developed, locally tested, validated in operation, planned and under study. V1.1 remains under study without global feasibility approval or development authorization. The scheduled cycle of 16 November 2026 remains to be confirmed; follow the [V1 runbook](aidd_docs/tasks/2026_11/2026_11_14_live-quotations-read/runbook.md) rather than replay historical bootstrap instructions.
+- Reference financial calculations belong in the PEA Tracker domain. ChatGPT interprets results and may offer separate, explicitly indicative simulations. Trading Lab is complementary and isolated; future multi-portfolio work must preserve V1 compatibility.
 - Preserve exact decimal requirements, read-only MCP and separate administrative authorization.
 - No dependency installation, cloud resources, deployment or paid-service activation without explicit authorization.
 - Preserve Codex workspace-write/on-request restrictions; never weaken security to meet the zero-cost target.

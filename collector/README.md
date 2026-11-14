@@ -93,7 +93,11 @@ then grants only `quotes:ingest` with server-side provider/instrument allowlists
 
 The dedicated collector Worker exposes ingestion only, with no MCP,
 portfolio/admin routes or quotation reads. Hosted manual ingestion and Service
-Auth have been verified; unattended scheduling is a separate activation step.
+Auth have been verified in prior supervised operation.
+Persistent ingestion and publication of the weekday schedules were subsequently
+authorized and completed according to the owner handover. The first complete
+scheduled cycle on Monday 16 November 2026 remains to be confirmed; this update
+performs no hosted check. See the [current V1 runbook](../aidd_docs/tasks/2026_11/2026_11_14_live-quotations-read/runbook.md).
 Use the [machine-ingestion runbook](../aidd_docs/tasks/2026_11/2026_11_11_remote-ingestion/contract.md)
 for the approval-gated configuration, rotation and revocation procedure.
 
@@ -117,9 +121,12 @@ introduced as a workaround.
 ## GitHub Actions automation
 
 Both workflow files support `workflow_dispatch` and the reviewed weekday schedules.
-The schedule change is local until an explicitly approved commit and push; it does
-not activate GitHub Actions by itself. Current hosted activation must be verified
-separately rather than inferred from the local files.
+The schedule publication is recorded in commit `1c24a57336a2ae3f83c6c3c9a1dffa299a5d4ec2`
+on `main`. Collection is configured at 30 minutes, cron `17,47 6-18 * * 1-5` UTC;
+the monitor uses `9 * * * 1-5` UTC. In November collection spans 07:17–19:47 Paris
+time on weekdays. Publication is not proof of scheduled execution: the first
+complete 16 November cycle remains to be confirmed. Prior offline automation
+evidence includes 44 targeted Python tests; none were rerun for this documentation.
 No push/PR/fork trigger is installed. Main branch and exact repository identity are
 checked. Actions are SHA-pinned, checkout credentials are not persisted, jobs are
 bounded and concurrency never cancels an in-flight delivery.
@@ -135,8 +142,11 @@ Use the reviewed `collector-live` GitHub Environment, restricted to main. Requir
 reviewers are suitable for supervised dispatches, but block every scheduled job
 until a human approves it. Unattended operation therefore requires explicit owner
 approval to remove that per-run review rule while retaining the main-only branch
-restriction, repository/ref checks and dedicated environment Secrets. Do not rely
-on its name alone: GitHub can auto-create missing environments without protection.
+restriction, repository/ref checks and dedicated environment Secrets. That change
+was owner-authorized; main-only protection and unchecked Required reviewers were
+shown in the prior session, not independently rechecked through the CLI. The owner
+confirmed complete mapping JSON; do not treat this as proof of a scheduled run.
+Do not rely on its name alone: GitHub can auto-create missing environments without protection.
 
 Put these values in that Environment's **Actions Secrets**, never workflow/source
 files: `COLLECTOR_MAPPING_JSON`, `COLLECTOR_API_ORIGIN`,
@@ -145,21 +155,32 @@ files: `COLLECTOR_MAPPING_JSON`, `COLLECTOR_API_ORIGIN`,
 No secrets are passed to dependency installation or synthetic tests. Never echo the
 mapping: automatic masking of structured JSON is not sufficient by itself.
 
-The proposed schedule is offset from the hour and uses a conservative weekday UTC
+The published schedule is offset from the hour and uses a broad weekday UTC
 collection window, not an exchange calendar. `COLLECTOR_INTERVAL_MINUTES` accepts
 30 (default), 60 or 120. Longer intervals intentionally provide less freshness;
 they do not change backend warning/stale thresholds. A separate read-only workflow
 detects missing successful **actual live steps**, excluding synthetic/skipped jobs.
 It adds `actions: read` solely to inspect run/job conclusions; no ingestion secret.
-Enable GitHub Actions email/web notifications, optionally failed workflows only,
-for both collector and monitor. Fixed failure summaries contain no private data.
+GitHub Actions email/web failure notifications were shown and saving was requested;
+saved settings and actual alert delivery were not independently verified. Retain
+these notifications for both collector and monitor. Fixed failure summaries contain no private data.
 The monitor detects missing successful collection steps while GitHub is running;
 both workflows depend on GitHub, so they cannot independently detect its outage.
 The existing optional external heartbeat is unchanged and unconfigured. This
 limitation must be acknowledged in the unattended-activation decision. Public
 schedules can be disabled after 60 days without repository activity.
 
-Before any activation: approve data-use rights/full mapping, configure and test
+### Historical activation checklist and future reactivation
+
+The following procedure preserves the original activation order. It is not the
+next operation for the running V1; do not reset gates or close ingestion merely
+because this historical checklist starts in a closed state. Current next check:
+successful scheduled `Run collector`, advancing successful-fetch timestamps across
+the reviewed catalogue, and market dates after opening, allowing for no recent trade.
+The optional heartbeat remains unconfigured. Credential rotation was explicitly
+deferred to finalization by the owner; it is not claimed complete here.
+
+For a separately authorized new activation: approve data-use rights/full mapping, configure and test
 machine authentication/allowlists, approve remote backend/D1 work separately,
 measure CPU/query budgets with bounded batches, test monitoring/recovery, and then
 explicitly approve publishing the prepared schedules and remote activation.

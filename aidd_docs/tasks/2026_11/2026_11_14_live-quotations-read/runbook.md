@@ -1,6 +1,63 @@
 # Live quotations — operational runbook
 
-## Confirmed operational status — 2026-11-14
+## Current V1 status — 2026-11-14
+
+This summary incorporates the prior owner-session handover. No remote operation,
+test or credential inspection was performed for this documentation update.
+
+| Evidence level | Current scope / limitation |
+| --- | --- |
+| Developed | Shared REST/MCP catalogue, opening-state, positions/cash, stored quotation status/history and exact EUR valuation; Python/yfinance and batch-only machine ingestion |
+| Tested locally | Prior synthetic native D1/Memory, REST/OpenAPI/MCP and collector checks recorded in slice contracts/plans; 44 targeted Python automation tests previously passed, not rerun here |
+| Validated in operation | Real ChatGPT reads and grouped valuation succeeded in the prior session, with timestamps, coverage and warnings. This does not individually certify every REST route |
+| Prior deployment evidence | `pea-tracker-financial-read` serves owner-only reads; `pea-tracker-quotes-ingestion` was deployed for persistent ingestion bounded to the reviewed Yahoo catalogue. Anonymous ingestion returned HTTP 401 in the prior session |
+| Awaiting confirmation | First complete scheduled cycle on Monday 16 November 2026; publication and dashboard screenshots are not execution evidence |
+| Planned / under study | V1.1 per the [roadmap](../../../roadmap.md); no development started or blanket feasibility approval |
+
+Publication on `main`: `1c24a57336a2ae3f83c6c3c9a1dffa299a5d4ec2`.
+The ingestion version verified in the prior session was
+`72b8d6d9-1a53-4ba7-8bdb-ace2faa15a77`; no current remote version check is claimed.
+Collector cron: `17,47 6-18 * * 1-5`; monitor cron: `9 * * * 1-5` (UTC).
+Collection is configured at 30 minutes in a weekday window, 07:17–19:47 Paris
+time in November, without a real exchange calendar.
+
+The owner confirmed complete mapping JSON and showed `collector-live` restricted
+to `main`, with Required reviewers unchecked. Failure-only GitHub/email notifications
+were shown and saving was requested. CLI authentication was unavailable: not all
+saved remote settings were independently verified. Monitoring depends on GitHub;
+the optional external heartbeat is unconfigured. Fresh-runner retries without the
+original private journal remain fail-closed, not automatic cross-run recovery.
+
+Freshness remains `unknown` / `market_calendar_unknown`. Quote observations are not
+an atomic cross-instrument snapshot. A previously encountered individual-tool-call
+limit has an undetermined cause; it is not evidence of collection failure. Rotation
+was deferred by explicit owner decision to finalization and is not claimed complete.
+No tag or release has been created.
+
+## Next check — scheduled cycle of 16 November 2026
+
+Evidence to obtain later through a separately authorized read-only check:
+
+1. A successful **Scheduled** execution with the actual `Run collector` step successful;
+   skipped/synthetic jobs or a green overall workflow alone do not suffice.
+2. Successful-fetch timestamps advanced across the reviewed catalogue; distinguish
+   last attempt from last successful retrieval.
+3. Market dates checked after opening, allowing for instruments with no recent trade.
+   A recent retrieval of an old trade does not establish collector failure or realtime data.
+
+Prefer one grouped `get_portfolio_valuation` with provider `yahoo`, price kind
+`last_trade`, adjustment `unadjusted`, displaying `quotation.last_successful_fetch_at`
+and market dates. Do not fan out individual `get_quotation_status` calls. If the
+call fails, report the error without reusing previous financial data.
+After this check, consider `v1.0.0` and a release only with explicit authorization.
+Do not repeat the initial catalogue bootstrap or reset live settings for this check.
+
+## Historical evidence — initial supervised bootstrap, 2026-11-14
+
+The following sections retain the original single-public-sample scope and its
+temporary settings. They precede the current V1 status above; statements about
+empty portfolio tables, inactive schedules or closed ingestion describe that stage.
+Their former activation prerequisites are not a new instruction to interrupt V1.
 
 - The supervised AIR.PA catalogue import and one real Yahoo collection completed.
   D1 contains one instrument, one quotation observation and one ingestion receipt;
@@ -26,7 +83,7 @@
   is deferred by explicit owner decision and remains open before unattended use
   or release of personal portfolio data.
 
-## Next operation — AIR.PA automation preparation
+## Historical procedure — AIR.PA automation preparation
 
 Do not repeat catalogue import or the manual round-trip setup below.
 
@@ -67,7 +124,15 @@ GitHub CLI authentication was unavailable; dispatch/approval and reporting the r
 result must therefore use the owner's authenticated browser. Do not rerun blindly
 if delivery is uncertain; inspect the accepted receipt first.
 
-## Reference procedures
+## Historical reference procedures — initial bootstrap
+
+These procedures preserve the originally reviewed bootstrap. Their empty-database,
+single-instrument, quotation-only reader and commented-schedule assumptions do not
+describe current V1. In particular, current authorized portfolio reads are present;
+do not apply the old absence-of-portfolio-routes check to the current reader.
+The original required-reviewer/heartbeat steps below predate the later authorized
+unattended settings. Do not rerun these procedures without a newly scoped review
+and explicit operational authorization. Historical contracts remain unchanged.
 
 All remote writes, Access setup, secrets, deployments and provider collection below
 require separate owner authorization. Do not alter DEV, the existing OAuth PoC,

@@ -3,7 +3,12 @@
 ## Stack
 
 - Approved baseline: Cloudflare Workers, Hono, strict TypeScript and D1; separate Python/yfinance collection through GitHub Actions.
-- Default Worker implements public REST health and official SDK stateless MCP ping only. Synthetic instrument CRUD uses shared services/repository port with Memory and native D1 adapters, reachable only in isolated tests and separate loopback harnesses. Local JWT security composition is implemented; D1 is local-only, and ledger/financial calculations, collection and hosted OAuth remain unimplemented. See [INSTALL.md](../INSTALL.md).
+- One TypeScript application and a separate Python package in one repository; no monorepo refactor. The default diagnostic Worker is separate from the current financial reader and ingestion compositions. See [INSTALL.md](../INSTALL.md) for current evidence and the abbreviated layout.
+- Developed: instruments, immutable opening state/positions/cash, quotations/status/history and exact EUR valuation on shared application/domain services with Memory/native D1 ports. REST/MCP call those services directly. Python retrieves Yahoo data separately and delivers HTTPS batches; it has no D1 or portfolio access.
+- `src/entrypoints/access-read.ts` composes owner-only REST/MCP on D1 (`pea-tracker-financial-read`); explicitly enabled portfolio reads expose no administration. `src/entrypoints/access-collector.ts` composes batch-only ingestion (`pea-tracker-quotes-ingestion`) with no MCP/financial reads. Access owner and machine identities/audiences/grants stay distinct; administration is separately authorized.
+- Prior local synthetic checks and real ChatGPT reads/hosted ingestion are different evidence levels. The scheduled 16 November cycle remains unconfirmed; use the [V1 runbook](../tasks/2026_11/2026_11_14_live-quotations-read/runbook.md). No current remote verification is implied by this memory refresh.
+- No transaction ledger, calculated PRU/gains/return engine or persisted valuation snapshot exists. Freshness context is injectable but the reader defaults to an unknown real calendar. Valuation pins an opening revision, not an atomic cross-instrument quote snapshot. Current BigInt arithmetic covers nonnegative products/sums/display, not general division or signed gains.
+- Portfolio revision selection/sequence is global. Stable portfolio identity, event attachment and migration compatibility are studies before fixing V1.1's ledger, not a validated multi-portfolio design. The [roadmap](../roadmap.md) preserves the real PEA priority and isolates future Trading Lab use; V1.1 feasibility and financial formulas remain open.
 
 ## How it fits together
 
@@ -13,11 +18,17 @@ flowchart LR
     MCP[Read-only MCP adapter] --> Services
     Services --> Ports[Repository interfaces]
     Ports --> D1[D1 adapter]
-    Python[Python provider adapter] --> Ingest[Restricted ingestion adapter]
+    Python[Python provider adapter] --> Provider[Yahoo Finance]
+    Python --> Ingest[Restricted ingestion adapter]
     Ingest --> Services
 ```
 
-## Key decisions
+## Historical decisions and slice evidence
+
+The entries below retain the decisions and limits recorded at each earlier stage.
+Local-only, inactive-schedule and open-OAuth statements describe those stages, not
+current V1 operation. Subsequent deployment/collection evidence is summarized above
+and in the runbook; earlier approvals do not authorize repeating those operations.
 
 - 2026-11-11: [machine ingestion slice](../tasks/2026_11/2026_11_11_remote-ingestion/plan.md) reuses Cloudflare Access Service Tokens/Service Auth with a dedicated application AUD and signed empty-sub/common_name identity. Owner and machine policies share Access JWT/JWKS verification; only the machine policy grants quotes:ingest to a stable internal subject, with existing provider/instrument grants. Python sends the service credential pair, never the interactive MCP identity or an assumed OAuth token endpoint. Opt-in ingestion composition has no MCP/health/financial read/admin routes. Remote setup, actual assertion lifetime <=300 seconds, lifecycle and deployment remain approval-gated; stateless revocation is bounded, not instantaneous. Existing deployed entrypoints and MCP policy are unchanged.
 - 2026-11-12: A separate `src/entrypoints/access-collector.ts` now composes machine-authenticated ingestion with the existing D1 schema. Its Wrangler fixture is local-only, synthetic and has no remote database ID, hostname or production audience. It exposes no MCP/health/financial-read/admin routes and fails closed on invalid configuration. Local D1, Python-client, access-denial and dry-run evidence is recorded in the [remote-ingestion contract](../tasks/2026_11/2026_11_11_remote-ingestion/contract.md); deployment and remote setup remain approval-gated.
