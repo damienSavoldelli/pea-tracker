@@ -1,6 +1,7 @@
 name: Temporary schedule diagnostic
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: '*/5 * * * *'
 
@@ -11,7 +12,7 @@ permissions: {}
 # then remove this file in a separately approved commit.
 jobs:
   observe:
-    if: github.repository == 'damienSavoldelli/pea-tracker' && github.ref == 'refs/heads/main' && github.event_name == 'schedule'
+    if: github.repository == 'damienSavoldelli/pea-tracker' && github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     timeout-minutes: 1
     steps:
