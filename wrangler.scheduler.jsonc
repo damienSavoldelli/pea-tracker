@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "pea-tracker-scheduler",
+  "main": "src/entrypoints/scheduler.ts",
+  // Latest date supported by the installed workerd; no dependency upgrade.
+  "compatibility_date": "2026-11-11",
+  "workers_dev": false,
+  "preview_urls": false,
+  "observability": { "enabled": true, "traces": { "enabled": true } },
+  "vars": { "SCHEDULER_ENABLED": "false", "COLLECTOR_INTERVAL_MINUTES": "30" },
+  "secrets": { "required": ["GITHUB_DISPATCH_TOKEN"] },
+  "durable_objects": { "bindings": [{ "name": "DISPATCH_LEDGER", "class_name": "SchedulerLedger" }] },
+  "migrations": [{ "tag": "scheduler-v1", "new_sqlite_classes": ["SchedulerLedger"] }],
+  // No remote activation is authorized. Enable only after workflow preparation.
+  // Activation crons: ["17,47 * * * *", "9 * * * *"], filtered to Paris weekdays.
+  "triggers": { "crons": [] }
+}
