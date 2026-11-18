@@ -18,8 +18,11 @@ const paris = new Intl.DateTimeFormat('en-GB', {
 export function planSlot(kind: DispatchKind, scheduledTime: number, now: number, interval: number): DispatchSlot | null {
   if (![30, 60, 120].includes(interval) || !Number.isSafeInteger(scheduledTime) ||
     !Number.isFinite(now) || scheduledTime < 0 || now < scheduledTime || now - scheduledTime > 600_000) return null;
-  const date = new Date(scheduledTime);
-  if (!Number.isFinite(date.getTime()) || date.getUTCSeconds() || date.getUTCMilliseconds()) return null;
+  // Cloudflare cron timestamps can contain seconds and milliseconds. All events
+  // in the same scheduled minute must share one canonical idempotency key.
+  const minute = Math.floor(scheduledTime / 60_000) * 60_000;
+  const date = new Date(minute);
+  if (!Number.isFinite(date.getTime()) || now - minute > 600_000) return null;
   const parts = Object.fromEntries(paris.formatToParts(date).map(part => [part.type, part.value]));
   if (!['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(parts.weekday!) || Number(parts.hour) < 7 || Number(parts.hour) > 19) return null;
   if (kind === 'collector') {

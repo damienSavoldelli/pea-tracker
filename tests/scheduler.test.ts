@@ -29,7 +29,7 @@ describe('isolated Cloudflare dispatch planning', () => {
     expect(planSlot('collector', time, time + 600_000, 30)).toEqual(slot);
     expect(planSlot('collector', time, time + 600_001, 30)).toBeNull();
     expect(planSlot('collector', time, time - 1, 30)).toBeNull();
-    expect(planSlot('collector', time + 1, time + 1, 30)).toBeNull();
+    expect(planSlot('collector', time + 1, time + 1, 30)).toEqual(slot);
     expect(planSlot('collector', time, time, 15)).toBeNull();
     for (const [minutes, expected] of [[30, 26], [60, 13], [120, 7]]) {
       let count = 0;
@@ -42,6 +42,20 @@ describe('isolated Cloudflare dispatch planning', () => {
     const monitor = Date.parse('2026-11-18T07:09:00Z');
     expect(planSlot('monitor', monitor, monitor, 30)?.kind).toBe('monitor');
     expect(planSlot('collector', monitor, monitor, 30)).toBeNull();
+  });
+  it('normalizes observed Cloudflare timestamps to one minute slot without relaxing delay or future bounds', () => {
+    const collector = Date.parse('2026-11-18T17:47:40.087Z');
+    const monitor = Date.parse('2026-11-18T18:09:21.569Z');
+    expect(planSlot('collector', collector, collector + 700, 30)).toEqual({
+      kind: 'collector', scheduled_at: '2026-11-18T17:47:00.000Z',
+    });
+    expect(planSlot('monitor', monitor, monitor + 700, 30)).toEqual({
+      kind: 'monitor', scheduled_at: '2026-11-18T18:09:00.000Z',
+    });
+    expect(planSlot('collector', collector + 1_000, collector + 1_000, 30))
+      .toEqual(planSlot('collector', collector, collector, 30));
+    expect(planSlot('collector', collector, collector - 1, 30)).toBeNull();
+    expect(planSlot('collector', collector, Date.parse('2026-11-18T17:57:00.001Z'), 30)).toBeNull();
   });
 });
 
