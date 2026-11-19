@@ -29,13 +29,13 @@ Objectif : consulter le PEA réel depuis ChatGPT : positions, liquidités, derni
 
 État : **développé et testé localement** ; **validé en exploitation** pour les lectures réelles rapportées dans ChatGPT : catalogue, positions, PRU déclarés, liquidités, cotations horodatées et valorisation exacte, avec couverture et avertissements. Les services REST/MCP sont partagés ; chaque route REST ne dispose pas pour autant d'une preuve d'exploitation individuelle.
 
-L'ingestion et la publication des schedules ont fait l'objet d'autorisations et de preuves antérieures. Le premier cycle automatique complet du **lundi 16 novembre 2026 reste à confirmer**, avec étape réelle `Run collector` réussie, dernières collectes avancées et dates de marché contrôlées. Aucun tag ni release V1 n'est créé à ce stade. Ne pas compromettre cette V1.
+La V1.0.0 est publiée sur le commit `1f6ba490550e0355be65d8667e3e80b5ca98ddef`, tag annoté `v1.0.0`. L'automatisation Cloudflare → GitHub Actions a été validée avec réserves mineures le 19 novembre : 21 collectes consécutives, 20 instruments ingérés par cycle, 13 monitorings exécutés. Les incidents du matin et les limites de preuve sont conservés dans le [bilan V1 et RETEX](releases/v1.0.0-validation.md). Les anciens schedules GitHub et le workflow de diagnostic ont été supprimés ; `workflow_dispatch` et les protections sont conservés. Ne pas compromettre cette V1.
 
-La fraîcheur calendaire reste inconnue faute d'adaptateur réel ; le monitoring dépend de GitHub et le heartbeat externe n'est pas configuré. Une limite d'appels rencontrée lors de lectures individuelles n'établit pas un échec de collecte ; son origine reste à déterminer.
+Le calendrier borné XPAR de la branche V1.1 est implémenté et testé localement ; sans affectation instrument/profil vérifiée et activation autorisée, la production conserve sa fraîcheur inconnue. Le monitoring dépend encore de GitHub et le heartbeat externe n'est pas configuré. Le contrôle de clôture à 20 h 09 Paris vérifie les derniers créneaux attendus ; son déploiement ne remplace pas sa preuve d'exécution. Une limite d'appels de consultation n'établit pas un échec de collecte.
 
 ## V1.1 — Gestion quotidienne complète du PEA réel
 
-**Statut : prévu, en étude ; aucun développement engagé.** La faisabilité des blocs ci-dessous n'est pas globalement validée.
+**Statut : calendrier borné XPAR développé et testé localement ; autres blocs prévus/en étude.** La faisabilité des blocs ci-dessous n'est pas globalement validée. Voir le [jalon calendrier](tasks/2026_11/2026_11_14_market-calendar/reference-validation.md) ; ce merge n'autorise aucune activation distante.
 
 **Priorité métier :** disposer de calculs financiers fiables et traçables, sans sacrifier l’existant.
 

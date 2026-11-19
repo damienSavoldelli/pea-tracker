@@ -1,9 +1,17 @@
 name: Quotation missing-cycle monitor
+run-name: ${{ inputs.scheduled_at && format('quotation-monitor/{0}', inputs.scheduled_at) || 'Quotation missing-cycle monitor' }}
 on:
   workflow_dispatch:
-  # Independent read-only schedule; remote activation still needs owner approval.
-  schedule:
-    - cron: '9 * * * 1-5'
+    inputs:
+      trigger:
+        description: Dispatch source
+        type: choice
+        options: [manual, cloudflare]
+        default: manual
+      scheduled_at:
+        description: Cloudflare UTC slot for correlation
+        type: string
+        required: false
 permissions:
   contents: read
   actions: read # Read job conclusions; no ingestion secret or write permission.
@@ -12,7 +20,10 @@ concurrency:
   cancel-in-progress: false
 jobs:
   monitor:
-    if: github.repository == 'damienSavoldelli/pea-tracker' && github.ref == 'refs/heads/main' && vars.COLLECTOR_LIVE_ENABLED == 'true'
+    if: >-
+      github.repository == 'damienSavoldelli/pea-tracker' && github.ref == 'refs/heads/main' && vars.COLLECTOR_LIVE_ENABLED == 'true' &&
+      github.event_name == 'workflow_dispatch' &&
+      (inputs.trigger != 'cloudflare' || vars.COLLECTOR_AUTOMATION_SOURCE == 'cloudflare')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -26,6 +37,7 @@ jobs:
         working-directory: collector
         env:
           GH_TOKEN: ${{ github.token }}
+          COLLECTOR_SCHEDULE_TIMEZONE: ${{ inputs.trigger == 'cloudflare' && 'Europe/Paris' || 'UTC' }}
           COLLECTOR_INTERVAL_MINUTES: ${{ vars.COLLECTOR_INTERVAL_MINUTES || '30' }}
         run: python -m pea_collector.monitor
       - name: Summarize monitoring failure

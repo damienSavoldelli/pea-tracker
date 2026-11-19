@@ -2,22 +2,25 @@
 
 PEA Tracker is an API-first portfolio backend for a single French PEA owner. It combines a versioned REST API, read-only MCP tools for AI clients, exact-decimal financial services, native D1 persistence, and a separate Python market-data collector. The real PEA is the priority; Trading Lab is a complementary, isolated future use.
 
-The repository is public; tracked examples and tests use synthetic data only. Real portfolio data remains private in the separately authorized financial deployment. The diagnostic Worker and old PoCs are separate from the current financial reader.
+The source repository is public; tracked fixtures are synthetic. Production portfolio data, credentials and journals remain private and outside Git. The diagnostic Worker and historical PoCs remain separate from the financial reader.
 
 ## Project status
 
+V1.0.0 was published on 2026-11-19, functionally accepted with minor reservations. This branch continues V1.1 development; local implementation does not authorize production activation.
+
 | Capability | Status |
 | --- | --- |
-| Instruments, dated opening state, positions and known cash | Developed; previously tested locally on synthetic Memory/native D1 fixtures; real reads validated in ChatGPT in the prior owner session |
-| Stored quotations and exact EUR valuation | Developed and previously tested locally; real grouped valuation validated in ChatGPT, including timestamps, coverage and warnings |
-| Calendar-aware freshness | Rules developed and tested with synthetic context; actual reader reports `unknown` because no real calendar adapter is integrated |
-| Financial reader (`pea-tracker-financial-read`) | Owner-only REST/MCP on native D1; shared services; no administrative or ingestion routes |
-| Ingestion (`pea-tracker-quotes-ingestion`) and Python/yfinance | Developed and previously tested locally; hosted ingestion previously verified and persistent bounded ingestion deployed with owner authorization |
-| GitHub Actions collection and monitoring | Schedules published on `main`; first complete scheduled cycle on Monday 16 November 2026 remains to be confirmed |
-| Diagnostic DEV and OAuth PoCs | Separate historical entrypoints; not required for current financial consultation |
-| V1.1 financial management | Planned, under study; no development started or blanket feasibility approval |
+| Instruments, opening positions and cash | Operational through the protected financial read Worker and remote D1 |
+| Quotations and exact-decimal valuation | Operational; explicit provider provenance and freshness warnings |
+| REST and read-only MCP | Shared domain/application services and separate transport adapters |
+| Python/yfinance ingestion | Operational, through a dedicated Cloudflare Access machine policy |
+| Automation | Cloudflare Cron and Durable Object receipts → GitHub workflow_dispatch → Python → ingestion |
+| V1 monitoring | Hourly 07:09–20:09 Paris; explicit final-slot check at 20:09 |
+| V1.1 calendar | Bounded XPAR continuous-core adapter implemented and tested locally; no production assignment/activation |
+| V1.1 financial management | Transaction ledger, calculated PRU and performance rules remain under study |
+| Diagnostic Workers | Separate historical PoCs, not the production financial read endpoint |
 
-Status as of 14 November 2026: developed capabilities and prior local test evidence are distinct from prior operational observations supplied in the owner handover. No new tests or authenticated remote checks were performed for this documentation update. Successful ChatGPT reads do not prove every REST route, OAuth lifecycle case or recovery gate. See the [current V1 runbook](aidd_docs/tasks/2026_11/2026_11_14_live-quotations-read/runbook.md).
+See [V1 acceptance and RETEX](aidd_docs/releases/v1.0.0-validation.md) and [release notes](aidd_docs/releases/v1.0.0.md).
 
 ## Architecture
 
@@ -30,6 +33,8 @@ flowchart LR
   Collector[Python yfinance collector] --> Provider[Yahoo Finance]
   Collector -->|Authenticated HTTPS batches| Ingestion[Separate ingestion adapter]
   Ingestion --> Services
+  Cron[Cloudflare Cron and durable dispatch receipts] --> Actions[GitHub workflow_dispatch]
+  Actions --> Collector
 ```
 
 The application uses TypeScript, Hono and Cloudflare Workers. REST and MCP adapters call the same business services; financial rules and persistence logic are not duplicated in transport adapters. The repository includes native D1 persistence and migrations, exercised against Wrangler local D1. The Python collector is an independent provider adapter: it normalizes quotes and sends them to the ingestion API; it does not access D1 or calculate portfolio results.
@@ -74,15 +79,14 @@ collector/.venv/bin/python -m pea_collector.qualify --offline --
 
 The tests do not require Yahoo access or credentials. Live qualification is a separate network operation and does not prove provider data rights or full instrument coverage. See the [collector guide](collector/README.md).
 
-Both GitHub Actions workflows support manual dispatch and published weekday schedules: collection `17,47 6-18 * * 1-5`, monitoring `9 * * * 1-5` (UTC). Collection is configured for 30 minutes in a broad weekday window, not an exchange calendar. The monitor counts successful actual live steps and shares GitHub's availability; no external heartbeat is configured. Publication and dashboard settings do not prove successful scheduled execution. Secrets remain outside this public repository; see the [collector guide](collector/README.md) and [V1 runbook](aidd_docs/tasks/2026_11/2026_11_14_live-quotations-read/runbook.md).
+Two dispatch-only GitHub workflows retain protected environments, source/branch gates, concurrency, pinned actions and provider/coverage/security approvals. Cloudflare schedules collection weekdays 07:17–19:47 Europe/Paris. Monitoring runs hourly 07:09–20:09; the closing check requires each final due slot. The scheduler has no financial D1 binding or public HTTP endpoint. Secrets are never stored in this public repository.
 
 ## Security and deployment boundaries
 
-- The financial reader uses owner-only Cloudflare Access/Managed OAuth; machine ingestion uses separate Access Service Auth and provider/instrument grants. MCP stays strictly read-only; administration is separately authorized and absent from the financial reader.
-- Local synthetic harnesses are not deployment authentication. Historical diagnostic/PoC success is not evidence for financial correctness or complete security/recovery readiness.
-- The collector has no D1 or portfolio access. Collection does not run inside a REST/MCP valuation request.
-- Remote changes, migrations, deployments and paid services require explicit authorization. Future capabilities need their own applicable acceptance evidence; no gate is closed by updating documentation.
-- Do not add real holdings, tokens, credentials or private account identifiers to code, fixtures, logs, issues or artifacts. The release gates include approved authentication, authorization, financial correctness, provider terms, privacy, monitoring, backup and tested restoration.
+- Financial REST/read-only MCP and ingestion use separate Workers and Access policies. Machine authorization grants quotation ingestion only.
+- Access JWTs require verified RS256 signatures, issuer, audience, valid temporal claims and the allowlisted machine identity. The former five-minute total-lifetime cap was removed; mere token presence never authorizes a request. Offline revocation remains bounded by assertion expiry.
+- No holdings, credentials, mappings, private journals or financial dumps belong in source, release assets or public logs. Remote changes require scoped owner approval.
+- The default diagnostic Worker remains distinct from the production financial read/ingestion entrypoints.
 
 ## Engineering practices
 

@@ -2,6 +2,8 @@
 
 Architecture baseline, current implementation and remaining validation requirements.
 
+Current status (2026-11-19): V1.0.0 published and functionally accepted with minor reservations. See [acceptance and RETEX](releases/v1.0.0-validation.md). V1.1 retains the locally implemented bounded XPAR calendar; production assignment/activation remains separately authorized. Earlier dated gates below are historical where superseded by the release record.
+
 Foundation approved 2026-11-06; documentation synchronized 2026-11-14 with the
 owner handover and [roadmap scope decisions](roadmap.md). Historical V1 contracts
 and their dated local evidence are preserved. No test or remote check was performed

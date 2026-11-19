@@ -1,5 +1,5 @@
 name: Quotation collector
-run-name: quotation-collector/${{ inputs.mode || 'live' }}
+run-name: ${{ inputs.scheduled_at && format('quotation-collector/{0}/{1}', inputs.mode, inputs.scheduled_at) || format('quotation-collector/{0}', inputs.mode || 'live') }}
 
 on:
   workflow_dispatch:
@@ -9,9 +9,15 @@ on:
         type: choice
         options: [synthetic, live]
         default: synthetic
-  # Local activation preparation; publishing and remote enablement need owner approval.
-  schedule:
-    - cron: '17,47 6-18 * * 1-5'
+      trigger:
+        description: Dispatch source (Cloudflare requires the automation source gate)
+        type: choice
+        options: [manual, cloudflare]
+        default: manual
+      scheduled_at:
+        description: Cloudflare UTC slot; leave empty for an ordinary manual run
+        type: string
+        required: false
 
 permissions:
   contents: read
@@ -42,7 +48,8 @@ jobs:
   collect-live:
     if: >-
       github.repository == 'damienSavoldelli/pea-tracker' && github.ref == 'refs/heads/main' &&
-      (github.event_name == 'schedule' || inputs.mode == 'live') &&
+      github.event_name == 'workflow_dispatch' && inputs.mode == 'live' &&
+      (inputs.trigger != 'cloudflare' || vars.COLLECTOR_AUTOMATION_SOURCE == 'cloudflare') &&
       vars.COLLECTOR_LIVE_ENABLED == 'true' && vars.COLLECTOR_PROVIDER_APPROVED == 'true' &&
       vars.COLLECTOR_COVERAGE_APPROVED == 'true' && vars.COLLECTOR_SECURITY_APPROVED == 'true'
     environment: collector-live
@@ -56,8 +63,15 @@ jobs:
         name: Check collection cadence
         env:
           COLLECTOR_EVENT: ${{ github.event_name }}
+          COLLECTOR_TRIGGER: ${{ inputs.trigger || 'manual' }}
+          COLLECTOR_SCHEDULED_AT: ${{ inputs.scheduled_at }}
           COLLECTOR_INTERVAL_MINUTES: ${{ vars.COLLECTOR_INTERVAL_MINUTES || '30' }}
-        run: python3 collector/pea_collector/cadence.py
+        run: |
+          if [ "$COLLECTOR_TRIGGER" = cloudflare ]; then
+            python3 collector/pea_collector/cloudflare_cadence.py
+          else
+            python3 collector/pea_collector/cadence.py
+          fi
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         if: steps.cadence.outputs.run == 'true'
         with:

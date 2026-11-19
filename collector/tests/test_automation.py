@@ -41,16 +41,14 @@ def test_missing_cycle_checker_rejects_skipped_or_synthetic_runs():
     assert not missing(lambda _: (_ for _ in ()).throw(AssertionError()), now.replace(day=8), 30)
 
 
-def test_workflows_are_scheduled_gated_pinned_and_do_not_expose_secrets_to_untrusted_events():
+def test_workflows_are_dispatch_only_gated_pinned_and_do_not_expose_secrets_to_untrusted_events():
     """Prepared workflows retain explicit activation, branch and permission gates."""
     root = Path(__file__).parents[2]
     # BaseLoader keeps YAML's 'on' key a string, as GitHub's YAML parser does.
     for name in ["quotation-collector.yml", "quotation-monitor.yml"]:
         text = (root / ".github/workflows" / name).read_text()
         workflow = yaml.load(text, Loader=yaml.BaseLoader)
-        assert set(workflow["on"]) == {"workflow_dispatch", "schedule"}
-        expected_cron = "17,47 6-18 * * 1-5" if name == "quotation-collector.yml" else "9 * * * 1-5"
-        assert workflow["on"]["schedule"] == [{"cron": expected_cron}]
+        assert set(workflow["on"]) == {"workflow_dispatch"}
         assert workflow["permissions"]["contents"] == "read"
         assert workflow["concurrency"]["cancel-in-progress"] == "false"
         assert "pull_request_target" not in text and "upload-artifact" not in text

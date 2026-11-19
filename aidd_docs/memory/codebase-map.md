@@ -1,5 +1,12 @@
 # Codebase Map
 
+Current reference: [V1 acceptance and RETEX](../releases/v1.0.0-validation.md). Earlier slice descriptions below are historical.
+
+- Scheduler: `src/entrypoints/scheduler.ts`, `src/scheduling/github-dispatch.ts`, `wrangler.scheduler.jsonc`; durable receipts, no financial D1 binding.
+- Dispatch-only workflows: `.github/workflows/quotation-collector.yml`, `.github/workflows/quotation-monitor.yml`.
+- Monitoring: `collector/pea_collector/monitor.py`; closing check at 20:09 Paris verifies final due slots across DST and supported cadences.
+- Current authentication policy: `src/adapters/auth/access-jwt.ts`, `access-service-authenticator.ts`.
+
 ## Areas
 
 - [INSTALL.md](../INSTALL.md): current architecture, implementation boundaries and evidence gaps; [roadmap](../roadmap.md): future scope, not a feasibility approval.

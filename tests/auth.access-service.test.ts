@@ -31,9 +31,18 @@ describe('Cloudflare Access machine-only assertion policy', () => {
     const f = await accessServiceFixture();
     await expect(f.authenticator.authenticate(f.request(await f.token(claims)))).rejects.toMatchObject({ status: 403 });
   });
-  it('rejects a signed long-lived service assertion and does not silently relax its lifetime', async () => {
+  it.each([301, 3600])('accepts a verified unexpired service assertion with lifetime %i seconds', async lifetime => {
     const f = await accessServiceFixture();
-    await expect(f.authenticator.authenticate(f.request(await f.token({ exp: f.issuedAt + 301 })))).rejects.toMatchObject({ status: 401 });
+    await expect(f.authenticator.authenticate(f.request(await f.token({ exp: f.issuedAt + lifetime }))))
+      .resolves.toEqual({ subject: collectorSubject, permissions: ['quotes:ingest'] });
+  });
+  it('rejects an expired service assertion even when its original lifetime was 3600 seconds', async () => {
+    const f = await accessServiceFixture();
+    const diagnostic = vi.fn();
+    const verifier = new AccessServiceAuthenticator(serviceConfig, { fetch: f.keys, onDiagnostic: diagnostic });
+    await expect(verifier.authenticate(f.request(await f.token({ iat: f.issuedAt - 7200, exp: f.issuedAt - 3600 }))))
+      .rejects.toMatchObject({ status: 401, code: 'invalid_token' });
+    expect(diagnostic.mock.calls).toEqual([['expired']]);
   });
   it.each([{ kid: '' }, { kid: 'unknown' }, { jku: 'https://untrusted.invalid/jwks' }, { jwk: {} }])('rejects unsafe/unknown key headers %j', async header => {
     const f = await accessServiceFixture();
@@ -41,7 +50,7 @@ describe('Cloudflare Access machine-only assertion policy', () => {
   });
   it('rejects forged signatures even with the trusted kid and client ID', async () => {
     const f = await accessServiceFixture();
-    await expect(f.authenticator.authenticate(f.request(await f.token({}, {}, true)))).rejects.toMatchObject({ status: 401 });
+    await expect(f.authenticator.authenticate(f.request(await f.token({ exp: f.issuedAt + 3600 }, {}, true)))).rejects.toMatchObject({ status: 401 });
   });
   it('accepts key rotation through the existing configurable key provider', async () => {
     const f = await accessServiceFixture();
@@ -121,13 +130,13 @@ describe('fixed-code internal Access diagnostics', () => {
     expect(diagnostic.mock.calls).toEqual([[code]]);
   });
 
-  it.each([301, 3600])('identifies excessive lifetime %i after cryptographic verification', async lifetime => {
+  it.each([301, 3600])('applies the disabled gate after verifying a valid %i-second assertion', async lifetime => {
     const f = await accessServiceFixture();
     const diagnostic = vi.fn();
     const verifier = new AccessServiceAuthenticator({ ...serviceConfig, enabled: false }, { fetch: f.keys, onDiagnostic: diagnostic });
     await expect(verifier.authenticate(f.request(await f.token({ exp: f.issuedAt + lifetime }))))
-      .rejects.toMatchObject({ status: 401, code: 'invalid_token' });
-    expect(diagnostic.mock.calls).toEqual([['assertion_lifetime_exceeded']]);
+      .rejects.toMatchObject({ status: 503, code: 'ingestion_disabled' });
+    expect(diagnostic).not.toHaveBeenCalled();
   });
 
   it('accepts exactly 300 seconds then applies the disabled gate, with no rejection diagnostic', async () => {
@@ -143,7 +152,7 @@ describe('fixed-code internal Access diagnostics', () => {
     const f = await accessServiceFixture();
     const verifier = new AccessServiceAuthenticator(serviceConfig, { fetch: f.keys,
       onDiagnostic: () => { throw new Error('synthetic-private-marker'); } });
-    await expect(verifier.authenticate(f.request(await f.token({ exp: f.issuedAt + 3600 }))))
+    await expect(verifier.authenticate(f.request(await f.token({ exp: 1 }))))
       .rejects.toMatchObject({ status: 401, message: 'invalid_token' });
   });
 
