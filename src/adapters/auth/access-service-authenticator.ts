@@ -30,10 +30,6 @@ export class AccessServiceAuthenticator {
       reportAccessDiagnostic(this.options, 'machine_identity_rejected');
       throw new ApplicationError(403, 'access_denied');
     }
-    if (payload.exp! - payload.iat! > 300) {
-      reportAccessDiagnostic(this.options, 'assertion_lifetime_exceeded');
-      throw new ApplicationError(401, 'invalid_token');
-    }
     if (!this.enabled) throw new ApplicationError(503, 'ingestion_disabled');
     return Object.freeze({ subject: collectorSubject, permissions: Object.freeze(['quotes:ingest'] as const) });
   }

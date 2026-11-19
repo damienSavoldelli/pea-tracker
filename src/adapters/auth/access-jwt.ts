@@ -18,7 +18,7 @@ export type AccessDiagnosticCode = 'assertion_missing_or_malformed' | 'header_re
   'signature_invalid' | 'key_not_found' | 'jwks_unavailable' | 'issuer_rejected' |
   'audience_rejected' | 'expired' | 'not_before_rejected' | 'issued_at_rejected' |
   'expiration_rejected' | 'subject_rejected' | 'token_type_rejected' |
-  'claims_rejected' | 'jwt_rejected' | 'machine_identity_rejected' | 'assertion_lifetime_exceeded';
+  'claims_rejected' | 'jwt_rejected' | 'machine_identity_rejected';
 
 export interface AccessJwtOptions {
   keys?: JWTVerifyGetKey; fetch?: typeof fetch; clock?: () => number;
