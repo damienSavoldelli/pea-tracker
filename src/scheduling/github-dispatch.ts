@@ -24,7 +24,8 @@ export function planSlot(kind: DispatchKind, scheduledTime: number, now: number,
   const date = new Date(minute);
   if (!Number.isFinite(date.getTime()) || now - minute > 600_000) return null;
   const parts = Object.fromEntries(paris.formatToParts(date).map(part => [part.type, part.value]));
-  if (!['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(parts.weekday!) || Number(parts.hour) < 7 || Number(parts.hour) > 19) return null;
+  const lastHour = kind === 'monitor' ? 20 : 19;
+  if (!['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(parts.weekday!) || Number(parts.hour) < 7 || Number(parts.hour) > lastHour) return null;
   if (kind === 'collector') {
     if (![17, 47].includes(date.getUTCMinutes()) || Math.floor(scheduledTime / 1_800_000) % (interval / 30)) return null;
   } else if (kind !== 'monitor' || date.getUTCMinutes() !== 9) return null;

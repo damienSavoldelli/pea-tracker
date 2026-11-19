@@ -1,5 +1,8 @@
 # Cloudflare scheduling bridge — local preparation
 
+Current status (2026-11-19): scheduler activated and production cycles validated. See [acceptance and RETEX](../../../releases/v1.0.0-validation.md). This original preparation plan is historical: enabled configuration, dispatch-only GitHub workflows and the proposed 20:09 closing monitor supersede closed/native-schedule details below. Closure still awaits publication/deployment approval.
+
+
 ## Scope and evidence
 
 Owner decision: stop debugging GitHub `schedule`; retain Python/yfinance, Access,

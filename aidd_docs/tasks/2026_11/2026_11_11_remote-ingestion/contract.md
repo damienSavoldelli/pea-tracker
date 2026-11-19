@@ -1,5 +1,9 @@
 # Machine ingestion — configuration and recovery runbook
 
+## Policy update — 2026-11-19
+
+The owner explicitly removed the 300-second total assertion-lifetime rejection in `d5e8fe3`. Earlier 300-second gates below are historical and superseded. Signature, trusted issuer, exact audience, machine identity, expiration, issuance/not-before checks, ingestion grants and kill switch remain enforced. Assertions are validated, never accepted on presence alone. Revocation of an already issued JWT can remain effective until its verified expiry; no instantaneous revocation guarantee is claimed. See [V1 acceptance](../../../releases/v1.0.0-validation.md).
+
 Authority: [implementation plan](plan.md), [quotation contract](../2026_11_11_quotations/contract.md)
 and [collector operations](../../../../collector/README.md). This document prepares
 remote configuration; it does not authorize or claim its execution. The repository

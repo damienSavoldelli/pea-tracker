@@ -1,5 +1,7 @@
 # Project Brief
 
+Current V1 (2026-11-19): functionally accepted with minor reservations. Protected REST/read-only MCP, opening positions/cash, quotations and exact-decimal valuation are operational. Cloudflare schedules Python/yfinance workflows on GitHub Actions. No transaction ledger or historical-performance engine exists yet. See [acceptance](../releases/v1.0.0-validation.md). Historical authorization boundaries below were superseded only by individually approved operational stages; new remote changes still require scoped approval. The real PEA remains the priority.
+
 ## What it is
 
 - PEA Tracker is a personal, open-source, API-first portfolio project for one owner with approximately 20 stocks/ETFs in a Bourse Direct PEA.

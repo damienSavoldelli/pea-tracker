@@ -1,5 +1,11 @@
 # Architecture
 
+## Current V1 — 2026-11-19
+
+Protected financial REST/read-only MCP and ingestion Workers share domain/application services and D1 adapters. A separate scheduler Worker with SQLite Durable Object receipts dispatches existing GitHub Python/yfinance workflows; it has no financial binding or public HTTP endpoint. The closure candidate removes native GitHub schedules and extends monitoring to 20:09 Paris to verify final due slots; collection remains 07:17–19:47.
+
+Since `d5e8fe3`, JWT signature, issuer/audience, machine identity and temporal validation remain mandatory without the arbitrary 300-second total-lifetime cap. Offline revocation remains bounded by assertion expiry. See [acceptance / evidence / RETEX](../releases/v1.0.0-validation.md). Earlier dated entries below retain historical context, not current activation state.
+
 ## Stack
 
 - Approved baseline: Cloudflare Workers, Hono, strict TypeScript and D1; separate Python/yfinance collection through GitHub Actions.

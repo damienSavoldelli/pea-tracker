@@ -58,6 +58,44 @@ def test_monitor_paris_grace_and_weekend_do_not_call_github():
     assert not missing(fetch, datetime(2026, 11, 21, 9, 9, tzinfo=timezone.utc), 30, paris=True)
 
 
+@pytest.mark.parametrize("day,utc_hour", [("2026-01-12", 18), ("2026-07-13", 17)])
+@pytest.mark.parametrize("minutes", [30, 60, 120])
+def test_closing_monitor_requires_each_final_due_slot(day, utc_hour, minutes):
+    now = datetime.fromisoformat(f"{day}T{utc_hour + 1:02}:09:00+00:00")
+    runs = []
+    for hour in range(utc_hour, utc_hour - 2, -1):
+        for minute in (17, 47):
+            slot = f"{day}T{hour:02}:{minute:02}:00.000Z"
+            time = datetime.fromisoformat(slot.replace("Z", "+00:00"))
+            if accepted(slot, time, minutes):
+                runs.append({"id": minute, "display_title": f"quotation-collector/live/{slot}",
+                             "head_branch": "main", "conclusion": "success",
+                             "updated_at": f"{day}T{hour:02}:{minute + 1:02}:00Z"})
+        if runs:
+            break
+    jobs = {"jobs": [{"conclusion": "success", "steps": [{"name": "Run collector", "conclusion": "success"}]}]}
+
+    def fetch(path):
+        return jobs if path.endswith("/jobs") else {"workflow_runs": runs}
+
+    assert runs
+    assert not missing(fetch, now, minutes, paris=True)
+    removed = runs.pop()
+    assert missing(fetch, now, minutes, paris=True)  # One recent success cannot hide a missing final slot.
+    runs.append({**removed, "display_title": "quotation-collector/live"})
+    assert missing(fetch, now, minutes, paris=True)  # A manual run cannot replace the scheduled slot.
+    runs[-1] = removed
+    jobs["jobs"][0]["steps"][0]["conclusion"] = "skipped"
+    assert missing(fetch, now, minutes, paris=True)
+
+
+def test_closing_monitor_keeps_weekends_and_later_hours_outside_coverage():
+    def fetch(_):
+        raise AssertionError("No API call outside coverage")
+    assert not missing(fetch, datetime(2026, 11, 21, 19, 9, tzinfo=timezone.utc), 30, paris=True)
+    assert not missing(fetch, datetime(2026, 11, 19, 20, 9, tzinfo=timezone.utc), 30, paris=True)
+
+
 def test_prepared_workflows_keep_existing_protections_and_exclusive_automation_source():
     root = Path(__file__).parents[2]
     for name, cron in [("quotation-collector.yml", "17,47 6-18 * * 1-5"),
@@ -70,7 +108,8 @@ def test_prepared_workflows_keep_existing_protections_and_exclusive_automation_s
         assert prepared["on"]["workflow_dispatch"]["inputs"]["trigger"]["default"] == "manual"
         job = prepared["jobs"]["collect-live" if "collector" in name else "monitor"]
         assert "vars.COLLECTOR_AUTOMATION_SOURCE == 'cloudflare'" in job["if"]
-        assert "vars.COLLECTOR_AUTOMATION_SOURCE != 'cloudflare'" in job["if"]
+        assert "github.event_name == 'schedule'" not in current["jobs"]["collect-live" if "collector" in name else "monitor"]["if"]
+        assert set(current["on"]) == {"workflow_dispatch"}
         assert "github.ref == 'refs/heads/main'" in job["if"]
         assert "vars.COLLECTOR_LIVE_ENABLED == 'true'" in job["if"]
         if "collector" in name:
@@ -85,12 +124,12 @@ def test_prepared_workflows_keep_existing_protections_and_exclusive_automation_s
             assert collector == original
 
 
-def test_scheduler_config_stays_disabled_and_has_no_financial_binding():
+def test_scheduler_config_is_explicitly_enabled_and_has_no_financial_binding():
     import json
     path = Path(__file__).parents[2] / "wrangler.scheduler.jsonc"
     config = json.loads("\n".join(line for line in path.read_text().splitlines() if not line.lstrip().startswith("//")))
-    assert config["vars"]["SCHEDULER_ENABLED"] == "false"
-    assert config["triggers"]["crons"] == []
+    assert config["vars"]["SCHEDULER_ENABLED"] == "true"
+    assert config["triggers"]["crons"] == ["17,47 * * * *", "9 * * * *"]
     assert config["workers_dev"] is False and config["preview_urls"] is False
     assert "d1_databases" not in config and "services" not in config
     assert config["secrets"]["required"] == ["GITHUB_DISPATCH_TOKEN"]

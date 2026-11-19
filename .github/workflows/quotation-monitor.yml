@@ -12,9 +12,6 @@ on:
         description: Cloudflare UTC slot for correlation
         type: string
         required: false
-  # Independent read-only schedule; remote activation still needs owner approval.
-  schedule:
-    - cron: '9 * * * 1-5'
 permissions:
   contents: read
   actions: read # Read job conclusions; no ingestion secret or write permission.
@@ -25,9 +22,8 @@ jobs:
   monitor:
     if: >-
       github.repository == 'damienSavoldelli/pea-tracker' && github.ref == 'refs/heads/main' && vars.COLLECTOR_LIVE_ENABLED == 'true' &&
-      ((github.event_name == 'schedule' && vars.COLLECTOR_AUTOMATION_SOURCE != 'cloudflare') ||
-      (github.event_name == 'workflow_dispatch' &&
-      (inputs.trigger != 'cloudflare' || vars.COLLECTOR_AUTOMATION_SOURCE == 'cloudflare')))
+      github.event_name == 'workflow_dispatch' &&
+      (inputs.trigger != 'cloudflare' || vars.COLLECTOR_AUTOMATION_SOURCE == 'cloudflare')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

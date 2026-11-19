@@ -18,9 +18,6 @@ on:
         description: Cloudflare UTC slot; leave empty for an ordinary manual run
         type: string
         required: false
-  # Local activation preparation; publishing and remote enablement need owner approval.
-  schedule:
-    - cron: '17,47 6-18 * * 1-5'
 
 permissions:
   contents: read
@@ -51,9 +48,8 @@ jobs:
   collect-live:
     if: >-
       github.repository == 'damienSavoldelli/pea-tracker' && github.ref == 'refs/heads/main' &&
-      ((github.event_name == 'schedule' && vars.COLLECTOR_AUTOMATION_SOURCE != 'cloudflare') ||
-      (github.event_name == 'workflow_dispatch' && inputs.mode == 'live' &&
-      (inputs.trigger != 'cloudflare' || vars.COLLECTOR_AUTOMATION_SOURCE == 'cloudflare'))) &&
+      github.event_name == 'workflow_dispatch' && inputs.mode == 'live' &&
+      (inputs.trigger != 'cloudflare' || vars.COLLECTOR_AUTOMATION_SOURCE == 'cloudflare') &&
       vars.COLLECTOR_LIVE_ENABLED == 'true' && vars.COLLECTOR_PROVIDER_APPROVED == 'true' &&
       vars.COLLECTOR_COVERAGE_APPROVED == 'true' && vars.COLLECTOR_SECURITY_APPROVED == 'true'
     environment: collector-live

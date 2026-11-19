@@ -1,6 +1,8 @@
 # INSTALL.md — PEA Tracker
 
-Architecture decision and future installation guide.
+Architecture baseline and installation guide.
+
+Current status (2026-11-19): V1 functionally accepted with minor reservations; release closure prepared. See [current acceptance and RETEX](releases/v1.0.0-validation.md). Earlier decisions and gates below are historical where superseded by this record; they are not authorization for remote changes.
 
 Status: **approved API-first architecture and financial backend product baseline; diagnostic REST/MCP and synthetic local instrument slice implemented**.
 Decision date: 2026-11-06. Source checks: 2026-11-06.

@@ -57,6 +57,12 @@ describe('isolated Cloudflare dispatch planning', () => {
     expect(planSlot('collector', collector, collector - 1, 30)).toBeNull();
     expect(planSlot('collector', collector, Date.parse('2026-11-18T17:57:00.001Z'), 30)).toBeNull();
   });
+  it.each(['2026-01-12T19:09:00Z', '2026-07-13T18:09:00Z'])('keeps a closing monitor at 20:09 Paris across DST: %s', value => {
+    const time = Date.parse(value);
+    expect(planSlot('monitor', time, time, 30)?.kind).toBe('monitor');
+    expect(planSlot('monitor', time + 3_600_000, time + 3_600_000, 30)).toBeNull();
+    expect(planSlot('collector', time + 8 * 60_000, time + 8 * 60_000, 30)).toBeNull();
+  });
 });
 
 describe('at-most-one GitHub POST attempt per claimed slot', () => {
