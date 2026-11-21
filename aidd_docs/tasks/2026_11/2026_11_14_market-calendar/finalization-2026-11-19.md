@@ -20,3 +20,11 @@ Un scénario d'intégration synthétique supplémentaire vérifie le résolveur 
 - séance courante disponible mais fetch ancien de plus de 60 minutes : `stale` / `collection_over_60_minutes`.
 
 Seuils, priorité des raisons, DTO REST/MCP et calculs de valorisation inchangés. Les tests existants de valorisation et d'intégration du lecteur ont déjà passé après le merge ; ils ne sont pas relancés pour cette seule addition de couverture.
+
+## Qualification ciblée — 21 novembre 2026
+
+Les 20 entrées du catalogue existant ont été rapprochées localement de leurs métadonnées de source : identifiants uniques et MIC concordants. Résultat : **0 affectation qualifiée, 20 `unknown`**, dont 19 XPAR sans preuve instrument → mode/groupe continu et une ALXP sans profil admis. Les qualifications fournisseur existantes ne contiennent pas cette preuve. Aucune déduction depuis le type, le symbole ou le MIC ne remplace ce prérequis.
+
+Un inventaire privé identifie chaque instrument, le motif et la preuve manquante ; il reste hors Git. La liste d'affectations admissibles est vide et la configuration privée existante n'en active aucune. Aucun code, profil, schéma ou paramètre de production n'est modifié. Qualifier les 19 XPAR demande une source établissant leur mode/groupe de négociation ; ALXP exige en plus un profil compatible vérifié. Sans ces preuves, conserver `unknown` est le résultat retenu, pas une activation du calendrier pour les 20 instruments.
+
+Validation proportionnée : contrôle local des 20 correspondances et de l'absence d'affectation active ; **14 tests ciblés réussis** dans `tests/market-calendar.test.ts` (entrées absentes/ambiguës et MIC non admissibles, 28 autres cas non relancés). Aucune suite complète, requête distante, modification financière ou opération de déploiement.
