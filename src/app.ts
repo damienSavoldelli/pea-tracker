@@ -33,6 +33,7 @@ export function createApp(dependencies: { instruments?: InstrumentHttpDependenci
           ...(protectedMcp.portfolio ? { portfolio: protectedMcp.portfolio } : {}),
           ...(protectedMcp.quotations ? { quotations: protectedMcp.quotations } : {}),
           ...(protectedMcp.currentPortfolio ? { currentPortfolio: protectedMcp.currentPortfolio } : {}),
+          ...(protectedMcp.financialOperations ? { financialOperations: protectedMcp.financialOperations } : {}),
           ...(protectedMcp.currentValuation ? { currentValuation: protectedMcp.currentValuation } : {}),
           ...(protectedMcp.valuation ? { valuation: protectedMcp.valuation } : {}) });
       } catch (error) { return authenticationFailure(error, protectedMcp.challenge); }

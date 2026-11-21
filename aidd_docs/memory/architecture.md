@@ -1,5 +1,17 @@
 # Architecture
 
+## Local financial MCP — 2026-11-21
+
+Owner-authorized local extension: explicit `portfolio:write` business permission,
+separate `portfolio:approve` browser consent, immutable five-minute exact-intent
+proposals and single-use Memory/D1 approval consumption. MCP reuses the existing
+transaction service/repositories; browser consent requires a distinct verified
+Access AUD, not `confirmed=true` or tool annotations. Optional same-Worker
+`access-financial.ts` composition is not selected/deployed; historical V1 reader,
+ingestion and OAuth durations unchanged. 53 targeted checks/typecheck passed;
+hosted path configuration, pending migrations and actual ChatGPT confirmation are
+still to validate. [Contract and failure boundary](../tasks/2026_11/2026_11_21_financial-mcp/contract.md).
+
 ## Current V1 — 2026-11-19
 
 Protected financial REST/read-only MCP and ingestion Workers share domain/application services and D1 adapters. A separate scheduler Worker with SQLite Durable Object receipts dispatches existing GitHub Python/yfinance workflows; it has no financial binding or public HTTP endpoint. The closure candidate removes native GitHub schedules and extends monitoring to 20:09 Paris to verify final due slots; collection remains 07:17–19:47.

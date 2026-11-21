@@ -2,6 +2,13 @@
 
 ## Current state
 
+- Local financial MCP/owner browser approval: **53 distinct targeted tests** and
+  typecheck passed (21 new, 31 affected journal/REST, 1 filtered V1/V1.1 read
+  compatibility). Official MCP SDK → optional Worker composition → protected form →
+  native local D1 append/replay exercised with synthetic signatures/data. No hosted
+  Access policy, ChatGPT human approval or production activation claimed.
+  [Evidence and failure boundaries](../tasks/2026_11/2026_11_21_financial-mcp/evidence.md).
+
 - Local external flows/conditional monetary gain: **34 targeted tests** and typecheck passed (14 domain performance, 20 projected Memory/D1/REST/MCP reads), reusing earlier suites. Initial/reference gaps, cash flows/counterposts, dividends/fees once, quote coverage/warnings, snapshot cloning, backdating, identity isolation and no client reference injection covered. No real reference or remote certification. [Evidence](../tasks/2026_11/2026_11_19_financial-journal/phase-7.md).
 
 - Local realized/unrealized gains: **42 targeted tests** and typecheck passed (13 gains, 11 shared exact-cost regression, 18 projected Memory/D1/REST/MCP reads). Signed gain/loss, counterposts, unavailable/partial cost and quotes, zero denominators, provenance and real/simulated isolation covered; no full suite/remote operations. [Evidence](../tasks/2026_11/2026_11_19_financial-journal/phase-6.md).

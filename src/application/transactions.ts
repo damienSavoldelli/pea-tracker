@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { applyTransaction, initialJournalBalances, journalBindingSchema, portfolioIdSchema, transactionInputSchema, TransactionRuleError, type JournalBinding } from '../domain/transactions';
+import { applyTransaction, initialJournalBalances, journalBindingSchema, portfolioIdSchema, transactionInputSchema, TransactionRuleError, type JournalBinding, type TransactionInput } from '../domain/transactions';
 import type { TransactionRepository } from '../ports/transactions';
 import type { PortfolioRepository } from '../ports/portfolio';
 import type { InstrumentRepository } from '../ports/instruments';
@@ -30,7 +30,8 @@ export class TransactionService {
     this.binding = journalBindingSchema.parse(binding);
   }
   private authorize(principal: Principal | null, portfolioId: unknown, permission: Permission): asserts principal is Principal {
-    requirePermission(principal, permission);
+    // portfolio:write is a financial capability, never infrastructure administration.
+    requirePermission(principal, permission === 'portfolio:admin' && principal?.permissions.includes('portfolio:write') ? 'portfolio:write' : permission);
     const selected = parse(portfolioIdSchema, portfolioId, 400);
     if (principal.subject !== this.binding.owner_subject || selected !== this.binding.portfolio_id) {
       throw new ApplicationError(403, 'portfolio_access_denied');
@@ -49,6 +50,31 @@ export class TransactionService {
     this.authorize(principal, portfolioId, 'portfolio:read');
     return this.state();
   }
+  private async validateInstrument(transaction: TransactionInput) {
+    if (transaction.type === 'buy' || transaction.type === 'sell' || transaction.type === 'dividend') {
+      if (transaction.instrument_id !== undefined) {
+        const instrument = await this.instruments.get(transaction.instrument_id);
+        if (!instrument) throw new ApplicationError(422, 'unknown_instrument');
+        if (transaction.type !== 'dividend' && instrument.quote_currency !== 'EUR') throw new ApplicationError(422, 'unsupported_transaction_currency');
+        return instrument;
+      }
+    }
+  }
+  /** Read-only simulation through the same financial rules used by append. No outcome is persisted. */
+  async preview(principal: Principal | null, portfolioId: unknown, input: unknown) {
+    this.authorize(principal, portfolioId, 'portfolio:admin');
+    const transaction = parse(transactionInputSchema, input);
+    const state = await this.state();
+    if (state.balances.version >= 1000) throw new ApplicationError(409, 'journal_capacity_exceeded');
+    const instrument = await this.validateInstrument(transaction);
+    const outcome = domain(() => applyTransaction(state.balances, state.events, transaction,
+      { id: this.id(), recorded_at: this.clock(), actor: principal.subject }));
+    const affected = instrument ?? (outcome.event.instrument_id ? await this.instruments.get(outcome.event.instrument_id) : null);
+    return { input: transaction, expected_version: state.balances.version, before: state.balances,
+      after: outcome.balances, cash_delta: outcome.event.cash_delta, instrument_id: outcome.event.instrument_id,
+      instrument: affected ? { id: affected.id, name: affected.name, isin: affected.isin, provider_symbol: affected.provider_symbol } : null,
+      quantity_delta: outcome.event.quantity_delta };
+  }
   async append(principal: Principal | null, portfolioId: unknown, input: unknown, expected: unknown, key: unknown) {
     this.authorize(principal, portfolioId, 'portfolio:admin');
     const version = parse(z.number().int().min(0).max(1000), expected, 400);
@@ -61,15 +87,16 @@ export class TransactionService {
     if (version >= 1000) throw new ApplicationError(409, 'journal_capacity_exceeded');
     const state = await this.state();
     if (version !== state.balances.version) throw new ApplicationError(412, 'version_mismatch');
-    if (transaction.type === 'buy' || transaction.type === 'sell' || transaction.type === 'dividend') {
-      if (transaction.instrument_id !== undefined) {
-        const instrument = await this.instruments.get(transaction.instrument_id);
-        if (!instrument) throw new ApplicationError(422, 'unknown_instrument');
-        if (transaction.type !== 'dividend' && instrument.quote_currency !== 'EUR') throw new ApplicationError(422, 'unsupported_transaction_currency');
-      }
-    }
+    await this.validateInstrument(transaction);
     const outcome = domain(() => applyTransaction(state.balances, state.events, transaction,
       { id: this.id(), recorded_at: this.clock(), actor: principal.subject }));
     return this.repository.append(this.binding.portfolio_id, version, outcome, replay);
+  }
+  /** Resolve an already consumed approval after a retry/crash, without ever appending. */
+  async recorded(principal: Principal | null, portfolioId: string, input: unknown, expected: number, key: string) {
+    this.authorize(principal, portfolioId, 'portfolio:admin');
+    const transaction = parse(transactionInputSchema, input);
+    return this.repository.replay(this.binding.portfolio_id, { subject: principal.subject, key,
+      canonical_input: JSON.stringify({ binding: this.binding, expected, input: transaction }) });
   }
 }

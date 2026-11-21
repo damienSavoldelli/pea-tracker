@@ -13,8 +13,11 @@ import { quotationSelectorSchema } from '../../domain/quotations';
 import type { ValuationService } from '../../application/valuation';
 import { valuationQuerySchema } from '../../domain/valuation';
 import { portfolioIdSchema } from '../../domain/transactions';
+import type { FinancialMcpService } from '../../application/financial-mcp';
+import { registerFinancialTools } from './financial-tools';
 
 export interface ProtectedMcpDependencies {
+  financialOperations?: FinancialMcpService;
   service: InstrumentService;
   portfolio?: PortfolioService;
   quotations?: QuotationService;
@@ -28,6 +31,7 @@ export interface ProtectedMcpDependencies {
   restMetadata?: { resource: string; authorization_servers: string[]; scopes_supported: string[]; bearer_methods_supported: string[] };
 }
 interface FinancialContext {
+  financialOperations?: FinancialMcpService;
   principal: Principal;
   service: InstrumentService;
   portfolio?: PortfolioService;
@@ -68,6 +72,7 @@ export async function handleMcp(request: Request, financial?: FinancialContext):
           ...(failure.status === 401 || failure.status === 403 ? { _meta: { 'mcp/www_authenticate': [financial.challenge(failure.status)] } } : {}) };
       }
     };
+    if (financial.financialOperations) registerFinancialTools(server, financial.financialOperations, financial.principal, guarded);
     server.registerTool('list_instruments', { description: 'List authorized instrument metadata.',
       inputSchema: z.object({ limit: z.number().int().min(1).max(100).optional(), active: z.boolean().optional(), cursor: z.string().max(256).optional() }).strict(),
       outputSchema: z.object({ data: z.array(instrumentSchema), page: z.object({ next_cursor: z.string().nullable() }) }),
