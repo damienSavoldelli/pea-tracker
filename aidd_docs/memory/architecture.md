@@ -1,5 +1,17 @@
 # Architecture
 
+## Local V2.0-D / D3 — 2026-11-21
+
+Offline-only `EodhdFixtureProvider` implements the structural fetch interface with
+in-memory synthetic snapshots and separately declared context. Its neutral output
+is normalized by D2; it is incompatible with the current Yahoo raw normalizer and
+is not wired to the operational runner. Only synthetic unadjusted last-price
+semantics are admitted; snapshot `close` never implies session-close data. Optional
+`previousClose`/`change` cannot reconstruct missing prices. No network transport,
+credential handling, routing, fallback or ingestion grant changes. **This is not
+EODHD qualification.** Real venue/timestamp/price semantics, licence and quotas
+remain gates. [D3 fixtures, 68 local checks and D1/D2 commit proposal](../tasks/2026_11/2026_11_21_eodhd-fixture-adapter/plan.md).
+
 ## Local V2.0-D / D2 — 2026-11-21
 
 Prepared, **not activated or deployed**: `provider_mapping.py` reuses the legacy

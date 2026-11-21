@@ -2,6 +2,13 @@
 
 ## Current state
 
+- Local V2.0-D / D3: **68 targeted tests passed** in 0.28 seconds (25 new fixture
+  adapter, 38 D2 and 5 D1 cases). Offline EODHD-format snapshots cover metadata/time/
+  price refusals, partial failures, copied fixture state and provider separation.
+  Existing Yahoo raw normalization rejects secondary neutral data. No network,
+  supplier qualification, full suite or production validation.
+  [Exact command, consolidation proposal and limits](../tasks/2026_11/2026_11_21_eodhd-fixture-adapter/plan.md).
+
 - Local V2.0-D / D2: **91 targeted Python tests passed** in 2.32 seconds (38 new
   mapping/normalization cases, 53 existing model/D1/runner cases). Synthetic-only
   checks cover N providers per UUID, provider symbols, distinct trade/close streams,

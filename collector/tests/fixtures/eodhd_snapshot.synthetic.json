@@ -1,0 +1,41 @@
+{
+  "synthetic": true,
+  "metadata": {
+    "SYNTHETIC-A.PA": {
+      "currency": "EUR",
+      "exchange": "PA",
+      "timezone": "Europe/Paris",
+      "quote_type": "EQUITY",
+      "price_unit": "currency_unit",
+      "data_kind": "last_trade",
+      "adjustment": "unadjusted",
+      "provider_delay_seconds": null
+    },
+    "SYNTHETIC-B.PA": {
+      "currency": "EUR",
+      "exchange": "PA",
+      "timezone": "Europe/Paris",
+      "quote_type": "ETF",
+      "price_unit": "currency_unit",
+      "data_kind": "last_trade",
+      "adjustment": "unadjusted",
+      "provider_delay_seconds": 900
+    }
+  },
+  "responses": [
+    {
+      "code": "SYNTHETIC-A.PA",
+      "timestamp": 1794218400,
+      "close": "12.3400",
+      "previousClose": "deliberately-invalid-optional-field",
+      "change": null
+    },
+    {
+      "code": "SYNTHETIC-B.PA",
+      "timestamp": 1794218460,
+      "close": "23.4500",
+      "previousClose": "22.0000",
+      "change": "deliberately-inconsistent-optional-field"
+    }
+  ]
+}
