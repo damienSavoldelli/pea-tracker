@@ -233,7 +233,7 @@ it('official MCP SDK: prepare → signed browser approval → D1 journal append,
   });
   await client.connect(transport); cleanups.push(() => client.close());
   const tools = (await client.listTools()).tools;
-  expect(tools).toHaveLength(18);
+  expect(tools).toHaveLength(22);
   expect(tools.map(tool => tool.name)).not.toContain('create_portfolio');
   expect(tools.map(tool => tool.name)).not.toContain('register_portfolio');
   expect((await app.request(`${origin}/api/v1/portfolios`, { method: 'POST' })).status).toBe(404);

@@ -1,5 +1,17 @@
 # Architecture
 
+## Local V2.0-B — 2026-11-21
+
+Implemented and locally tested, **not deployed**: `PortfolioReadService` resolves
+owner-scoped registry/openings and constructs existing projection/valuation services
+for N real/simulated portfolios. Active and archived states are readable without
+reactivation; no new financial writes. Separate `/api/v2/portfolios` reads and four
+read-only MCP tools leave the old 18 tools and V1/V1.1 chains intact (22 total when
+fully enabled). Shared stored quotations; server-selected performance references
+are keyed and checked against portfolio/kind/opening, with explicit unavailability
+otherwise. The Worker reuses only its configured historical PEA reference.
+[Contract, tests, limits and C prerequisites](../tasks/2026_11/2026_11_21_portfolio-reads/plan.md).
+
 ## Local V2.0-A — 2026-11-21
 
 Implemented and locally tested, **not deployed**: additive migration 0008 creates

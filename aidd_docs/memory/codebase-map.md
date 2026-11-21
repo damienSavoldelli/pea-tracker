@@ -1,5 +1,11 @@
 # Codebase Map
 
+- Local V2.0-B: `src/application/portfolio-reads.ts`,
+  `src/adapters/{rest,mcp}/portfolio-reads.ts`; optional Hono/MCP wiring and financial
+  entrypoint injection. Contract: `aidd_docs/api/portfolio-reads.openapi.json`.
+  Tests: `tests/portfolio-reads.test.ts` plus targeted existing Worker/financial
+  compatibility checks. [Evidence and boundaries](../tasks/2026_11/2026_11_21_portfolio-reads/plan.md).
+
 - Local V2.0-A: `src/{domain,ports,application,adapters/d1}/portfolio-registry.ts`,
   additive `migrations/0008_portfolio_registry.sql`. Independent openings are
   immutable snapshots in registry rows; historical references stay in old tables.

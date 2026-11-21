@@ -8,8 +8,9 @@ import { portfolioRoutes, type PortfolioHttpDependencies } from './adapters/rest
 import { quotationRoutes, type QuotationHttpDependencies } from './adapters/rest/quotations';
 import { valuationRoutes, type ValuationHttpDependencies } from './adapters/rest/valuation';
 import { currentPortfolioRoutes, type CurrentPortfolioHttpDependencies } from './adapters/rest/current-portfolio';
+import { portfolioReadRoutes, type PortfolioReadHttpDependencies } from './adapters/rest/portfolio-reads';
 
-export function createApp(dependencies: { instruments?: InstrumentHttpDependencies; portfolio?: PortfolioHttpDependencies; quotations?: QuotationHttpDependencies; valuation?: ValuationHttpDependencies; currentPortfolio?: CurrentPortfolioHttpDependencies; mcp?: ProtectedMcpDependencies } = {}) {
+export function createApp(dependencies: { instruments?: InstrumentHttpDependencies; portfolio?: PortfolioHttpDependencies; quotations?: QuotationHttpDependencies; valuation?: ValuationHttpDependencies; currentPortfolio?: CurrentPortfolioHttpDependencies; portfolioReads?: PortfolioReadHttpDependencies; mcp?: ProtectedMcpDependencies } = {}) {
   const app = new Hono();
   app.use('*', async (context, next) => {
     await next();
@@ -34,6 +35,7 @@ export function createApp(dependencies: { instruments?: InstrumentHttpDependenci
           ...(protectedMcp.quotations ? { quotations: protectedMcp.quotations } : {}),
           ...(protectedMcp.currentPortfolio ? { currentPortfolio: protectedMcp.currentPortfolio } : {}),
           ...(protectedMcp.financialOperations ? { financialOperations: protectedMcp.financialOperations } : {}),
+          ...(protectedMcp.portfolioReads ? { portfolioReads: protectedMcp.portfolioReads } : {}),
           ...(protectedMcp.currentValuation ? { currentValuation: protectedMcp.currentValuation } : {}),
           ...(protectedMcp.valuation ? { valuation: protectedMcp.valuation } : {}) });
       } catch (error) { return authenticationFailure(error, protectedMcp.challenge); }
@@ -52,6 +54,7 @@ export function createApp(dependencies: { instruments?: InstrumentHttpDependenci
     app.route('/api/v1/portfolio', valuationRoutes(dependencies.valuation));
   }
   if (dependencies.currentPortfolio) app.route('/api/v1/portfolios', currentPortfolioRoutes(dependencies.currentPortfolio));
+  if (dependencies.portfolioReads) app.route('/api/v2/portfolios', portfolioReadRoutes(dependencies.portfolioReads));
   app.onError(() => Response.json({ error: 'Internal server error' }, { status: 500 }));
   return app;
 }

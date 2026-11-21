@@ -2,6 +2,13 @@
 
 ## Current state
 
+- Local V2.0-B: **35 distinct targeted tests** passed (11 new native D1/service/
+  REST/OpenAPI/SDK/signed Worker cases, 2 existing financial compatibility/security
+  cases, 22 common Hono/MCP diagnostic cases), plus typecheck. Two synthetic owners,
+  real/simulated/empty/archived portfolios, shared quotes, reference isolation and
+  unchanged legacy approval/write/replay covered. No full suite or production check.
+  [Commands and limits](../tasks/2026_11/2026_11_21_portfolio-reads/plan.md).
+
 - Local V2.0-A registry: **21 targeted tests** passed (11 registry, 3 populated/empty
   V1.1 adoption scenarios, 5 versioned native D1 migration cases, 2 existing MCP
   compatibility/security cases), plus typecheck. Synthetic old table snapshots,

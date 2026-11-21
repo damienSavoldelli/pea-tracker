@@ -87,6 +87,12 @@ Le calendrier borné XPAR de la branche V1.1 est implémenté et testé localeme
 
 ## V2.0 — Fondations multi-portefeuille et multi-provider
 
+**21 November 2026 — local V2.0-B delivered:** owner-scoped server resolution,
+read-only active/archived portfolio consultation through separate REST v2 routes
+and four new MCP reads. Existing V1/V1.1 routes and financial approval/write chain
+preserved. Not deployed; C writes/approvals and D provider work remain unimplemented.
+[Scope and local evidence](tasks/2026_11/2026_11_21_portfolio-reads/plan.md).
+
 **21 November 2026 — local V2.0-A delivered:** owner-scoped registry and independent
 immutable openings, additive migration and synthetic populated-journal preservation
 checks. Not deployed; no multi-portfolio REST/MCP resolution or financial activation.

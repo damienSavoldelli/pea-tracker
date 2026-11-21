@@ -19,6 +19,8 @@ import { portfolioIdSchema } from '../domain/transactions';
 import { createFinancialManagementApp } from '../financial-app';
 import { D1OperationalOpeningRepository } from '../adapters/d1/operational-opening';
 import { brokerReferenceSchema } from '../domain/performance';
+import { D1PortfolioRegistryRepository } from '../adapters/d1/portfolio-registry';
+import { PortfolioReadService } from '../application/portfolio-reads';
 
 const configuration = z.object({
   INSTRUMENTS_DB: z.custom<D1Database>(value => value !== null && typeof value === 'object' && 'prepare' in value && 'batch' in value),
@@ -72,13 +74,16 @@ export function createAccessFinancialWorker(environment: D1LocalEnv & Record<str
     reference.opening_state.id !== binding.opening_id || reference.opening_state.revision !== binding.opening_revision))
     throw new Error('financial_reference_binding_mismatch');
   const valuation = new ValuationService(portfolio, quotations, reference);
+  const reads = new PortfolioReadService({ registry: new D1PortfolioRegistryRepository(config.INSTRUMENTS_DB),
+    instruments, transactions: new D1TransactionRepository(config.INSTRUMENTS_DB), quotations, clock,
+    references: new Map(reference ? [[binding.portfolio_id, reference]] : []) });
   const service = new InstrumentService(instruments, clock);
   const authenticate = (request: Request) => access.authenticateMcp(request);
   const backend = createFinancialManagementApp({ financial, access, origin: config.FINANCIAL_ORIGIN,
-    rest: { instruments: { service, authenticate }, quotations: { service: quotations, authenticate },
+    rest: { portfolioReads: { service: reads, authenticate }, instruments: { service, authenticate }, quotations: { service: quotations, authenticate },
       portfolio: { service: portfolio, authenticate }, valuation: { service: valuation, authenticate },
       currentPortfolio: { portfolio, valuation, authenticate } },
-    mcp: { service, portfolio, quotations, valuation, currentPortfolio: portfolio, currentValuation: valuation,
+    mcp: { service, portfolio, quotations, valuation, currentPortfolio: portfolio, currentValuation: valuation, portfolioReads: reads,
       challenge: () => 'Bearer', oauthScopes: [] } });
   const app = new Hono();
   app.use('*', async (context, next) => { await next(); context.header('Cache-Control', 'no-store'); context.header('X-Content-Type-Options', 'nosniff'); });
@@ -91,6 +96,9 @@ export function createAccessFinancialWorker(environment: D1LocalEnv & Record<str
     '/api/v1/portfolio/valuation', '/api/v1/portfolios/:portfolioId/state', '/api/v1/portfolios/:portfolioId/valuation']) {
     app.get(path, context => forward(context.req.raw));
   }
+  for (const path of ['/api/v2/portfolios', '/api/v2/portfolios/:portfolioId',
+    '/api/v2/portfolios/:portfolioId/state', '/api/v2/portfolios/:portfolioId/valuation'])
+    app.all(path, context => forward(context.req.raw));
   return app;
 }
 
