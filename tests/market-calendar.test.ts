@@ -12,7 +12,45 @@ const instrument = (mic: string | null = 'XPAR') => instrumentSchema.parse({
   exchange_mic: mic, version: 1, created_at: '2026-01-01T00:00:00.000Z', updated_at: '2026-01-01T00:00:00.000Z',
 });
 const assignments = JSON.stringify([{ instrument_id: id, mic: 'XPAR', profile_id: 'xpar-continuous-core-v1' }]);
+const venueAssignments = JSON.stringify([{ instrument_id: id, mic: 'XPAR', calendar_id: 'euronext-paris-cash-days-v1' }]);
 const unknown = { phase: 'unknown', expected_session_date: null };
+
+describe('Paris cash venue closures without individual trading-mode qualification', () => {
+  const resolve = (now: string) => createMarketCalendar(venueAssignments)(instrument(), now);
+  it.each([
+    ['2026-11-21T10:00:00.000Z', '2026-11-20'],
+    ['2026-07-12T10:00:00.000Z', '2026-07-10'],
+    ['2026-04-06T10:00:00.000Z', '2026-04-02'],
+    ['2027-03-29T10:00:00.000Z', '2027-03-25'],
+    ['2026-12-25T10:00:00.000Z', '2026-12-24'],
+  ])('recognizes full closure at %s independently of continuous/fixing hours', (now, previous) => {
+    expect(resolve(now)).toEqual({ phase: 'closed', expected_session_date: previous });
+  });
+  it.each(['2026-11-20T07:00:00.000Z', '2026-11-20T10:00:00.000Z', '2026-11-20T18:00:00.000Z',
+    '2026-12-24T10:00:00.000Z', '2028-01-01T10:00:00.000Z'])('never infers an individual session phase at %s', now => {
+    expect(resolve(now)).toEqual(unknown);
+  });
+  it('requires explicit venue assignment and matching MIC, without aliasing ALXP to XPAR', () => {
+    expect(createMarketCalendar(undefined)(instrument(), '2026-11-21T10:00:00.000Z')).toEqual(unknown);
+    expect(createMarketCalendar(venueAssignments)(instrument('ALXP'), '2026-11-21T10:00:00.000Z')).toEqual(unknown);
+    for (const item of [
+      { instrument_id: id, mic: 'ALXP', calendar_id: 'euronext-paris-cash-days-v1' },
+      { instrument_id: id, mic: 'XPAR', calendar_id: 'unverified' },
+      { instrument_id: id, mic: 'XPAR', calendar_id: 'euronext-paris-cash-days-v1', profile_id: 'xpar-continuous-core-v1' },
+    ]) expect(createMarketCalendar(JSON.stringify([item]))(instrument(), '2026-11-21T10:00:00.000Z')).toEqual(unknown);
+  });
+  it('preserves freshness semantics: last session during closure, older session stale, weekday unknown', () => {
+    const quote = quotationRecordSchema.parse({ ...observation(), instrument_id: id,
+      id: crypto.randomUUID(), recorded_at: '2026-11-20T17:00:00.000Z', source_price: '12.34', value_origin: 'provider_declared',
+      price: '12.34', market_timestamp: '2026-11-20T16:29:00.000Z', fetched_at: '2026-11-20T17:00:00.000Z', session_date: '2026-11-20' });
+    const saturday = '2026-11-21T10:00:00.000Z';
+    expect(quotationFreshness(quote, quote, saturday, resolve(saturday))).toMatchObject({ status: 'last_completed_session', reason: 'market_closed' });
+    expect(quotationFreshness({ ...quote, session_date: '2026-11-19' }, quote, saturday, resolve(saturday)))
+      .toMatchObject({ status: 'stale', reason: 'expected_session_missing' });
+    const monday = '2026-11-23T10:00:00.000Z';
+    expect(quotationFreshness(quote, quote, monday, resolve(monday))).toMatchObject({ status: 'unknown', reason: 'market_calendar_unknown' });
+  });
+});
 
 describe('bounded local market calendar', () => {
   const resolve = (now: string) => createMarketCalendar(assignments)(instrument(), now);

@@ -21,9 +21,12 @@ const referenceSchema = z.object({
   version: z.literal(1), generator: z.literal('pea-market-calendar/1'),
   generated_for_year: z.number().int().min(2025).max(2099), profiles: z.array(z.unknown()).max(8),
 }).strict();
-const assignmentsSchema = z.array(z.object({
-  instrument_id: instrumentIdSchema, mic, profile_id: profileId,
-}).strict()).max(100);
+const assignmentsSchema = z.array(z.union([
+  z.object({ instrument_id: instrumentIdSchema, mic, profile_id: profileId }).strict(),
+  // A venue calendar establishes full closures only, never an instrument's trading mode.
+  z.object({ instrument_id: instrumentIdSchema, mic: z.literal('XPAR'),
+    calendar_id: z.literal('euronext-paris-cash-days-v1') }).strict(),
+])).max(100);
 type Profile = z.infer<typeof profileSchema>;
 type Assignment = z.infer<typeof assignmentsSchema>[number];
 
@@ -73,7 +76,9 @@ export function createMarketCalendar(input: unknown, reference: unknown = genera
   }
   return (instrument: Instrument, now: string): MarketContext => {
     const assignment = assignments.get(instrument.id);
-    const profile = assignment && profiles.get(assignment.profile_id);
+    const venueOnly = assignment !== undefined && 'calendar_id' in assignment;
+    // Reuse the validated day table and DST bounds; venue assignments ignore all intraday hours.
+    const profile = assignment && profiles.get('profile_id' in assignment ? assignment.profile_id : 'xpar-continuous-core-v1');
     if (!assignment || !profile || assignment.mic !== instrument.exchange_mic || profile.mic !== assignment.mic ||
       !instant.safeParse(now).success || now < profile.coverage_start || now >= profile.coverage_end) return unknown();
     // UTC intervals already encode IANA/DST boundaries. Do not rederive local dates in the Worker.
@@ -88,7 +93,7 @@ export function createMarketCalendar(input: unknown, reference: unknown = genera
     if (!day || now < day[1]) return unknown();
     const [session, , , state, open, close, previous] = day;
     if (state === 'closed' && previous) return { phase: 'closed', expected_session_date: previous };
-    if (state === 'regular' && open && close && now >= open && now < close) {
+    if (!venueOnly && state === 'regular' && open && close && now >= open && now < close) {
       return { phase: 'open', expected_session_date: session };
     }
     // Auctions, pre/post-trading and half-day hours are not admitted by the core profile.
