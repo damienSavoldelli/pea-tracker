@@ -6,7 +6,7 @@ import { openingStateSchema } from '../src/domain/portfolio';
 
 const originalId = '10000000-0000-4000-8000-000000000001';
 const time = '2026-11-08T10:00:00.000Z';
-const migrationNames = ['0001_instruments.sql', '0002_instrument_create_outcomes.sql', '0003_opening_portfolio.sql', '0004_quotations.sql'];
+const migrationNames = ['0001_instruments.sql', '0002_instrument_create_outcomes.sql', '0003_opening_portfolio.sql', '0004_quotations.sql', '0005_transactions.sql'];
 
 async function seedOriginal(db: D1Database) {
   await db.prepare(`INSERT INTO instruments
@@ -84,7 +84,7 @@ describe('Wrangler local versioned migrations', () => {
     expect(await local.db.prepare('SELECT count(*) n FROM opening_revisions').first('n')).toBe(0);
     expect((await local.db.prepare('PRAGMA foreign_key_check').all()).results).toEqual([]);
   }, 60000);
-  it('upgrades populated v3 opening state to v4 without altering declarations or inventing prices', async () => {
+  it('upgrades populated v3 opening state to current schema without altering declarations or inventing prices', async () => {
     local = await openLocalD1({ migrate: false });
     const directory = local.directory;
     await local.dispose();

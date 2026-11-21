@@ -11,10 +11,10 @@ export async function migrationFixture(directory, mode) {
   await mkdir(target, { recursive: true });
   const names = ['0001_instruments.sql', ...(mode === 'v1' ? [] : ['0002_instrument_create_outcomes.sql']),
     ...(['v3', 'all', 'failing'].includes(mode) ? ['0003_opening_portfolio.sql'] : []),
-    ...(['all', 'failing'].includes(mode) ? ['0004_quotations.sql'] : [])];
+    ...(['all', 'failing'].includes(mode) ? ['0004_quotations.sql', '0005_transactions.sql'] : [])];
   for (const name of names) await copyFile(join(projectRoot, 'migrations', name), join(target, name));
   if (mode === 'failing') {
-    await writeFile(join(target, '0005_test_failure.sql'),
+    await writeFile(join(target, '0006_test_failure.sql'),
       'CREATE TABLE migration_must_rollback (id INTEGER PRIMARY KEY);\nINSERT INTO table_that_does_not_exist VALUES (1);\n');
   }
   return target;

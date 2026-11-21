@@ -4,6 +4,11 @@ import type { PortfolioRepository } from '../ports/portfolio';
 import type { InstrumentRepository } from '../ports/instruments';
 import { requirePermission, type Principal } from './authorization';
 import { ApplicationError } from './errors';
+import type { TransactionService } from './transactions';
+import { costBasisPolicy, projectFinancialState } from '../domain/cost-basis';
+import { TransactionRuleError } from '../domain/transactions';
+import { summarizeDividends } from '../domain/dividends';
+import { summarizeExternalFlows } from '../domain/performance';
 
 function parse<T>(schema: z.ZodType<T>, input: unknown, status: 400 | 422 = 422): T {
   const result = schema.safeParse(input);
@@ -20,7 +25,49 @@ const encode = (revision: number, offset: number) => btoa(JSON.stringify({ versi
 export class PortfolioService {
   constructor(private readonly repository: PortfolioRepository, private readonly instruments: InstrumentRepository,
     private readonly clock: () => string = () => new Date().toISOString(),
-    private readonly id: () => string = () => crypto.randomUUID()) {}
+    private readonly id: () => string = () => crypto.randomUUID(),
+    private readonly journal?: Pick<TransactionService, 'get'>) {}
+
+  /** Reads one captured journal version as current quantities and cash; opening declarations remain immutable.
+   * Current cost/PRU is derived separately; historical declarations remain unchanged.
+   */
+  async current(principal: Principal | null, portfolioId: unknown) {
+    return (await this.currentSnapshot(principal, portfolioId)).state;
+  }
+
+  /** Shared snapshot for consistent downstream valuation/flow calculations; events are not a public DTO. */
+  async currentSnapshot(principal: Principal | null, portfolioId: unknown) {
+    requirePermission(principal, 'portfolio:read');
+    if (!this.journal) throw new ApplicationError(503, 'portfolio_journal_unavailable');
+    const { balances, events } = await this.journal.get(principal, portfolioId);
+    const opening = await this.get(principal, balances.opening_revision);
+    if (opening.id !== balances.opening_id) throw new ApplicationError(409, 'opening_anchor_mismatch');
+    const evaluatedAt = this.clock();
+    if (balances.last_effective_at > evaluatedAt) throw new ApplicationError(409, 'portfolio_state_after_evaluation');
+    let financial: ReturnType<typeof projectFinancialState>;
+    try { financial = projectFinancialState(opening, events, balances); }
+    catch (error) {
+      if (error instanceof TransactionRuleError) throw new ApplicationError(409, error.code);
+      throw error;
+    }
+    const positions = balances.positions.map(position => ({ ...position, currency: 'EUR' as const, ...financial.costs.get(position.instrument_id)! }));
+    const available = positions.filter(position => position.pru.status === 'available').length;
+    const state = {
+      view: 'current_projected' as const, portfolio_id: balances.portfolio_id, kind: balances.kind, evaluated_at: evaluatedAt,
+      opening_state: { id: opening.id, revision: opening.revision, effective_at: opening.effective_at,
+        recorded_at: opening.recorded_at, provenance: opening.provenance, cash: opening.cash },
+      journal: { version: balances.version, last_effective_at: balances.last_effective_at },
+      positions,
+      cash: { ...balances.cash }, holdings_basis: 'opening_state_and_transactions' as const,
+      cost_basis_status: available === positions.length ? 'computed' as const : available ? 'partial' as const : 'unavailable' as const,
+      cost_basis_policy: costBasisPolicy,
+      dividends: summarizeDividends(events, balances.portfolio_id),
+      realized: financial.realized,
+      cash_flows: summarizeExternalFlows(events, balances.portfolio_id),
+      history: { performance_available: false as const, reason: 'performance_not_computed' as const },
+    };
+    return { state, events };
+  }
 
   /** Loads one opening-state revision.
    * @param principal - Authenticated caller with `portfolio:read` permission.

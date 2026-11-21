@@ -35,7 +35,7 @@ Le calendrier borné XPAR de la branche V1.1 est implémenté et testé localeme
 
 ## V1.1 — Gestion quotidienne complète du PEA réel
 
-**Statut : calendrier borné XPAR développé et testé localement ; autres blocs prévus/en étude.** La faisabilité des blocs ci-dessous n'est pas globalement validée. Voir le [jalon calendrier](tasks/2026_11/2026_11_14_market-calendar/reference-validation.md) ; ce merge n'autorise aucune activation distante.
+**Statut : périmètre financier développé et testé localement, sans activation de production.** Journal EUR, achats/ventes, versements/retraits, contrepassations, frais déclarés, dividendes, positions/liquidités projetées, coût/PRU pondéré exact et gains réalisés/latents sont raccordés aux lectures V1.1 séparées ; contrats V1 préservés. Les flux externes et le gain économique monétaire conditionnel sont implémentés, mais aucune référence initiale de marché du PEA réel n'est sélectionnée/persistée : gain réel indisponible par défaut et aucun rendement en pourcentage. Voir le [contrat financier](tasks/2026_11/2026_11_19_financial-journal/contract.md) et le [jalon calendrier](tasks/2026_11/2026_11_14_market-calendar/finalization-2026-11-19.md). Les affectations réelles du calendrier restent à qualifier ; cette livraison n'autorise ni migration distante, ni déploiement, ni écritures MCP. Les autres blocs restent prévus/en étude, sans validation globale de faisabilité.
 
 **Priorité métier :** disposer de calculs financiers fiables et traçables, sans sacrifier l’existant.
 

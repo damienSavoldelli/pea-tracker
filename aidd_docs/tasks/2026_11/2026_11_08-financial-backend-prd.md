@@ -207,6 +207,8 @@ export/recovery user story is not a claim that these capabilities are complete.
 
 ### Decisions still required before dependent specifications
 
+Update 2026-11-19, explicitly approved by the owner for the first local increment: EUR-only buy/sell and deposit/withdrawal declarations, explicit effective dates, no overselling or negative cash, chronological append and later traceable counterposting. Cash amounts are explicit executed declarations; fees/dividends, calculated PRU and performance remain outside this increment. The journal is separately bound to a stable portfolio identity and one immutable opening revision; real/simulated isolation is anticipated without implementing V2 portfolio management. No production data mutation, migration or deployment follows from this approval. See the [bounded journal contract](2026_11_19_financial-journal/contract.md). The remaining questions below are not silently resolved by this slice.
+
 - Define invested capital and any simple return explicitly: inputs, period, treatment
   of flows, coverage, zero-denominator cases and limitations. No formula is selected.
   Periodic returns and TWR/XIRR remain V2.3, not implicit V1.1 acceptance criteria.
@@ -232,3 +234,11 @@ Before committing to an implementation plan, verify the relevant APIs, limits, l
 costs, compatibility, storage and security; use a bounded PoC only when necessary
 and authorized. Record go / conditional / defer / abandon separately from evidence.
 This supplement closes none of those feasibility questions by assertion.
+
+### Authorized local increment — 20 November 2026
+
+The owner authorizes weighted-average remaining cost/PRU in the existing projected V1.1 reads: declared opening quantity × PRU with provenance, purchase amounts added, partial sales release the exact pre-sale average cost, full closures reset cost to zero. No floating-point financial amounts; exact fractions with half-even decimal representation at 18 places only. Counterposts invert original cost deltas; incompatible/unknown bases remain explicitly unavailable. No fee/dividend/performance engine, production loading, migration or deployment authorized. Historical V1 responses and valuation amounts remain unchanged. [Rules, limitations and evidence](2026_11_19_financial-journal/cost-basis.md).
+
+### Local financial scope completed — 21 November 2026
+
+Subsequent explicit owner instructions authorized and delivered the bounded [fees](2026_11_19_financial-journal/fees.md), [received dividends](2026_11_19_financial-journal/dividends.md), [realized/unrealized gains](2026_11_19_financial-journal/gains.md) and [external flows/conditional monetary gain](2026_11_19_financial-journal/performance.md) increments. These supersede the earlier exclusions for their own local scope, without changing historical V1 contracts or production. Exact arithmetic, explicit opening-cost provenance, unknown historical fees, portfolio isolation and traceable corrections remain mandatory. No real initial market-valuation reference has been selected/persisted; actual monetary performance remains unavailable by default, and no percentage-return method is implemented. Local commit is explicitly authorized; push, deployment, production migration, OAuth changes and MCP writes are not authorized by this closure.

@@ -12,12 +12,15 @@ import { quotationHistoryQuerySchema } from '../../application/quotations';
 import { quotationSelectorSchema } from '../../domain/quotations';
 import type { ValuationService } from '../../application/valuation';
 import { valuationQuerySchema } from '../../domain/valuation';
+import { portfolioIdSchema } from '../../domain/transactions';
 
 export interface ProtectedMcpDependencies {
   service: InstrumentService;
   portfolio?: PortfolioService;
   quotations?: QuotationService;
   valuation?: ValuationService;
+  currentPortfolio?: PortfolioService;
+  currentValuation?: ValuationService;
   authenticate(request: Request): Promise<Principal>;
   challenge(status: 401 | 403): string;
   metadata?: { resource: string; authorization_servers: string[]; scopes_supported: string[]; bearer_methods_supported: string[] };
@@ -30,6 +33,8 @@ interface FinancialContext {
   portfolio?: PortfolioService;
   quotations?: QuotationService;
   valuation?: ValuationService;
+  currentPortfolio?: PortfolioService;
+  currentValuation?: ValuationService;
   challenge(status: 401 | 403): string;
   oauthScopes?: readonly string[];
 }
@@ -80,6 +85,18 @@ export async function handleMcp(request: Request, financial?: FinancialContext):
       const valuation = financial.valuation;
       server.registerTool('get_portfolio_valuation', { description: 'Estimate EUR market values from explicit provider/kind, with exact amounts, coverage and quote warnings. No gains or realtime guarantee.',
         inputSchema: valuationQuerySchema, annotations, _meta: { securitySchemes } }, input => guarded(() => valuation.get(financial.principal, input)));
+    }
+    if (financial.currentPortfolio && financial.principal.permissions.includes('portfolio:read')) {
+      const portfolio = financial.currentPortfolio;
+      server.registerTool('get_current_portfolio', { description: 'V1.1 projected holdings/cash, opening cash, exact costs/PRU, dividends, realized gains and dated external cash flows at one journal version. Flow corrections included; trades/dividends are not external contributions. Historic cost fees remain unknown. No global percentage return. V1 stays historical.',
+        inputSchema: z.object({ portfolio_id: portfolioIdSchema }).strict(), annotations, _meta: { securitySchemes } },
+      input => guarded(() => portfolio.current(financial.principal, input.portfolio_id)));
+    }
+    if (financial.currentValuation && financial.principal.permissions.includes('portfolio:read') && financial.principal.permissions.includes('quotes:read')) {
+      const valuation = financial.currentValuation;
+      server.registerTool('get_current_portfolio_valuation', { description: 'V1.1 valuation/gains and monetary economic gain after dated external flows. Requires an explicitly selected evidenced market reference; missing reference means unavailable monetary gain, never PRU substitution. Fees/dividends already inside cash/value. Quote warnings retained; no percentage return. V1 remains historical.',
+        inputSchema: valuationQuerySchema.omit({ revision: true }).extend({ portfolio_id: portfolioIdSchema }).strict(),
+        annotations, _meta: { securitySchemes } }, ({ portfolio_id, ...selection }) => guarded(() => valuation.current(financial.principal, portfolio_id, selection)));
     }
     if (financial.portfolio && financial.principal.permissions.includes('portfolio:read')) {
       const portfolio = financial.portfolio;

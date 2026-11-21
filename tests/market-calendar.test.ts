@@ -3,6 +3,8 @@ import { instrumentSchema } from '../src/domain/instruments';
 import { createMarketCalendar } from '../src/adapters/calendar/market-calendar';
 import generated from '../src/adapters/calendar/sessions.generated.json';
 import { generateCalendarReference } from './helpers/calendar-generation.mjs';
+import { quotationFreshness, quotationRecordSchema } from '../src/domain/quotations';
+import { observation } from './helpers/quotations';
 
 const id = '00000000-0000-4000-8000-000000000001';
 const instrument = (mic: string | null = 'XPAR') => instrumentSchema.parse({
@@ -69,6 +71,26 @@ describe('bounded local market calendar', () => {
     expect(resolve(record, '2026-11-09T10:00:00.000Z')).toEqual(unknown);
     expect(record.exchange_mic).toBe('ALXP');
     expect(generated).toEqual(before);
+  });
+
+  it('distinguishes a legitimate closed-session quote, a missing market session and an overdue collector', () => {
+    const friday = quotationRecordSchema.parse({ ...observation(), instrument_id: id,
+      id: crypto.randomUUID(), recorded_at: '2026-11-13T16:30:00.000Z', source_price: '12.34', value_origin: 'provider_declared',
+      price: '12.34', market_timestamp: '2026-11-13T16:29:00.000Z', fetched_at: '2026-11-13T16:29:30.000Z',
+      session_date: '2026-11-13', provider_delay_seconds: null });
+    const saturday = '2026-11-14T10:00:00.000Z';
+    expect(quotationFreshness(friday, friday, saturday, resolve(saturday)))
+      .toMatchObject({ status: 'last_completed_session', reason: 'market_closed', realtime_guaranteed: false });
+    const monday = '2026-11-16T10:00:00.000Z';
+    const refetch = { ...friday, fetched_at: '2026-11-16T09:59:00.000Z' };
+    expect(quotationFreshness(friday, refetch, monday, resolve(monday)))
+      .toMatchObject({ status: 'stale', reason: 'expected_session_missing', collection_age_seconds: 60 });
+    const current = { ...refetch, session_date: '2026-11-16', market_timestamp: '2026-11-16T08:00:00.000Z' };
+    expect(quotationFreshness(current, current, monday, resolve(monday)))
+      .toMatchObject({ status: 'within_target', collection_age_seconds: 60, market_age_seconds: 7200, delivery: 'unknown' });
+    const oldFetch = { ...current, fetched_at: '2026-11-16T08:59:00.000Z' };
+    expect(quotationFreshness(oldFetch, oldFetch, monday, resolve(monday)))
+      .toMatchObject({ status: 'stale', reason: 'collection_over_60_minutes', collection_age_seconds: 3660 });
   });
 
   it('rejects holes, conflicting predecessor data and invalid reference bounds', () => {

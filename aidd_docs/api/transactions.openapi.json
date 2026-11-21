@@ -1,0 +1,3132 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "PEA Tracker isolated transaction journal",
+    "version": "1.1.0-draft",
+    "description": "Local-only opt-in journal administration and projected REST/MCP reads; no deployed entrypoint activates these features. Historical V1 contracts unchanged."
+  },
+  "security": [
+    {
+      "portfolioAccess": []
+    }
+  ],
+  "paths": {
+    "/api/v1/portfolios/{portfolioId}/transactions": {
+      "parameters": [
+        {
+          "name": "portfolioId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "getTransactionJournal",
+        "description": "Requires portfolio:read and the exact server-bound owner/portfolio. Returns a projection anchored to one immutable opening revision; no PRU or performance inference.",
+        "responses": {
+          "200": {
+            "description": "Journal and balances.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/State"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Rejected without mutation.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Rejected without mutation.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected without mutation.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Rejected without mutation.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "406": {
+            "description": "Rejected without mutation.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Rejected without mutation.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Rejected without mutation.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Rejected without mutation.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Rejected without mutation.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Rejected without mutation.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "428": {
+            "description": "Rejected without mutation.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Rejected without mutation.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "appendTransaction",
+        "description": "Requires portfolio:admin and the exact server-bound owner/portfolio. Atomically append movement, balances and original replay outcome. Replay returns its original snapshot.",
+        "parameters": [
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\"(0|[1-9][0-9]{0,3})\"$"
+            },
+            "description": "Expected journal version, 0..1000; no implicit overwrite."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransactionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Accepted movement or original immutable replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Outcome"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Rejected without mutation.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Rejected without mutation.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected without mutation.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Rejected without mutation.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "406": {
+            "description": "Rejected without mutation.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Rejected without mutation.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Rejected without mutation.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Rejected without mutation.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Rejected without mutation.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Rejected without mutation.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "428": {
+            "description": "Rejected without mutation.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Rejected without mutation.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/portfolios/{portfolioId}/state": {
+      "parameters": [
+        {
+          "name": "portfolioId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "getCurrentPortfolio",
+        "description": "V1.1 current projection of one immutable opening and journal version. Declared purchase fees are capitalized; sale fees reduce cash proceeds. Initial and undeclared fee treatment remain unknown: no global fee-inclusive/exclusive PRU claim. Exact fractions and explicit rounded representations; received dividends/counterposts summarized separately from unavailable performance; quantities/cost/PRU unaffected by dividends. Historical V1 unchanged. Recorded realized gains use net sale proceeds minus pre-sale weighted cost; reversed sales are excluded once. Gains requiring unknown cost/reconciliation remain unavailable. This is not a cash-flow-adjusted return. Dated external cash flows include corrections, exclude trades/dividends/fees, and use the same captured journal version.",
+        "responses": {
+          "200": {
+            "description": "Current projected read",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrentPortfolio"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Bounded authorization, query or state error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/portfolios/{portfolioId}/valuation": {
+      "parameters": [
+        {
+          "name": "portfolioId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "getCurrentPortfolioValuation",
+        "description": "V1.1 current projection of one immutable opening and journal version. Declared purchase fees are capitalized; sale fees reduce cash proceeds. Initial and undeclared fee treatment remain unknown: no global fee-inclusive/exclusive PRU claim. Exact fractions and explicit rounded representations; received dividends/counterposts summarized separately from unavailable performance; quantities/cost/PRU unaffected by dividends. Historical V1 unchanged. Recorded realized gains use net sale proceeds minus pre-sale weighted cost; reversed sales are excluded once. Gains requiring unknown cost/reconciliation remain unavailable. This is not a cash-flow-adjusted return. Unrealized gains use existing market values minus remaining cost, with percentages over securities cost; incomplete totals remain null and quote warnings persist. Dated external cash flows include corrections, exclude trades/dividends/fees, and use the same captured journal version. Monetary economic gain needs an explicitly selected evidenced market reference, never PRU. Missing reference means unavailable gain. No percentage return implemented.",
+        "responses": {
+          "200": {
+            "description": "Current projected read",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrentPortfolioValuation"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Bounded authorization, query or state error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9][a-z0-9_-]*$"
+            }
+          },
+          {
+            "name": "price_kind",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "enum": [
+                "last_trade",
+                "session_close"
+              ]
+            }
+          },
+          {
+            "name": "adjustment",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "const": "unadjusted"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "portfolioAccess": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Trusted authentication supplied by composition. No new OAuth provider or production route is configured."
+      }
+    },
+    "schemas": {
+      "Provenance": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "reference": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "maxLength": 512
+          }
+        },
+        "required": [
+          "source",
+          "reference"
+        ]
+      },
+      "TransactionInput": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "effective_at": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "Z$"
+              },
+              "provenance": {
+                "$ref": "#/components/schemas/Provenance"
+              },
+              "type": {
+                "const": "deposit"
+              },
+              "currency": {
+                "const": "EUR"
+              },
+              "amount": {
+                "type": "string",
+                "maxLength": 64,
+                "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$",
+                "not": {
+                  "pattern": "^0+(?:\\.0+)?$"
+                },
+                "description": "Positive exact decimal string; at most 30 significant digits. No rounding."
+              }
+            },
+            "required": [
+              "effective_at",
+              "provenance",
+              "type",
+              "currency",
+              "amount"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "effective_at": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "Z$"
+              },
+              "provenance": {
+                "$ref": "#/components/schemas/Provenance"
+              },
+              "type": {
+                "const": "withdrawal"
+              },
+              "currency": {
+                "const": "EUR"
+              },
+              "amount": {
+                "type": "string",
+                "maxLength": 64,
+                "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$",
+                "not": {
+                  "pattern": "^0+(?:\\.0+)?$"
+                },
+                "description": "Positive exact decimal string; at most 30 significant digits. No rounding."
+              }
+            },
+            "required": [
+              "effective_at",
+              "provenance",
+              "type",
+              "currency",
+              "amount"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "effective_at": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "Z$"
+              },
+              "provenance": {
+                "$ref": "#/components/schemas/Provenance"
+              },
+              "type": {
+                "const": "dividend"
+              },
+              "currency": {
+                "const": "EUR"
+              },
+              "amount": {
+                "type": "string",
+                "maxLength": 64,
+                "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$",
+                "not": {
+                  "pattern": "^0+(?:\\.0+)?$"
+                },
+                "description": "Positive EUR cash amount actually received. No gross amount, tax, withholding or unit distribution is inferred."
+              },
+              "instrument_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Optional known catalogue instrument; need not be currently held. Omit when unknown; no dummy attribution."
+              }
+            },
+            "required": [
+              "effective_at",
+              "provenance",
+              "type",
+              "currency",
+              "amount"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "effective_at": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "Z$"
+              },
+              "provenance": {
+                "$ref": "#/components/schemas/Provenance"
+              },
+              "type": {
+                "const": "buy"
+              },
+              "currency": {
+                "const": "EUR"
+              },
+              "amount": {
+                "type": "string",
+                "maxLength": 64,
+                "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$",
+                "not": {
+                  "pattern": "^0+(?:\\.0+)?$"
+                },
+                "description": "Positive gross EUR trade amount excluding separately declared fees; exact, at most 30 significant digits, two decimal places."
+              },
+              "instrument_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "quantity": {
+                "type": "string",
+                "maxLength": 64,
+                "pattern": "^[0-9]+(?:\\.[0-9]{1,12})?$",
+                "not": {
+                  "pattern": "^0+(?:\\.0+)?$"
+                },
+                "description": "Positive exact decimal string; at most 30 significant digits. No rounding."
+              },
+              "fees": {
+                "type": "string",
+                "maxLength": 64,
+                "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$",
+                "description": "Optional declared nonnegative EUR fees, at most 30 significant digits. No rounding/default insertion. Omission retains the legacy amount/cash behavior; historical fees are not inferred."
+              }
+            },
+            "required": [
+              "effective_at",
+              "provenance",
+              "type",
+              "currency",
+              "amount",
+              "instrument_id",
+              "quantity"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "effective_at": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "Z$"
+              },
+              "provenance": {
+                "$ref": "#/components/schemas/Provenance"
+              },
+              "type": {
+                "const": "sell"
+              },
+              "currency": {
+                "const": "EUR"
+              },
+              "amount": {
+                "type": "string",
+                "maxLength": 64,
+                "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$",
+                "not": {
+                  "pattern": "^0+(?:\\.0+)?$"
+                },
+                "description": "Positive gross EUR trade amount excluding separately declared fees; exact, at most 30 significant digits, two decimal places."
+              },
+              "instrument_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "quantity": {
+                "type": "string",
+                "maxLength": 64,
+                "pattern": "^[0-9]+(?:\\.[0-9]{1,12})?$",
+                "not": {
+                  "pattern": "^0+(?:\\.0+)?$"
+                },
+                "description": "Positive exact decimal string; at most 30 significant digits. No rounding."
+              },
+              "fees": {
+                "type": "string",
+                "maxLength": 64,
+                "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$",
+                "description": "Optional declared nonnegative EUR fees, at most 30 significant digits. No rounding/default insertion. Omission retains the legacy amount/cash behavior; historical fees are not inferred."
+              }
+            },
+            "required": [
+              "effective_at",
+              "provenance",
+              "type",
+              "currency",
+              "amount",
+              "instrument_id",
+              "quantity"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "effective_at": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "Z$"
+              },
+              "provenance": {
+                "$ref": "#/components/schemas/Provenance"
+              },
+              "type": {
+                "const": "reversal"
+              },
+              "reversal_of": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512
+              }
+            },
+            "required": [
+              "effective_at",
+              "provenance",
+              "type",
+              "reversal_of",
+              "reason"
+            ]
+          }
+        ],
+        "description": "Explicit EUR movements. Trades declare gross amount and optional real fees: purchases debit amount+fees; sales credit amount-fees, net must be nonnegative. Legacy fee-less operations unchanged. Corrections reverse original effects including fees. Dividends credit received EUR cash only, with optional catalogue instrument; external reference uses provenance.reference (null if absent). No holding/cost/PRU effect or tax inference."
+      },
+      "Balances": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "portfolio_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "enum": [
+              "real",
+              "simulated"
+            ]
+          },
+          "opening_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "opening_revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "opening_effective_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "last_effective_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          },
+          "cash": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "currency": {
+                "const": "EUR"
+              },
+              "amount": {
+                "type": "string",
+                "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$"
+              }
+            },
+            "required": [
+              "currency",
+              "amount"
+            ]
+          },
+          "positions": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "instrument_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "quantity": {
+                  "type": "string",
+                  "maxLength": 64,
+                  "pattern": "^[0-9]+(?:\\.[0-9]{1,12})?$",
+                  "not": {
+                    "pattern": "^0+(?:\\.0+)?$"
+                  },
+                  "description": "Positive exact decimal string; at most 30 significant digits. No rounding."
+                }
+              },
+              "required": [
+                "instrument_id",
+                "quantity"
+              ]
+            }
+          },
+          "cost_basis_status": {
+            "const": "not_computed"
+          }
+        },
+        "required": [
+          "portfolio_id",
+          "kind",
+          "opening_id",
+          "opening_revision",
+          "opening_effective_at",
+          "version",
+          "last_effective_at",
+          "cash",
+          "positions",
+          "cost_basis_status"
+        ]
+      },
+      "Event": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "portfolio_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          },
+          "recorded_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          },
+          "actor": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "input": {
+            "$ref": "#/components/schemas/TransactionInput"
+          },
+          "cash_delta": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^-?[0-9]+(?:\\.[0-9]{1,2})?$"
+          },
+          "instrument_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "quantity_delta": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]{1,12})?$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "portfolio_id",
+          "sequence",
+          "recorded_at",
+          "actor",
+          "input",
+          "cash_delta",
+          "instrument_id",
+          "quantity_delta"
+        ]
+      },
+      "Outcome": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "event": {
+            "$ref": "#/components/schemas/Event"
+          },
+          "balances": {
+            "$ref": "#/components/schemas/Balances"
+          }
+        },
+        "required": [
+          "event",
+          "balances"
+        ]
+      },
+      "State": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "events": {
+            "type": "array",
+            "maxItems": 1000,
+            "items": {
+              "$ref": "#/components/schemas/Event"
+            }
+          },
+          "balances": {
+            "$ref": "#/components/schemas/Balances"
+          }
+        },
+        "required": [
+          "events",
+          "balances"
+        ]
+      },
+      "Problem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "const": "about:blank"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer"
+          },
+          "code": {
+            "type": "string"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "type",
+          "title",
+          "status",
+          "code",
+          "request_id"
+        ]
+      },
+      "CurrentPortfolio": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "view",
+          "portfolio_id",
+          "kind",
+          "evaluated_at",
+          "opening_state",
+          "journal",
+          "positions",
+          "cash",
+          "holdings_basis",
+          "cost_basis_status",
+          "history",
+          "cost_basis_policy",
+          "dividends",
+          "realized",
+          "cash_flows"
+        ],
+        "properties": {
+          "view": {
+            "const": "current_projected"
+          },
+          "portfolio_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "enum": [
+              "real",
+              "simulated"
+            ]
+          },
+          "evaluated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "opening_state": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "revision",
+              "effective_at",
+              "recorded_at",
+              "provenance",
+              "cash"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "effective_at": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "Z$",
+                "description": "UTC reference time inherited by every position; cannot be future or changed by a correction."
+              },
+              "recorded_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "provenance": {
+                "$ref": "#/components/schemas/OpeningProvenance"
+              },
+              "cash": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "currency",
+                      "amount"
+                    ],
+                    "properties": {
+                      "currency": {
+                        "const": "EUR"
+                      },
+                      "amount": {
+                        "type": "string",
+                        "maxLength": 64,
+                        "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$"
+                      }
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          },
+          "journal": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "version",
+              "last_effective_at"
+            ],
+            "properties": {
+              "version": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000
+              },
+              "last_effective_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          },
+          "positions": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "instrument_id",
+                "quantity",
+                "currency",
+                "pru",
+                "remaining_cost",
+                "cost_provenance"
+              ],
+              "properties": {
+                "instrument_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "quantity": {
+                  "type": "string",
+                  "pattern": "^[0-9]+(?:\\.[0-9]{1,12})?$"
+                },
+                "currency": {
+                  "const": "EUR"
+                },
+                "pru": {
+                  "$ref": "#/components/schemas/CurrentCostValue"
+                },
+                "remaining_cost": {
+                  "$ref": "#/components/schemas/CurrentCostValue"
+                },
+                "cost_provenance": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "opening",
+                    "journal_version",
+                    "opening_fees"
+                  ],
+                  "properties": {
+                    "opening": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/Provenance"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "journal_version": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000
+                    },
+                    "opening_fees": {
+                      "enum": [
+                        "unknown",
+                        "not_applicable"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "cash": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "currency",
+              "amount"
+            ],
+            "properties": {
+              "currency": {
+                "const": "EUR"
+              },
+              "amount": {
+                "type": "string",
+                "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$"
+              }
+            }
+          },
+          "holdings_basis": {
+            "const": "opening_state_and_transactions"
+          },
+          "cost_basis_status": {
+            "enum": [
+              "computed",
+              "partial",
+              "unavailable"
+            ]
+          },
+          "history": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "performance_available",
+              "reason"
+            ],
+            "properties": {
+              "performance_available": {
+                "const": false
+              },
+              "reason": {
+                "const": "performance_not_computed"
+              }
+            }
+          },
+          "cost_basis_policy": {
+            "$ref": "#/components/schemas/CostBasisPolicy"
+          },
+          "dividends": {
+            "$ref": "#/components/schemas/DividendSummary"
+          },
+          "realized": {
+            "$ref": "#/components/schemas/RealizedGains"
+          },
+          "cash_flows": {
+            "$ref": "#/components/schemas/ExternalFlows"
+          }
+        }
+      },
+      "OpeningProvenance": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source",
+          "reference"
+        ],
+        "properties": {
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]+$"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512,
+                "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]+$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "QuotationStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "selector",
+          "quote",
+          "availability",
+          "last_attempt",
+          "last_successful_fetch_at",
+          "market_context",
+          "freshness",
+          "evaluated_at"
+        ],
+        "properties": {
+          "selector": {
+            "$ref": "#/components/schemas/QuotationSelector"
+          },
+          "quote": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuotationObservation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "availability": {
+            "enum": [
+              "available",
+              "missing",
+              "unavailable"
+            ]
+          },
+          "last_attempt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuotationObservation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "last_successful_fetch_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "Z$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "market_context": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "phase",
+              "expected_session_date"
+            ],
+            "properties": {
+              "phase": {
+                "enum": [
+                  "open",
+                  "closed",
+                  "unknown"
+                ]
+              },
+              "expected_session_date": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          },
+          "freshness": {
+            "$ref": "#/components/schemas/QuotationFreshness"
+          },
+          "evaluated_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          }
+        }
+      },
+      "QuotationSelector": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "instrument_id",
+          "provider",
+          "price_kind",
+          "adjustment"
+        ],
+        "properties": {
+          "instrument_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "provider": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9][a-z0-9_-]*$"
+          },
+          "price_kind": {
+            "enum": [
+              "last_trade",
+              "session_close"
+            ]
+          },
+          "adjustment": {
+            "const": "unadjusted"
+          }
+        }
+      },
+      "QuotationObservation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "instrument_id",
+          "provider",
+          "price_kind",
+          "adjustment",
+          "fetched_at",
+          "outcome",
+          "price",
+          "currency",
+          "price_unit",
+          "market_timestamp",
+          "session_date",
+          "provider_delay_seconds",
+          "error_code",
+          "provenance",
+          "id",
+          "recorded_at",
+          "source_price",
+          "value_origin"
+        ],
+        "properties": {
+          "instrument_id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "provider": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9][a-z0-9_-]*$"
+          },
+          "price_kind": {
+            "enum": [
+              "last_trade",
+              "session_close"
+            ]
+          },
+          "adjustment": {
+            "const": "unadjusted"
+          },
+          "fetched_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          },
+          "outcome": {
+            "enum": [
+              "success",
+              "unavailable"
+            ]
+          },
+          "price": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64,
+                "pattern": "^[0-9]+(?:\\.[0-9]{1,12})?$",
+                "not": {
+                  "pattern": "^0+(?:\\.0+)?$"
+                },
+                "description": "Positive exact decimal string; at most 30 significant digits and 12 fractional digits; no rounding, currency/unit conversion or float boundary."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Z]{3}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "price_unit": {
+            "anyOf": [
+              {
+                "enum": [
+                  "currency_unit",
+                  "hundredth_currency_unit"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "market_timestamp": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "Z$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "session_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "provider_delay_seconds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 86400
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "enum": [
+                  "provider_unavailable",
+                  "rate_limited",
+                  "invalid_provider_data"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/OpeningProvenance"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "recorded_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "Z$"
+          },
+          "source_price": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64,
+                "pattern": "^[0-9]+(?:\\.[0-9]{1,12})?$",
+                "not": {
+                  "pattern": "^0+(?:\\.0+)?$"
+                },
+                "description": "Positive exact decimal string; at most 30 significant digits and 12 fractional digits; no rounding, currency/unit conversion or float boundary."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "value_origin": {
+            "const": "provider_declared"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "outcome": {
+                  "const": "success"
+                }
+              },
+              "required": [
+                "outcome"
+              ]
+            },
+            "then": {
+              "properties": {
+                "price": {
+                  "type": "string",
+                  "maxLength": 64,
+                  "pattern": "^[0-9]+(?:\\.[0-9]{1,12})?$",
+                  "not": {
+                    "pattern": "^0+(?:\\.0+)?$"
+                  },
+                  "description": "Positive exact decimal string; at most 30 significant digits and 12 fractional digits; no rounding, currency/unit conversion or float boundary."
+                },
+                "currency": {
+                  "type": "string",
+                  "pattern": "^[A-Z]{3}$"
+                },
+                "price_unit": {
+                  "enum": [
+                    "currency_unit",
+                    "hundredth_currency_unit"
+                  ]
+                },
+                "market_timestamp": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "Z$"
+                },
+                "session_date": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "error_code": {
+                  "type": "null"
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "price": {
+                  "type": "null"
+                },
+                "currency": {
+                  "type": "null"
+                },
+                "price_unit": {
+                  "type": "null"
+                },
+                "market_timestamp": {
+                  "type": "null"
+                },
+                "session_date": {
+                  "type": "null"
+                },
+                "provider_delay_seconds": {
+                  "type": "null"
+                },
+                "error_code": {
+                  "enum": [
+                    "provider_unavailable",
+                    "rate_limited",
+                    "invalid_provider_data"
+                  ]
+                }
+              }
+            }
+          }
+        ],
+        "description": "price is the exact canonical declared value; source_price retains lexical source precision. No calculated financial value. Later retrievals are separate immutable observations."
+      },
+      "QuotationFreshness": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "reason",
+          "collection_age_seconds",
+          "market_age_seconds",
+          "provider_delay_seconds",
+          "delivery",
+          "realtime_guaranteed",
+          "policy_version"
+        ],
+        "properties": {
+          "status": {
+            "enum": [
+              "unavailable",
+              "unknown",
+              "within_target",
+              "warning",
+              "stale",
+              "last_completed_session"
+            ]
+          },
+          "reason": {
+            "enum": [
+              "no_successful_observation",
+              "clock_inconsistent",
+              "market_calendar_unknown",
+              "expected_session_missing",
+              "market_closed",
+              "successful_fetch_unknown",
+              "collection_over_60_minutes",
+              "collection_over_45_minutes",
+              "collection_within_45_minutes"
+            ]
+          },
+          "collection_age_seconds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "market_age_seconds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "provider_delay_seconds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 86400
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "delivery": {
+            "enum": [
+              "unknown",
+              "delayed",
+              "no_delay_declared"
+            ]
+          },
+          "realtime_guaranteed": {
+            "const": false
+          },
+          "policy_version": {
+            "const": 1
+          }
+        }
+      },
+      "ValuationAmount": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "exact",
+          "display",
+          "currency"
+        ],
+        "properties": {
+          "exact": {
+            "type": "string",
+            "maxLength": 128,
+            "pattern": "^[0-9]+(?:\\.[0-9]+)?$"
+          },
+          "display": {
+            "type": "string",
+            "maxLength": 128,
+            "pattern": "^[0-9]+\\.[0-9]{2}$"
+          },
+          "currency": {
+            "const": "EUR"
+          }
+        }
+      },
+      "CurrentPortfolioValuation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "calculation_version",
+          "evaluated_at",
+          "estimate",
+          "realtime_guaranteed",
+          "selection",
+          "opening_state",
+          "positions",
+          "cash",
+          "coverage",
+          "securities_subtotal",
+          "securities_total",
+          "known_assets_subtotal",
+          "portfolio_total",
+          "calculation",
+          "history",
+          "view",
+          "portfolio_id",
+          "kind",
+          "journal",
+          "holdings_basis",
+          "cost_basis_status",
+          "cost_basis_policy",
+          "dividends",
+          "realized",
+          "unrealized",
+          "cash_flows",
+          "performance"
+        ],
+        "properties": {
+          "calculation_version": {
+            "const": 1
+          },
+          "evaluated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "estimate": {
+            "const": true
+          },
+          "realtime_guaranteed": {
+            "const": false
+          },
+          "selection": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "provider",
+              "price_kind",
+              "adjustment"
+            ],
+            "properties": {
+              "provider": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[a-z0-9][a-z0-9_-]*$"
+              },
+              "price_kind": {
+                "enum": [
+                  "last_trade",
+                  "session_close"
+                ]
+              },
+              "adjustment": {
+                "const": "unadjusted"
+              }
+            }
+          },
+          "opening_state": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "revision",
+              "effective_at",
+              "recorded_at",
+              "provenance",
+              "cash"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "effective_at": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "Z$",
+                "description": "UTC reference time inherited by every position; cannot be future or changed by a correction."
+              },
+              "recorded_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "provenance": {
+                "$ref": "#/components/schemas/OpeningProvenance"
+              },
+              "cash": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "currency",
+                      "amount"
+                    ],
+                    "properties": {
+                      "currency": {
+                        "const": "EUR"
+                      },
+                      "amount": {
+                        "type": "string",
+                        "maxLength": 64,
+                        "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$"
+                      }
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          },
+          "positions": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "instrument_id",
+                "quantity",
+                "currency",
+                "pru",
+                "quotation",
+                "market_value",
+                "status",
+                "reasons",
+                "warnings",
+                "remaining_cost",
+                "cost_provenance",
+                "unrealized"
+              ],
+              "properties": {
+                "instrument_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "quantity": {
+                  "type": "string",
+                  "pattern": "^[0-9]+(?:\\.[0-9]{1,12})?$"
+                },
+                "currency": {
+                  "const": "EUR"
+                },
+                "pru": {
+                  "$ref": "#/components/schemas/CurrentCostValue"
+                },
+                "quotation": {
+                  "$ref": "#/components/schemas/QuotationStatus"
+                },
+                "market_value": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ValuationAmount"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "status": {
+                  "enum": [
+                    "valued",
+                    "not_valued"
+                  ]
+                },
+                "reasons": {
+                  "type": "array",
+                  "maxItems": 5,
+                  "items": {
+                    "enum": [
+                      "unsupported_currency",
+                      "currency_mismatch",
+                      "quotation_unavailable",
+                      "quotation_missing",
+                      "quotation_clock_inconsistent"
+                    ]
+                  }
+                },
+                "warnings": {
+                  "type": "array",
+                  "maxItems": 5,
+                  "items": {
+                    "enum": [
+                      "freshness_unknown",
+                      "freshness_warning",
+                      "freshness_stale",
+                      "freshness_last_completed_session",
+                      "freshness_unavailable",
+                      "delivery_delayed",
+                      "delivery_unknown",
+                      "latest_retrieval_failed",
+                      "quote_predates_portfolio_state"
+                    ]
+                  }
+                },
+                "remaining_cost": {
+                  "$ref": "#/components/schemas/CurrentCostValue"
+                },
+                "cost_provenance": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "opening",
+                    "journal_version",
+                    "opening_fees"
+                  ],
+                  "properties": {
+                    "opening": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/Provenance"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "journal_version": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000
+                    },
+                    "opening_fees": {
+                      "enum": [
+                        "unknown",
+                        "not_applicable"
+                      ]
+                    }
+                  }
+                },
+                "unrealized": {
+                  "$ref": "#/components/schemas/UnrealizedPosition"
+                }
+              }
+            }
+          },
+          "cash": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "currency",
+              "amount",
+              "status",
+              "market_value",
+              "effective_at"
+            ],
+            "properties": {
+              "currency": {
+                "const": "EUR"
+              },
+              "amount": {
+                "type": "string",
+                "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$"
+              },
+              "status": {
+                "const": "known"
+              },
+              "market_value": {
+                "$ref": "#/components/schemas/ValuationAmount"
+              },
+              "effective_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          },
+          "coverage": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "positions",
+              "valued",
+              "not_valued",
+              "securities_complete",
+              "cash_known",
+              "total_complete",
+              "reasons"
+            ],
+            "properties": {
+              "positions": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "valued": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "not_valued": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "securities_complete": {
+                "type": "boolean"
+              },
+              "cash_known": {
+                "type": "boolean"
+              },
+              "total_complete": {
+                "type": "boolean"
+              },
+              "reasons": {
+                "type": "array",
+                "maxItems": 2,
+                "items": {
+                  "enum": [
+                    "positions_not_valued",
+                    "cash_unknown"
+                  ]
+                }
+              }
+            }
+          },
+          "securities_subtotal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ValuationAmount"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "securities_total": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ValuationAmount"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "known_assets_subtotal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ValuationAmount"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "portfolio_total": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ValuationAmount"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "calculation": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "rounding",
+              "display_scale",
+              "currency",
+              "aggregate_before_rounding",
+              "holdings_basis",
+              "consistency"
+            ],
+            "properties": {
+              "rounding": {
+                "const": "half_even"
+              },
+              "display_scale": {
+                "const": 2
+              },
+              "currency": {
+                "const": "EUR"
+              },
+              "aggregate_before_rounding": {
+                "const": true
+              },
+              "holdings_basis": {
+                "const": "opening_state_and_transactions"
+              },
+              "consistency": {
+                "const": "journal_version_pinned_individual_quotation_reads"
+              }
+            }
+          },
+          "history": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "performance_available",
+              "reason"
+            ],
+            "properties": {
+              "performance_available": {
+                "const": false
+              },
+              "reason": {
+                "const": "performance_not_computed"
+              }
+            }
+          },
+          "view": {
+            "const": "current_projected"
+          },
+          "portfolio_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "enum": [
+              "real",
+              "simulated"
+            ]
+          },
+          "journal": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "version",
+              "last_effective_at"
+            ],
+            "properties": {
+              "version": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000
+              },
+              "last_effective_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          },
+          "holdings_basis": {
+            "const": "opening_state_and_transactions"
+          },
+          "cost_basis_status": {
+            "enum": [
+              "computed",
+              "partial",
+              "unavailable"
+            ]
+          },
+          "cost_basis_policy": {
+            "$ref": "#/components/schemas/CostBasisPolicy"
+          },
+          "dividends": {
+            "$ref": "#/components/schemas/DividendSummary"
+          },
+          "realized": {
+            "$ref": "#/components/schemas/RealizedGains"
+          },
+          "unrealized": {
+            "$ref": "#/components/schemas/UnrealizedGains"
+          },
+          "cash_flows": {
+            "$ref": "#/components/schemas/ExternalFlows"
+          },
+          "performance": {
+            "$ref": "#/components/schemas/MonetaryPerformance"
+          }
+        }
+      },
+      "CalculatedCostValue": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "value",
+          "exact",
+          "rounded"
+        ],
+        "properties": {
+          "status": {
+            "const": "available"
+          },
+          "value": {
+            "type": "string",
+            "pattern": "^[0-9]+(?:\\.[0-9]{1,18})?$"
+          },
+          "exact": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "numerator",
+              "denominator"
+            ],
+            "properties": {
+              "numerator": {
+                "type": "string",
+                "pattern": "^(0|[1-9][0-9]*)$"
+              },
+              "denominator": {
+                "type": "string",
+                "pattern": "^[1-9][0-9]*$"
+              }
+            }
+          },
+          "rounded": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CurrentCostValue": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/CalculatedCostValue"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "status",
+              "reason"
+            ],
+            "properties": {
+              "status": {
+                "const": "unavailable"
+              },
+              "reason": {
+                "enum": [
+                  "opening_cost_unavailable",
+                  "reversal_cost_conflict",
+                  "position_closed"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "CostBasisPolicy": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "version",
+          "method",
+          "arithmetic",
+          "decimal_scale",
+          "rounding",
+          "rounding_stage",
+          "opening_basis",
+          "fees",
+          "dividends",
+          "reversal",
+          "opening_fees",
+          "omitted_fees",
+          "amount_basis"
+        ],
+        "properties": {
+          "version": {
+            "const": 3
+          },
+          "method": {
+            "const": "weighted_average"
+          },
+          "arithmetic": {
+            "const": "exact_rational"
+          },
+          "decimal_scale": {
+            "const": 18
+          },
+          "rounding": {
+            "const": "half_even"
+          },
+          "rounding_stage": {
+            "const": "presentation_only"
+          },
+          "opening_basis": {
+            "const": "declared_quantity_times_pru"
+          },
+          "fees": {
+            "const": "declared_purchase_capitalized_sale_deducted"
+          },
+          "dividends": {
+            "const": "cash_only_no_cost_effect"
+          },
+          "reversal": {
+            "const": "inverse_original_cost_delta"
+          },
+          "opening_fees": {
+            "const": "unknown"
+          },
+          "omitted_fees": {
+            "const": "not_declared_no_adjustment"
+          },
+          "amount_basis": {
+            "const": "gross_excluding_declared_fees"
+          }
+        }
+      },
+      "DividendSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "currency",
+          "scope",
+          "amount_basis",
+          "received",
+          "reversed",
+          "net_received",
+          "payments",
+          "reversals"
+        ],
+        "properties": {
+          "currency": {
+            "const": "EUR"
+          },
+          "scope": {
+            "const": "recorded_since_opening"
+          },
+          "amount_basis": {
+            "const": "cash_received"
+          },
+          "received": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$"
+          },
+          "reversed": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$"
+          },
+          "net_received": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$"
+          },
+          "payments": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "reversals": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          }
+        },
+        "description": "Received cash of dividends recorded since the pinned opening, original receipts and counterposts. Not gross income, tax, entitlement or a performance history. Totals may exceed individual balance precision without rounding."
+      },
+      "SignedGainValue": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "value",
+          "exact",
+          "rounded"
+        ],
+        "properties": {
+          "status": {
+            "const": "available"
+          },
+          "value": {
+            "type": "string",
+            "pattern": "^-?[0-9]+(?:\\.[0-9]{1,18})?$"
+          },
+          "exact": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "numerator",
+              "denominator"
+            ],
+            "properties": {
+              "numerator": {
+                "type": "string",
+                "pattern": "^(0|-?[1-9][0-9]*)$"
+              },
+              "denominator": {
+                "type": "string",
+                "pattern": "^[1-9][0-9]*$"
+              }
+            }
+          },
+          "rounded": {
+            "type": "boolean"
+          }
+        }
+      },
+      "UnavailableGain": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "reason"
+        ],
+        "properties": {
+          "status": {
+            "const": "unavailable"
+          },
+          "reason": {
+            "enum": [
+              "cost_basis_unavailable",
+              "correction_requires_reconciliation",
+              "market_value_unavailable",
+              "zero_cost_basis",
+              "incomplete_positions"
+            ]
+          }
+        }
+      },
+      "GainValue": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/SignedGainValue"
+          },
+          {
+            "$ref": "#/components/schemas/UnavailableGain"
+          }
+        ]
+      },
+      "RealizedGains": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "currency",
+          "scope",
+          "status",
+          "total",
+          "known_subtotal",
+          "sales",
+          "reversed_sales",
+          "active_sales",
+          "unavailable_sales",
+          "by_instrument",
+          "sales_results"
+        ],
+        "properties": {
+          "currency": {
+            "const": "EUR"
+          },
+          "scope": {
+            "const": "recorded_since_opening"
+          },
+          "status": {
+            "enum": [
+              "complete",
+              "partial"
+            ]
+          },
+          "total": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SignedGainValue"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "known_subtotal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SignedGainValue"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sales": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "reversed_sales": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "active_sales": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "unavailable_sales": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "by_instrument": {
+            "type": "array",
+            "maxItems": 1000,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "instrument_id",
+                "opening_provenance",
+                "status",
+                "total",
+                "known_subtotal",
+                "sales",
+                "reversed_sales",
+                "active_sales",
+                "unavailable_sales"
+              ],
+              "properties": {
+                "instrument_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "opening_provenance": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Provenance"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "status": {
+                  "enum": [
+                    "complete",
+                    "partial"
+                  ]
+                },
+                "total": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/SignedGainValue"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "known_subtotal": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/SignedGainValue"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "sales": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000
+                },
+                "reversed_sales": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000
+                },
+                "active_sales": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000
+                },
+                "unavailable_sales": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000
+                }
+              }
+            }
+          },
+          "sales_results": {
+            "type": "array",
+            "maxItems": 1000,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "event_id",
+                "instrument_id",
+                "effective_at",
+                "provenance",
+                "opening_provenance",
+                "net_proceeds",
+                "disposed_cost",
+                "gain",
+                "reversed_by"
+              ],
+              "properties": {
+                "event_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "instrument_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "effective_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "provenance": {
+                  "$ref": "#/components/schemas/Provenance"
+                },
+                "opening_provenance": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Provenance"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "net_proceeds": {
+                  "$ref": "#/components/schemas/CalculatedCostValue"
+                },
+                "disposed_cost": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/CalculatedCostValue"
+                    },
+                    {
+                      "$ref": "#/components/schemas/UnavailableGain"
+                    }
+                  ]
+                },
+                "gain": {
+                  "$ref": "#/components/schemas/GainValue"
+                },
+                "reversed_by": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "UnrealizedPosition": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "gain",
+          "percentage"
+        ],
+        "properties": {
+          "gain": {
+            "$ref": "#/components/schemas/GainValue"
+          },
+          "percentage": {
+            "$ref": "#/components/schemas/GainValue"
+          }
+        }
+      },
+      "UnrealizedGains": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "currency",
+          "percentage_basis",
+          "status",
+          "total",
+          "known_subtotal",
+          "percentage",
+          "coverage",
+          "warnings"
+        ],
+        "properties": {
+          "currency": {
+            "const": "EUR"
+          },
+          "percentage_basis": {
+            "const": "remaining_securities_cost"
+          },
+          "status": {
+            "enum": [
+              "complete",
+              "partial"
+            ]
+          },
+          "total": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SignedGainValue"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "known_subtotal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SignedGainValue"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "percentage": {
+            "$ref": "#/components/schemas/GainValue"
+          },
+          "coverage": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "positions",
+              "available",
+              "unavailable"
+            ],
+            "properties": {
+              "positions": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "available": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "unavailable": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              }
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ExternalFlows": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "currency",
+          "scope",
+          "after_sequence",
+          "deposits",
+          "withdrawals",
+          "net_contributions",
+          "entries"
+        ],
+        "properties": {
+          "currency": {
+            "const": "EUR"
+          },
+          "scope": {
+            "const": "effective_external_cash_after_sequence"
+          },
+          "after_sequence": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "deposits": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$"
+          },
+          "withdrawals": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$"
+          },
+          "net_contributions": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^-?[0-9]+(?:\\.[0-9]{1,2})?$"
+          },
+          "entries": {
+            "type": "array",
+            "maxItems": 1000,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "event_id",
+                "sequence",
+                "effective_at",
+                "cash_delta",
+                "type",
+                "original_event_id",
+                "provenance"
+              ],
+              "properties": {
+                "event_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "sequence": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1000
+                },
+                "effective_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "cash_delta": {
+                  "type": "string",
+                  "maxLength": 64,
+                  "pattern": "^-?[0-9]+(?:\\.[0-9]{1,2})?$"
+                },
+                "type": {
+                  "enum": [
+                    "deposit",
+                    "withdrawal",
+                    "reversal"
+                  ]
+                },
+                "original_event_id": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "provenance": {
+                  "$ref": "#/components/schemas/Provenance"
+                }
+              }
+            }
+          }
+        }
+      },
+      "MarketReference": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "portfolio_id",
+          "kind",
+          "opening_id",
+          "opening_revision",
+          "journal_version",
+          "evaluated_at",
+          "initial_value",
+          "initial_cash",
+          "selection",
+          "quotes",
+          "warnings"
+        ],
+        "properties": {
+          "portfolio_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "enum": [
+              "real",
+              "simulated"
+            ]
+          },
+          "opening_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "opening_revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "journal_version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "evaluated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "initial_value": {
+            "$ref": "#/components/schemas/CalculatedCostValue"
+          },
+          "initial_cash": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$"
+          },
+          "selection": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "provider",
+              "price_kind",
+              "adjustment"
+            ],
+            "properties": {
+              "provider": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[a-z0-9][a-z0-9_-]*$"
+              },
+              "price_kind": {
+                "enum": [
+                  "last_trade",
+                  "session_close"
+                ]
+              },
+              "adjustment": {
+                "const": "unadjusted"
+              }
+            }
+          },
+          "quotes": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "instrument_id",
+                "quotation_id",
+                "provider",
+                "market_timestamp",
+                "fetched_at",
+                "provenance",
+                "freshness",
+                "market_value"
+              ],
+              "properties": {
+                "instrument_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "quotation_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "provider": {
+                  "type": "string"
+                },
+                "market_timestamp": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "fetched_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "provenance": {
+                  "$ref": "#/components/schemas/Provenance"
+                },
+                "freshness": {
+                  "enum": [
+                    "within_target",
+                    "last_completed_session",
+                    "unknown"
+                  ]
+                },
+                "market_value": {
+                  "type": "string",
+                  "maxLength": 128,
+                  "pattern": "^[0-9]+(?:\\.[0-9]+)?$"
+                }
+              }
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "UnavailablePerformance": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "reason"
+        ],
+        "properties": {
+          "status": {
+            "const": "unavailable"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "MonetaryPerformance": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "currency",
+          "estimate",
+          "reference",
+          "current_value",
+          "cash_flows",
+          "economic_gain",
+          "return_percentage",
+          "warnings"
+        ],
+        "properties": {
+          "currency": {
+            "const": "EUR"
+          },
+          "estimate": {
+            "const": true
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MarketReference"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "current_value": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ValuationAmount"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cash_flows": {
+            "$ref": "#/components/schemas/ExternalFlows"
+          },
+          "economic_gain": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/SignedGainValue"
+              },
+              {
+                "$ref": "#/components/schemas/UnavailablePerformance"
+              }
+            ]
+          },
+          "return_percentage": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "status",
+              "reason"
+            ],
+            "properties": {
+              "status": {
+                "const": "unavailable"
+              },
+              "reason": {
+                "const": "return_method_not_defined"
+              }
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

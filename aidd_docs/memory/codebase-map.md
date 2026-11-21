@@ -1,5 +1,24 @@
 # Codebase Map
 
+## Local V1.1 financial journal — 2026-11-19
+
+- Flows/monetary gain: `src/domain/performance.ts`, `tests/performance.test.ts`; external-flow summaries, evidenced market-reference checks and conditional economic gain. `PortfolioService.currentSnapshot` shares one captured state/events internally; `ValuationService` accepts an optional trusted snapshot, with no public setter or real reference activated. Existing DTOs enriched locally; [reference gap/evidence](../tasks/2026_11/2026_11_19_financial-journal/performance.md).
+
+- Gains: `src/domain/fractions.ts` shares exact arithmetic/representation; `cost-basis.ts` exposes `projectFinancialState` for costs/realized gains, with cost-only compatibility wrapper. `src/domain/gains.ts` derives unrealized gains from existing market values. Portfolio/valuation current reads and OpenAPI/MCP enriched; `tests/gains.test.ts`, cost and projected-read suites provide [local evidence](../tasks/2026_11/2026_11_19_financial-journal/phase-6.md). No journal/D1 schema change or global-return engine.
+
+- Dividends: transaction variant and optional attribution in the existing domain/service; `src/domain/dividends.ts` computes exact recorded-cash summaries for `PortfolioService.current`/`ValuationService.current`. Cost replay recognizes cash-only income/counterposts without changing PRU. `tests/transactions.dividends.test.ts`, extended projected-read/OpenAPI/MCP coverage. [Contract/evidence](../tasks/2026_11/2026_11_19_financial-journal/dividends.md).
+
+- Explicit fee increment: optional `fees` in the transaction domain, cash/net validation, cost capitalization and policy/provenance v2 in `cost-basis.ts`; unchanged repositories/D1 schema. `tests/transactions.fees.test.ts` and extended projected-read tests cover actual declared fees, legacy receipts and isolation. [Current convention](../tasks/2026_11/2026_11_19_financial-journal/fees.md).
+
+- 20 November cost increment: `src/domain/cost-basis.ts`, `tests/cost-basis.test.ts`; exact declared-opening/transaction cost replay, weighted-average PRU, fraction/rounded-decimal outputs and counterpost conflicts. Projected services attach costs; historical V1 and persisted journal outcomes stay unchanged. [Rules and evidence](../tasks/2026_11/2026_11_19_financial-journal/cost-basis.md).
+
+- Projected reads: `PortfolioService.current`, `ValuationService.current`, `src/adapters/rest/current-portfolio.ts`, optional additions in `src/adapters/mcp/handler.ts`/`src/app.ts`; no production entrypoint activation. `tests/portfolio-journal-read.test.ts` covers current vs historical responses, pinned journal state and REST/MCP compatibility. See [phase 2](../tasks/2026_11/2026_11_19_financial-journal/phase-2.md).
+
+- `src/domain/transactions.ts`, `src/application/transactions.ts`, `src/ports/transactions.ts`: exact movements, immutable opening anchor, explicit portfolio identity/owner, permissions and idempotent commands.
+- `src/adapters/{memory,d1}/transactions.ts`, additive `migrations/0005_transactions.sql`: isolated append-only journal and durable outcomes; no production migration authorized.
+- `src/transaction-app.ts`, `aidd_docs/api/transactions.openapi.json`: opt-in REST composition, never mounted by production entrypoints or MCP. Tests: `tests/transactions{,.d1}.test.ts`.
+- [Contract and limits](../tasks/2026_11/2026_11_19_financial-journal/contract.md); [calendar assignment evidence](../tasks/2026_11/2026_11_14_market-calendar/finalization-2026-11-19.md).
+
 Current reference: [V1 acceptance and RETEX](../releases/v1.0.0-validation.md). Earlier slice descriptions below are historical.
 
 - Scheduler: `src/entrypoints/scheduler.ts`, `src/scheduling/github-dispatch.ts`, `wrangler.scheduler.jsonc`; durable receipts, no financial D1 binding.
