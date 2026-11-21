@@ -1,10 +1,11 @@
-# Financial MCP contract — local V1.1
+# Financial MCP contract — V1.1
 
-Production follow-up, 21 November: the separately authorized read-only deployment
-is recorded in [operational evidence](production-2026-11-21.md). Descriptions below
-of an unselected/unmigrated local composition refer to the earlier local milestone.
-Production writes remain disabled; hosted projected-read client verification is
-still pending in this running session.
+Current state, 21 November: journal/approval migrations and the separate operational
+reference are deployed; financial writes are enabled under explicit owner authority.
+[Current production evidence](../2026_11_21_operational-start/production.md) supersedes
+the [earlier staged deployment](production-2026-11-21.md). The owner reports current
+reads and tool discovery in ChatGPT; this running Codex catalogue remained cached.
+No real operation has completed the browser approval/write/replay journey in production.
 
 ## Confirmed implementation
 
@@ -18,8 +19,9 @@ still pending in this running session.
 - `TransactionService.append` accepts the new business permission or the existing
   REST business-admin permission; the administrative REST adapter still requires
   its original permission. It is not mounted by the new Worker composition.
-- The historical `access-read.ts` entrypoint and its constant read-only mapping are
-  unchanged. No Wrangler configuration selects the new optional entrypoint.
+- Historical V1 read contracts and the preceding `access-read.ts` composition remain
+  unchanged. The active financial Worker uses `access-financial.ts`; selecting it
+  does not authorize a new deployment or a financial record without owner approval.
 
 ## Tools
 
@@ -68,7 +70,7 @@ Access AUD must differ from the MCP AUD; the MCP assertion cannot authorize it.
 ## Persistence and failures
 
 - Existing journal repositories/migration 0005 remain responsible for financial
-  events. Additive **local-only** migration 0006 stores proposals and approval
+  events. Deployed additive migration 0006 stores proposals and approval
   timestamps. SQL triggers forbid changing immutable content/recap or rearming a
   consumed approval. Memory is only a synthetic/local substitute.
 - Consumed approval with a committed receipt returns the immutable original result
@@ -84,14 +86,14 @@ Access AUD must differ from the MCP AUD; the MCP assertion cannot authorize it.
 - Reversals, exact decimal rules, solvency, chronology, fees, original opening
   provenance and real/simulated isolation stay in existing domain/services.
 
-## Minimal configuration, not applied
+## Configuration and authorization boundary
 
-The existing Managed OAuth application need not change. Its grant/session durations
-remain untouched. Financial permission comes from the Worker's explicit owner policy,
+The existing Managed OAuth application and its one-month grant/session settings
+were not changed by financial activation. Financial permission comes from the Worker's explicit owner policy,
 not fabricated OAuth scopes or a Cloudflare administrator role.
 
-For reliable separate browser consent, use **one path-specific Access protection**
-on the same existing financial Worker hostname:
+The owner configured **one path-specific browser Access protection** on the same
+financial Worker hostname. Preserve these settings; do not recreate the application:
 
 1. Zero Trust → Access controls → Applications → self-hosted application for
    `<existing-financial-host>/financial-confirmation/*`.
@@ -105,10 +107,10 @@ on the same existing financial Worker hostname:
 Why this small Access application is necessary in this implementation: Managed OAuth
 and browser login look identical to the origin for the same application. A separate
 AUD on the approval path prevents the existing MCP grant from approving its own
-proposals. If an already suitable browser-only Access application exists, reuse it;
-no assumption that it exists was made. No new Worker, database or identity provider.
+proposals. This reuses the existing financial Worker and database, with no new
+identity provider. Full authenticated browser approval is still an acceptance limit.
 
-Optional entrypoint `src/entrypoints/access-financial.ts` accepts the existing D1,
+Active entrypoint `src/entrypoints/access-financial.ts` accepts the existing D1,
 issuer/read audience/owner/read enable flags/calendar configuration, plus:
 
 | Setting | Meaning |
@@ -119,20 +121,19 @@ issuer/read audience/owner/read enable flags/calendar configuration, plus:
 | `FINANCIAL_PORTFOLIO_ID` | Explicit authorized real portfolio identity |
 | `FINANCIAL_OWNER_ID` | Stable internal journal owner, defaults to existing `owner:financial-read` |
 | `FINANCIAL_OPENING_ID`, `FINANCIAL_OPENING_REVISION` | Explicit validated immutable V1 opening anchor |
+| `FINANCIAL_OPERATIONAL_OPENING_ID` | Optional separate current-state reference; does not change the historical V1 anchor |
 
-These are implemented configuration names, not commands or changes already applied.
-The current read entrypoint stays selected until publication/deployment is authorized.
-All existing V1 read routes and V1.1 projected reads are mounted by the optional
+These are configuration names only; actual values and configuration paths stay private.
+All existing V1 read routes and V1.1 projected reads are mounted by the active
 composition; administrative REST, ingestion and OAuth/token endpoints stay absent.
 
-Before hosted activation: approve publication/configuration, validate the real opening
-anchor and stable portfolio identity, apply pending 0005/0006 only after authorized
-review/backup, configure the path-specific protection, then deploy on the **same**
-financial Worker initially with writes disabled. Verify browser and MCP audience
-separation before explicitly enabling writes. In ChatGPT, refresh tools on the
-existing connector and review action permissions; no reinstall or OAuth-duration
-change is inherently required. Test one expressly authorized operation and negative
-scheduled-task approval before claiming operational acceptance.
+The staged activation and operational-reference switch were individually authorized
+and completed on the same Worker. No migration or bootstrap should be replayed from
+this contract. In ChatGPT, refresh the existing connector tools; a new conversation
+may be necessary if its catalogue is cached. No OAuth-duration change or reinstall
+is inherently needed. Real owner-approved recording, unique receipt/replay and
+subsequent projected reads still need operational acceptance; never insert a
+fictitious transaction into the real PEA to obtain that evidence.
 
 Rollback: set `FINANCIAL_WRITES_ENABLED=false`. Returning to the older read entrypoint
 also requires removing the V1.1-only configuration keys because its environment
@@ -146,6 +147,7 @@ delete journal events, consumed approvals or original V1 records to roll back co
 - [OpenAI MCP tools](https://developers.openai.com/plugins/build/mcp-server): tool annotations are client-facing guidance, not server authorization.
 
 Installed MCP SDK 1.32.2, stateless JSON transport unchanged. No assumption that
-ChatGPT elicitation or remembered confirmations prove human approval. Real hosted
-browser/ChatGPT interoperability, path policy configuration and production migration
-are **to test**, not established by the local synthetic checks.
+ChatGPT elicitation or remembered confirmations prove human approval. Migrations,
+configuration/import comparisons, historical MCP reads and anonymous denial have
+production evidence; authenticated human approval and actual financial write/replay
+interoperability remain **to validate**, not established by local synthetic checks.

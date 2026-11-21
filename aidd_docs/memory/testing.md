@@ -2,6 +2,13 @@
 
 ## Current state
 
+- Current production baseline: the separately deployed operational reference and
+  later write reactivation are recorded in [production evidence](../tasks/2026_11/2026_11_21_operational-start/production.md).
+  Historical reads, private reference/D1 comparisons and anonymous refusal passed;
+  the real browser-approved write/receipt/replay journey remains unvalidated. Older
+  disabled-write/catalogue-pending entries below retain their dated stage scope.
+  No test or remote check was rerun for the documentary closure.
+
 - Local operational restart: **11 targeted tests** (7 new, including one explicitly
   supplied private-reference check, plus 4 affected native D1 journal cases) and
   typecheck passed. Covers unchanged V1, 20-position projected declarations, exact

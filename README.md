@@ -1,23 +1,25 @@
 # PEA Tracker
 
-PEA Tracker is an API-first portfolio backend for a single French PEA owner. It combines a versioned REST API, read-only MCP tools for AI clients, exact-decimal financial services, native D1 persistence, and a separate Python market-data collector. The real PEA is the priority; Trading Lab is a complementary, isolated future use.
+PEA Tracker is an API-first portfolio backend for a single French PEA owner. It combines REST/MCP consultation, owner-approved financial journal commands, exact-decimal services, native D1 persistence, and a separate Python market-data collector. The real PEA is the priority; Trading Lab is a complementary, isolated future use. No brokerage orders are placed.
 
 The source repository is public; tracked fixtures are synthetic. Production portfolio data, credentials and journals remain private and outside Git. The diagnostic Worker and historical PoCs remain separate from the financial reader.
 
 ## Project status
 
-V1.0.0 was published on 2026-11-19, functionally accepted with minor reservations. This branch continues V1.1 development; local implementation does not authorize production activation.
+V1.0.0 was published on 2026-11-19. The V1.1 financial foundation is developed, locally tested and deployed through separately authorized stages. The operational reference is distinct from historical V1; journal writes are enabled with independent browser approval. No real transaction has yet completed that approval/write/replay journey in production. No V1.1 tag or release is claimed.
 
 | Capability | Status |
 | --- | --- |
 | Instruments, opening positions and cash | Operational through the protected financial read Worker and remote D1 |
 | Quotations and exact-decimal valuation | Operational; explicit provider provenance and freshness warnings |
-| REST and read-only MCP | Shared domain/application services and separate transport adapters |
+| REST/MCP consultation | Historical V1 preserved; separate V1.1 projected holdings, cash, PRU, gains and journal reads |
 | Python/yfinance ingestion | Operational, through a dedicated Cloudflare Access machine policy |
 | Automation | Cloudflare Cron and Durable Object receipts → GitHub workflow_dispatch → Python → ingestion |
 | V1 monitoring | Hourly 07:09–20:09 Paris; explicit final-slot check at 20:09 |
 | V1.1 calendar | Bounded XPAR continuous-core adapter implemented and tested locally; no production assignment/activation |
-| V1.1 financial management | Transaction ledger, calculated PRU and performance rules remain under study |
+| V1.1 financial management | EUR trades, cash movements, fees, dividends, reversals, exact weighted PRU and realized/unrealized gains implemented and deployed; real write journey not yet production-validated |
+| Financial MCP commands | Prepare → owner browser approval → exact-intent confirmation; separate server permissions, expiry, single consumption and idempotent receipts |
+| Global performance | Dated external flows and conditional monetary gain implemented; real market-value reference absent, percentage return unavailable |
 | Diagnostic Workers | Separate historical PoCs, not the production financial read endpoint |
 
 See [V1 acceptance and RETEX](aidd_docs/releases/v1.0.0-validation.md) and [release notes](aidd_docs/releases/v1.0.0.md).
@@ -27,7 +29,8 @@ See [V1 acceptance and RETEX](aidd_docs/releases/v1.0.0-validation.md) and [rele
 ```mermaid
 flowchart LR
   REST[Versioned REST API] --> Services[Shared TypeScript domain and application services]
-  MCP[Read-only MCP adapter] --> Services
+  MCP[MCP reads and financial journal commands] --> Services
+  Browser[Owner approval through separate Access audience] --> Services
   Services --> Ports[Repository ports]
   Ports --> D1[Cloudflare D1 adapter]
   Collector[Python yfinance collector] --> Provider[Yahoo Finance]
@@ -41,7 +44,9 @@ The application uses TypeScript, Hono and Cloudflare Workers. REST and MCP adapt
 
 Financial values use exact decimal representations. Valuation selects an explicit provider and quote type, preserves quote provenance and freshness warnings, distinguishes complete totals from partial subtotals, and performs no implicit currency conversion. See the [approved financial backend PRD](aidd_docs/tasks/2026_11/2026_11_08-financial-backend-prd.md) and the [architecture baseline](aidd_docs/INSTALL.md).
 
-Current reads cover the instrument catalogue, opening state, positions, quotation status/history and valuation through REST and MCP. MCP tools include `list_instruments`, `get_instrument`, `get_opening_state`, `get_positions`, `get_quotation_status`, `list_quotations` and `get_portfolio_valuation`. Declared PRU is not a reconstructed historical cost. There is no transaction ledger, calculated PRU/gain/return engine or persisted valuation snapshot. Quote reads across instruments do not form an atomic market snapshot.
+Historical tools `get_opening_state`, `get_positions` and `get_portfolio_valuation` retain V1 semantics. `get_current_portfolio`, `get_current_portfolio_valuation` and `get_transaction_journal` use the separately selected operational reference and subsequent journal. The operational start was imported under authorization from a verified broker export, without reconstructing intermediate trades or altering V1. Declared PRU and independently evidenced cash remain traceable; historic fee treatment remains unknown. Quote reads across instruments do not form an atomic market snapshot.
+
+Six `prepare_*` tools persist expiring immutable proposals without changing journal balances. `confirm_financial_operation` records only an exact proposal already approved by the owner on the protected browser page. A model-supplied Boolean or tool annotation grants no approval. See the [financial MCP contract](aidd_docs/tasks/2026_11/2026_11_21_financial-mcp/contract.md) and [operational evidence](aidd_docs/tasks/2026_11/2026_11_21_operational-start/production.md).
 
 ## Local development
 
@@ -83,8 +88,9 @@ Two dispatch-only GitHub workflows retain protected environments, source/branch 
 
 ## Security and deployment boundaries
 
-- Financial REST/read-only MCP and ingestion use separate Workers and Access policies. Machine authorization grants quotation ingestion only.
-- Access JWTs require verified RS256 signatures, issuer, audience, valid temporal claims and the allowlisted machine identity. The former five-minute total-lifetime cap was removed; mere token presence never authorizes a request. Offline revocation remains bounded by assertion expiry.
+- Financial REST/MCP and ingestion use separate Workers and Access policies. Exact-owner MCP identity may receive `portfolio:write`; browser consent alone receives `portfolio:approve` under a distinct signed audience. Neither grants quotation ingestion or technical administration. Existing machine authorization grants quotation ingestion only.
+- Financial approval binds the normalized operation, portfolio, owner, opening anchor, journal version and unique key. It expires after five minutes and is consumed once. If consumption precedes an unsuccessful/ambiguous append, reconcile the journal before preparing again; never rearm the approval or blindly duplicate a write.
+- Access JWTs require verified RS256 signatures, issuer, audience, temporal claims and the exact owner or allowlisted machine identity for their respective paths. The former five-minute total-lifetime cap was removed; mere token presence never authorizes a request. Offline revocation remains bounded by assertion expiry.
 - No holdings, credentials, mappings, private journals or financial dumps belong in source, release assets or public logs. Remote changes require scoped owner approval.
 - The default diagnostic Worker remains distinct from the production financial read/ingestion entrypoints.
 
@@ -96,19 +102,20 @@ This project uses API-first design, hexagonal boundaries, shared REST/MCP servic
 
 AIDD Framework organizes planning and delivery; it is a development workflow, not a PEA Tracker runtime dependency. Available Context, PM and Dev skills support memory, decisions, requirements, feasibility studies and approved delivery. Use only relevant installed workflows after reading their instructions. Do not run context hooks or broaden a documentation task into memory synchronization without approval. Human approval remains required for staging, commits and remote changes.
 
-## V1 completion and roadmap
+## Delivery limits and roadmap
 
-Confirm the first scheduled collector cycle on 16 November 2026: successful `Run collector`, advancing successful-fetch timestamps and appropriate market dates. No tag or release has been created; consider `v1.0.0` only after this operational check and explicit authorization.
+The [V1 acceptance record](aidd_docs/releases/v1.0.0-validation.md) preserves the successful production collection/monitoring evidence and resolved incidents. No new production checks were run for this documentation milestone.
 
-The [roadmap](aidd_docs/roadmap.md) is the scope reference. Future features are planned or under study, not developed or feasibility-approved:
+The [roadmap](aidd_docs/roadmap.md) separates the delivered financial foundation from remaining work:
 
-- **V1.1:** calendar/freshness, transactions and cash, invested capital, PRU, realized/unrealized gains, study of an explicit simple return, useful monitoring. Financial formulas remain unapproved.
+- **V1.1 financial foundation:** implemented and deployed; real owner-approved write/replay acceptance remains open. The reference is not reconstructed history or an initial market valuation.
+- **V1.1 remaining:** qualify/activate bounded calendar assignments, verify closing monitoring in operation, decide useful per-instrument/external alerting, and establish a valid market-value reference before reporting global economic gain. Percentage return is not implemented. Any deferral from the original full V1.1 scope needs an explicit release-scope decision.
 - **V2.0:** multi-portfolio isolation and shared market data; multi-provider support.
 - **V2.1:** OHLCV, watchlists and deterministic indicators.
 - **V2.2:** Trading Lab decision journal; evaluate TradingView Paper Trading before any optional internal simulation.
 - **V2.3:** periodic performance, TWR/XIRR if appropriate, portfolio allocation, advanced analysis and optional interfaces.
 
-Small Trading Lab increments remain conditional on feasibility and preserving the real PEA priority. Exports, deletion and restoration retain existing requirements and unresolved evidence; no delivery version is assigned here. Historical performance remains unavailable when source history is insufficient. The PRD and AIDD memories await a separately approved synchronization lot; historical V1 contracts remain unchanged.
+Small Trading Lab increments remain conditional on feasibility and preserving the real PEA priority. Exports, deletion and restoration retain existing requirements and unresolved evidence. Historical performance remains unavailable when source history is insufficient. Release authorization and operational write acceptance are separate; no fictitious transaction may be inserted into the real PEA to close a checklist.
 
 ## Project documentation
 

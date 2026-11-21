@@ -33,9 +33,20 @@ La V1.0.0 est publiée sur le commit `1f6ba490550e0355be65d8667e3e80b5ca98ddef`,
 
 Le calendrier borné XPAR de la branche V1.1 est implémenté et testé localement ; sans affectation instrument/profil vérifiée et activation autorisée, la production conserve sa fraîcheur inconnue. Le monitoring dépend encore de GitHub et le heartbeat externe n'est pas configuré. Le contrôle de clôture à 20 h 09 Paris vérifie les derniers créneaux attendus ; son déploiement ne remplace pas sa preuve d'exécution. Une limite d'appels de consultation n'établit pas un échec de collecte.
 
-## V1.1 — Gestion quotidienne complète du PEA réel
+## V1.1 — Gestion quotidienne du PEA réel
 
-**Statut : périmètre financier développé et testé localement, sans activation de production.** Journal EUR, achats/ventes, versements/retraits, contrepassations, frais déclarés, dividendes, positions/liquidités projetées, coût/PRU pondéré exact et gains réalisés/latents sont raccordés aux lectures V1.1 séparées ; contrats V1 préservés. Les flux externes et le gain économique monétaire conditionnel sont implémentés, mais aucune référence initiale de marché du PEA réel n'est sélectionnée/persistée : gain réel indisponible par défaut et aucun rendement en pourcentage. Voir le [contrat financier](tasks/2026_11/2026_11_19_financial-journal/contract.md) et le [jalon calendrier](tasks/2026_11/2026_11_14_market-calendar/finalization-2026-11-19.md). Les affectations réelles du calendrier restent à qualifier ; cette livraison n'autorise ni migration distante, ni déploiement, ni écritures MCP. Les autres blocs restent prévus/en étude, sans validation globale de faisabilité.
+**État documentaire au 21 novembre : socle financier développé, testé localement et déployé.** Journal EUR, achats/ventes, versements/retraits, contrepassations, frais, dividendes, coût/PRU pondéré et gains réalisés/latents sont raccordés aux lectures V1.1 ; contrats V1 préservés. Les écritures MCP sont activées avec permissions serveur et approbation indépendante par navigateur, mais aucune transaction réelle n'a encore validé tout le parcours en production. L'état opérationnel Bourse Direct au 20 novembre est distinct de l'ouverture historique du 13 ; le journal commence sans reconstituer les opérations intermédiaires. Voir les [preuves opérationnelles](tasks/2026_11/2026_11_21_operational-start/production.md).
+
+| Bloc | Développé / testé localement | Déploiement / limite restante |
+| --- | --- | --- |
+| Journal, liquidités, frais, dividendes, PRU et gains | Oui, services métier exacts et isolation explicite | Déployés ; aucune nouvelle transaction de production ni historique artificiel |
+| MCP financier et approbation navigateur | Oui, refus, expiration, empreinte, consommation unique et rejeu couverts | Drapeau actif, identité/audiences séparées et accès anonymes refusés ; parcours réel complet encore non validé |
+| Reprise opérationnelle, migration 0007 | Oui, référence immuable et garde journal vide | Déployée, données privées comparées exactement et V1 préservée |
+| Calendrier / fraîcheur | XPAR continu borné 2026–2027, phases non établies à `unknown` | Affectations instrument/profil et activation réelle non attestées ; aucune promesse de temps réel |
+| Monitoring | Cycles manquants et contrôle des derniers créneaux | Socle V1 opérationnel ; preuve du contrôle de clôture actualisé à compléter, heartbeat externe et alertes par instrument non livrés |
+| Performance globale | Flux externes datés et gain économique EUR conditionnel | Pas de référence initiale de marché sélectionnée pour le PEA ; gain global indisponible par défaut, rendement en pourcentage non implémenté |
+
+**Livraison `v1.1.0` :** le socle financier peut constituer un périmètre de publication avec réserves explicites, sous décision et autorisation du propriétaire. Il ne faut pas l'annoncer comme validation complète du périmètre V1.1 initial. Le parcours réel d'écriture reste une acceptation ouverte ; calendrier/monitoring avancé et rendement doivent être livrés ou explicitement reportés dans la décision de release. Aucun tag/release créé par cette clôture documentaire.
 
 **Priorité métier :** disposer de calculs financiers fiables et traçables, sans sacrifier l’existant.
 
@@ -61,7 +72,7 @@ Le calendrier borné XPAR de la branche V1.1 est implémenté et testé localeme
 - tous les calculs financiers de référence appartiennent au domaine métier PEA Tracker ; ChatGPT interprète les résultats et peut effectuer des simulations distinctes, explicitement indicatives, sans les substituer aux résultats du moteur ;
 - performances périodiques, TWR/XIRR et analyses avancées réservés à V2.3.
 
-**À étudier avant spécification** : frais et base de coût utilisable depuis le PRU initial déclaré, dates de négociation/règlement, ordre des événements, corrections, dividendes/opérations supportées, soldes négatifs, devises, précision des divisions et arrondis. Le PRU initial déclaré ne permet pas de reconstruire un coût historique exact ; aucune transaction ni performance antérieure ne doit être inventée. La source de calendrier, ses fuseaux et les règles à l'ouverture restent aussi à choisir.
+**Conventions déjà retenues** : EUR uniquement ; montant brut explicite ; frais d'achat capitalisés, frais de vente déduits du produit ; dividendes au montant réellement encaissé ; chronologie stricte, contrepassations traçables, aucun solde négatif ni vente excédentaire ; fractions exactes et représentation à 18 décimales avec arrondi demi-pair. Le traitement historique des frais dans le PRU déclaré reste inconnu. Aucune performance ou transaction antérieure n'est reconstruite. Restent à étudier : règlement/livraison au-delà de la date d'opération actuelle, nouvelles devises/opérations, autres phases/calendriers et rendement global. Les [contrats financiers](tasks/2026_11/2026_11_19_financial-journal/contract.md) portent les règles détaillées.
 
 ### Monitoring
 
@@ -70,8 +81,8 @@ Le calendrier borné XPAR de la branche V1.1 est implémenté et testé localeme
 
 ### Préparation des versions suivantes
 
-- **étudier avant de figer le modèle** comment les transactions et positions seront rattachées à un portefeuille ;
-- préparer une migration compatible avec le PEA réel, sans imposer une refonte multi-portefeuille complète en V1.1 ;
+- rattachement UUID/propriétaire et nature réel/fictif déjà explicites dans le journal ; cela ne livre pas le multi-portefeuille V2 ;
+- conserver l'isolation et les cotations mutualisées, sans inventer de registre multi-portefeuille en V1.1 ;
 - si faisable et sans perturber la priorité PEA, livrer un **petit outil Trading Lab transversal** (ex. lecture historique limitée via API/MCP) ; il s’agit d’une possibilité conditionnelle, non d’un engagement.
 
 ## V2.0 — Fondations multi-portefeuille et multi-provider

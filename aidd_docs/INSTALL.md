@@ -2,7 +2,7 @@
 
 Architecture baseline, current implementation and remaining validation requirements.
 
-Current status (2026-11-19): V1.0.0 published and functionally accepted with minor reservations. See [acceptance and RETEX](releases/v1.0.0-validation.md). V1.1 retains the locally implemented bounded XPAR calendar; production assignment/activation remains separately authorized. Earlier dated gates below are historical where superseded by the release record.
+Current status (2026-11-21): V1.0.0 published and accepted with minor reservations. The V1.1 financial foundation and separate operational reference are now deployed; financial MCP writes are enabled with exact-owner authorization and independent browser consent. Actual transaction approval/write/replay is not yet production-validated. Calendar activation, advanced monitoring and global-return limits remain explicit in the [roadmap delivery matrix](roadmap.md). See [V1 acceptance](releases/v1.0.0-validation.md) and [V1.1 production evidence](tasks/2026_11/2026_11_21_operational-start/production.md). Earlier dated gates below are historical where superseded by these records.
 
 Foundation approved 2026-11-06; documentation synchronized 2026-11-14 with the
 owner handover and [roadmap scope decisions](roadmap.md). Historical V1 contracts
@@ -14,15 +14,15 @@ deployment or spending authorization.
 
 | Status | Scope and limits |
 | --- | --- |
-| Developed | Instruments, immutable dated opening revisions/positions/cash, immutable quotations, status/history, exact EUR valuation, REST/read-only MCP, Python/yfinance and machine ingestion |
+| Developed / locally tested | V1 reads plus V1.1 journal, projected holdings/cash, fees/dividends, exact cost/PRU/gains, dated external flows, conditional monetary gain, protected MCP commands and independent browser approval |
 | Tested locally | Prior synthetic domain, Memory/native D1, REST/OpenAPI/MCP, idempotency, concurrency, migration and restart checks recorded in slice contracts/plans; not rerun here |
-| Validated in operation | Prior owner-session evidence: real ChatGPT catalogue/position/cash/quotation/grouped valuation reads; hosted ingestion and authorized persistent bounded ingestion deployment. This does not certify every route or security/recovery gate |
-| Still to confirm | First complete scheduled cycle on Monday 16 November 2026: actual `Run collector` success, advancing successful fetches and appropriate market dates; remote dashboard settings were not all independently verified |
-| Planned / under study | V1.1 financial management; V2.0–V2.3 per the roadmap. No development started or blanket feasibility approval |
+| Deployed / verified | V1 preservation, operational-reference import, empty journal, published write flag, unchanged D1/owner/audiences, authenticated historical MCP reads and anonymous refusal; owner reports current reads in ChatGPT |
+| Still to confirm | Real owner browser approval → exact financial write → unique receipt/replay → projected reads. No fictitious real-PEA transaction is permitted for acceptance |
+| Remaining / planned | Qualified calendar activation, closing-monitor proof and additional alerts, evidenced initial market valuation/global return; V2.0–V2.3 remain future scope |
 
 The financial reader is `pea-tracker-financial-read`; ingestion is
 `pea-tracker-quotes-ingestion`. The root diagnostic composition and old OAuth PoCs
-are separate. No tag/release has been created. Runtime profiling, independent
+are separate. V1.0.0 is published; no V1.1 tag/release is claimed. Runtime profiling, independent
 recovery and other unproven requirements below remain unproven; functional V1
 reads are not evidence that every original production gate passed.
 
@@ -30,7 +30,8 @@ reads are not evidence that every original production gate passed.
 
 PEA Tracker is an API-first financial application that maintains a private investment
 portfolio, collects market quotations, and exposes reusable REST capabilities with
-read-only MCP as its AI-facing adapter.
+MCP as its AI-facing adapter, with financial journal commands behind explicit server
+permissions and separate browser approval.
 It replaces manual screenshots with reproducible, timestamped portfolio analysis.
 
 V1 serves one owner with approximately 20 stocks and ETFs held in a French PEA at
@@ -84,7 +85,7 @@ current measured load. Current collection uses a broader weekday window below.
 | Hosting | Workers Free, D1 Free, workers.dev | Target €0; no automatic paid fallback |
 | Collection | Python/yfinance on GitHub Actions | Reuses successful local approach; unofficial source and scheduling limitations accepted for validation |
 | Financial representation | Canonical decimal strings and arbitrary-precision decimal arithmetic | Avoid binary floating-point monetary arithmetic end to end |
-| AI access | Read-only MCP tools calling read services | No mutation tools; administrative authorization is independent |
+| AI access | MCP consultation and narrowly authorized financial journal commands | Exact owner, separate write/approval permissions, independent browser consent; no brokerage order or ingestion privilege |
 | Product growth | Modular domain/repository boundaries, one owner | Future extension possible without implementing tenant infrastructure |
 
 Candidate A is the validated architecture foundation, not evidence that CPU, OAuth interoperability,
@@ -99,7 +100,7 @@ remains a fallback if a demonstrated limitation cannot be resolved within scope.
 | MCP | Official TypeScript SDK; bounded stateless Streamable HTTP | Implemented REST/MCP adapters share services directly |
 | Persistence | D1/SQLite; explicit SQL repository adapters | Native D1 in the financial deployment; synthetic local D1 for tests |
 | Collection | Separate Python package + yfinance | Existing pyproject.toml/uv.lock; provider retrieval and HTTPS delivery, no D1 access |
-| Decimal engine | TypeScript BigInt for bounded exact products/sums and half-even display; Python Decimal at normalization | No general signed gain, division, PRU or return engine; future arithmetic needs approved rules and verification |
+| Decimal engine | TypeScript BigInt products/sums and exact fractions; Python Decimal at normalization | Weighted costs/PRU and gains implemented; 18-place half-even representation, no invented market reference or global percentage return |
 | Tests | Vitest, pytest | Domain, adapter, contract and recovery coverage |
 | Automation | GitHub Actions standard Linux runners | Public repository; separate CI, collection and approval-controlled deployment |
 | Authentication | Cloudflare Access owner and machine adapters; JOSE JWT/JWKS verification | Distinct audiences, identities and grants; no implicit MCP/admin/ingestion permission sharing |
@@ -178,14 +179,16 @@ Never extract Wrangler credentials or reuse prototype settings by assumption.
 ```mermaid
 flowchart TD
     Owner[Owner] --> REST[Owner REST read adapter]
-    AI[ChatGPT / compatible MCP client] --> MCP[Read-only MCP adapter]
+    AI[ChatGPT / compatible MCP client] --> MCP[MCP consultation and journal commands]
+    Browser[Owner browser approval - distinct Access audience] --> Auth
     OAuth[Cloudflare Access owner identity] --> Auth[Owner authentication and authorization]
     REST --> Auth
     MCP --> Auth
-    Auth --> Reads[Shared application and domain read services]
+    Auth --> Reads[Shared application and domain financial services]
     Reads --> Repositories[Repository interfaces]
     Repositories --> D1[(Private D1)]
-    Actions[GitHub Actions scheduler] --> Collector[Python collector / provider adapter]
+    Cron[Cloudflare Cron and dispatch receipts] --> Actions[GitHub workflow_dispatch]
+    Actions --> Collector[Python collector / provider adapter]
     Collector --> Provider[Yahoo Finance via yfinance]
     Collector --> Ingest[Restricted quotation ingestion]
     Ingest --> Machine[Separate Access machine authorization]
@@ -193,10 +196,11 @@ flowchart TD
     Quotes --> Repositories
 ```
 
-The diagram shows current financial paths, not a future ledger or backup deployment.
-`src/entrypoints/access-read.ts` serves owner-only catalogue, opening-state, position,
-quotation status/history and valuation GET routes plus read-only MCP. Portfolio
-reads require explicit enablement; no administrative route is exposed.
+The diagram shows current financial paths, not a backup or multi-portfolio deployment.
+`src/entrypoints/access-financial.ts` composes historical V1 reads, projected V1.1
+reads/journal and owner-authorized preparation/confirmation tools. `access-read.ts`
+remains the earlier read-only composition. The browser approval path has its own
+signed Access audience; no broad administrative REST route is exposed.
 `src/entrypoints/access-collector.ts` serves ingestion batches only, with machine
 identity and subject/provider/instrument grants. It exposes no MCP or financial reads.
 REST and MCP share services without internal HTTP; valuation does not call Yahoo.
@@ -209,13 +213,18 @@ paths; traces, OpenTelemetry and additional infrastructure remain under study.
 - Instruments: stable internal identity, ISIN where available, provider symbols,
   exchange/calendar, quotation currency and price-unit conversion. Do not assume
   that every ETF trades in EUR or that a provider's unit equals one currency unit.
-- Ledger (**planned, not developed**): trades, fees, dividends, deposits, withdrawals and supported corporate actions to specify.
-  Store effective timestamps and record timestamps. Corrections append reversals
-  or superseding entries with provenance; never silently overwrite history.
+- Ledger (**implemented and deployed**): EUR trades, actual fees/dividends, deposits,
+  withdrawals and traceable reversals, with explicit portfolio/owner and exact
+  cash/quantity/cost calculations. Corporate actions beyond these types remain
+  unspecified. Effective and record timestamps are separate; history is immutable.
 - Opening positions (**developed**): explicitly dated quantities, broker-declared
   unit PRU and known cash (or null). Never reconstruct historical total cost/fees
   from rounded PRU. Corrections append complete immutable revisions at the same
   effective date; they are not trades. Earlier transactions/returns are not inferred.
+- Operational reference (**deployed**): a separate immutable broker declaration
+  starts the current real journal without changing historical V1 or inventing trades.
+  Migration 0007 guards an empty journal and extends validated journal anchoring;
+  current reads disclose the reference and independently evidenced cash provenance.
 - Quotations: market_timestamp, fetched_at, source, currency, unit, session,
   adjustment policy and collection outcome. Failed fetches do not advance successful
   freshness timestamps or replace the last usable price with zero.
@@ -228,10 +237,10 @@ paths; traces, OpenTelemetry and additional infrastructure remain under study.
 
 Current valuation pins an opening revision and reports selected quotation IDs,
 but quote reads are independent: there is no atomic cross-instrument snapshot.
-The portfolio repository and revision trigger are global singletons. Attaching
-future events/positions to a stable portfolio identity and preserving V1 revisions,
-idempotent outcomes and route compatibility must be studied before fixing the
-V1.1 ledger model. Adding only a portfolio_id column would not establish V2 isolation.
+The V1 opening repository/revision sequence remains global. The V1.1 journal and
+operational reference already bind an explicit portfolio UUID/owner/nature, with
+immutable receipts and historical compatibility. This does not implement V2 registry,
+multi-portfolio authorization or simulation; those remain separately scoped.
 
 ### Exact decimal contract
 
@@ -370,19 +379,21 @@ The persistent ingestion deployment remains bounded to the reviewed Yahoo mappin
 Mapping completeness was owner-confirmed; this is not proof of provider rights,
 all market-date cases or every original release gate.
 
-The published collector cron is `17,47 6-18 * * 1-5` UTC, configured at 30 minutes;
-the monitor is `9 * * * 1-5` UTC. In November this collection window is 07:17–19:47
-Paris time on weekdays. It is a broad window, not an exchange calendar. A real
-calendar, holidays, early closes, DST and opening grace rules remain V1.1 studies.
-The reader currently reports `market_calendar_unknown`; synthetic freshness rules
-are available but no live calendar context is inferred. Bounded retries, timeouts,
+Cloudflare schedules dispatch-only GitHub collection weekdays 07:17–19:47 Paris,
+with DST-aware planning and hourly monitoring through 20:09. Native GitHub schedules
+were removed after irregular triggering; the V1 acceptance record preserves that
+incident and the successful replacement. This is a scheduling window, not a market
+calendar. The bounded XPAR adapter is locally tested, but per-instrument qualification
+and production assignment are not established by the available evidence; unknown
+phases stay unknown. Bounded retries, timeouts,
 concurrency and idempotent delivery are implemented. A fresh GitHub rerun without
 the original private journal fails closed; it is not automatic cross-run recovery.
 
-GitHub schedules may be delayed/dropped and public-repository schedules are disabled
-after 60 days without activity. A cron is not a freshness guarantee. Use separately
+Cloudflare dispatch does not establish GitHub execution or successful ingestion.
+A cron is not a freshness guarantee. Use separately
 authorized manual workflow_dispatch for recovery only after checking backend
-outcomes; a missing original journal must not be bypassed. Monitor disabled schedules explicitly.
+outcomes; a missing original journal must not be bypassed. Monitor the dispatcher
+and workflow outcomes separately.
 [GitHub scheduling](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule).
 yfinance is unofficial and documents personal-use restrictions; code licensing does
 not license market-data redistribution. Validate Yahoo terms and cloud-run reliability;
@@ -406,7 +417,7 @@ preserve a provider interface. [yfinance](https://github.com/ranaroussi/yfinance
 **Current monitoring:** the hourly workflow counts successful actual `Run collector`
 steps, excluding skipped/synthetic jobs. Both workflows depend on GitHub. Native
 failure notifications were requested; their saved settings and all environment
-rules were not independently verified through the unavailable CLI authentication.
+rules were owner-reported rather than independently verified for this documentary lot.
 An external heartbeat is optional and unconfigured; no GitHub-outage independence
 or instrument-by-instrument freshness alerting is claimed.
 
@@ -508,18 +519,19 @@ equivalent manual release procedure; pushing/merging alone must not deploy.
 | --- | --- | --- |
 | Authentication | Lifecycle, renewal/revocation, negative hosted cases and complete cost evidence on the Access paths | Access owner/machine integration and real owner reads established; not all lifecycle checks established |
 | Runtime | Actual owner/machine paths meet measured CPU margin and warm latency target | Local build/test evidence is not a hosted benchmark; remaining measurements to establish |
-| Financial rules | Existing valuation contract retained; future ledger/PRU/gains/simple return require approved rules and proportionate tests | Exact EUR valuation developed, locally tested and read in ChatGPT; V1.1 rules under study |
+| Financial rules | Preserve historical valuation and approved exact journal/cost/gain conventions | Financial foundation deployed; real approval/write acceptance and evidenced global-return reference remain open |
 | Market data | Per-instrument metadata/market-date coverage, freshness edge cases, rights and delay semantics | Stored quotations read successfully; mapping owner-confirmed; no live calendar or realtime guarantee |
 | Scheduling and alerts | Actual scheduled collector step, advancing successful fetches, market dates; alert delivery and outage coverage | Schedules published; 16 November cycle unconfirmed; monitoring shares GitHub; external heartbeat unconfigured |
 | Storage and recovery | Measured quotas; independent encrypted destination, isolated restore and deletion replay | Native D1 and local restart evidence exist; complete independent recovery proof is not established by this handover |
 | Security | Separate authorization, abuse limits, safe logs, secret isolation and audit retention | Separation locally tested; prior anonymous ingestion rejection; no blanket hosted security certification. Rotation deferred by owner to finalization, not claimed complete |
 | Accounts and privacy | Applicable regional settings, provider terms and client privacy evidence | Actual ChatGPT access established; remaining privacy/rights evidence must be assessed separately |
-| Budget and release | Complete cost review, expense approvals and explicit tag/release decision | No paid activation authorized here; no tag/release; final scheduled-cycle check pending |
+| Budget and release | Expense and tag/release decisions require explicit approval | V1.0.0 published; V1.1 scope/reservations and publication need owner decision; no paid change authorized by documentation |
 
 ## Folder structure
 
 Current responsibility layout, abbreviated; one TypeScript application and separate
-Python package. No future ledger or simulation module is implied by this tree.
+Python package. The abbreviated foundation tree predates the separately documented
+financial journal/operational-reference additions; simulation remains future scope.
 
 ```text
 pea-tracker/
@@ -561,8 +573,8 @@ pea-tracker/
 
 Runtime dependencies remain in the existing package manifests. No new auth service,
 multi-portfolio framework or dependency is selected by this baseline. AIDD memories
-and the PRD await a separately approved synchronization lot; historical local-only
-summaries in those files must be read with their dates and current evidence.
+and the PRD retain dated evidence; current delivery documents supersede historical
+local-only summaries without authorizing hooks or broad context regeneration.
 
 ## Historical installation sequence
 

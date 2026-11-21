@@ -1,13 +1,21 @@
 # Codebase Map
 
-- Local financial MCP: `src/application/financial-mcp.ts`,
+- Current financial entrypoint: `src/entrypoints/access-financial.ts`; operational
+  opening: `src/domain/operational-opening.ts`, `src/ports/operational-opening.ts`,
+  `src/adapters/d1/operational-opening.ts`, migration 0007 and the local-only broker
+  preparation script. Historical/current service selection is separate.
+  [Production state](../tasks/2026_11/2026_11_21_operational-start/production.md)
+  supersedes older statements below that the financial entrypoint is unselected.
+
+- Financial MCP: `src/application/financial-mcp.ts`,
   `src/adapters/mcp/financial-tools.ts`, `src/domain/financial-proposal.ts`,
   `src/ports/financial-approval.ts`, Memory/D1 approval adapters and additive local
   migration `0006_financial_approvals.sql`. Browser form:
   `src/adapters/rest/financial-confirmation.ts`; exact-owner/two-AUD policy:
-  `src/adapters/auth/financial-access.ts`. Optional, unselected same-Worker entrypoint
+  `src/adapters/auth/financial-access.ts`. Active same-Worker entrypoint
   `src/entrypoints/access-financial.ts` reuses journal/projected services and V1 reads.
-  [Local scope/evidence](../tasks/2026_11/2026_11_21_financial-mcp/plan.md).
+  [Initial local evidence](../tasks/2026_11/2026_11_21_financial-mcp/plan.md);
+  [current security contract](../tasks/2026_11/2026_11_21_financial-mcp/contract.md).
 
 ## Local V1.1 financial journal — 2026-11-19
 

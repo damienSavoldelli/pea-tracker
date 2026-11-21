@@ -5,6 +5,10 @@ scope: local-only
 
 # Start the existing real PEA from a newly verified broker declaration
 
+The separately authorized production switch and later write reactivation completed:
+see [current evidence and acceptance limits](production.md). This plan preserves the
+local implementation scope and the controlled sequence, not a new remote authorization.
+
 Owner decision: do not reconstruct the intervening transactions. Use the newly
 supplied official broker export and separately confirmed cash, then record only
 new operations. This authorizes local implementation/validation and one local
@@ -95,7 +99,7 @@ filename/account details, IDs and private import SQL are excluded from Git.
   V1 OpenAPI remains unchanged. No full TypeScript/Python suite or remote operation.
 
 ```sh
-PEA_PRIVATE_OPERATIONAL_REFERENCE=.wrangler/portfolio-reference-2026-11-21/reference.private.json \
+PEA_PRIVATE_OPERATIONAL_REFERENCE="<approved-private-reference-json>" \
   node node_modules/vitest/vitest.mjs run \
   tests/operational-opening.test.ts tests/transactions.d1.test.ts --exclude '**/.wrangler/**'
 node node_modules/typescript/bin/tsc --noEmit
@@ -104,67 +108,40 @@ node node_modules/typescript/bin/tsc --noEmit
 Normal synthetic tests skip the private check unless explicitly given an ignored
 local reference path. The private Excel/JSON is never required by CI or committed.
 
-## Prepared production sequence — NOT EXECUTED
+## Controlled production sequence — executed under separate authorization
 
-Private outputs:
+Operational source, reference JSON, reviewed single-row import SQL, deployment
+configurations, secrets files, comparison logs and Time Travel metadata remain
+private. No actual paths or financial values belong in this plan. The deployment
+record is authoritative for completed stages and the current write flag.
 
-- `.wrangler/portfolio-reference-2026-11-21/reference.private.json`
-- `.wrangler/portfolio-reference-2026-11-21/import.private.sql`
-- `.wrangler/live-readiness/wrangler.access-read.v1.1.reference-paused.private.jsonc`
-- `.wrangler/live-readiness/wrangler.access-read.v1.1.reference-ready.private.jsonc`
+1. Record the Worker version/Time Travel bookmark and deploy the temporary
+   disabled-write configuration without selecting the new reference. Existing
+   reads therefore do not depend on schema 0007 before it is applied.
+2. Verify the old anchor, journal/event counts zero and only migration 0007 pending.
+   Apply only that migration. Stop on mismatch/error; do not delete events or restore
+   the shared D1 automatically to make a prerequisite pass.
+3. Import the approved private reference. DB guards reject a nonempty journal,
+   mismatched old anchor, unknown instrument or duplicate/replacement reference.
+4. Deploy the selected operational reference with writes disabled. Compare all
+   declarations/cash privately and confirm unchanged V1 plus journal version zero.
+5. Only after separate owner authority, enable financial writes on that reference.
+   Every recording still requires its own owner instruction and browser approval.
 
-Both prepared deployment configs have writes disabled. The paused copy has no new
-reference ID, so the old reference/reads keep working before migration. The ready
-copy contains the new ID while preserving the real portfolio, owner, old historical
-anchor, D1, Access, OAuth, calendar and other Worker settings. The previously active
-local configuration remains untouched.
-
-After specific authorization:
-
-1. Record the current Worker version and D1 Time Travel bookmark. Deploy the paused
-   copy to temporarily disable financial writes while retaining old reads. Verify
-   journal/event counts remain zero and the expected historical anchor is present.
-2. List migrations: **only 0007** should be pending. Apply it; stop on mismatch or
-   failure, without retries or automatic restore. No quote collection is triggered.
-3. Import the reviewed private single-row SQL. Its DB guard rejects a nonempty
-   journal or stale/missing original anchor. No journal events are inserted.
-4. Deploy the ready copy, still writes disabled. Verify the historical V1 response
-   remains identical; current reads match all 20 private declarations/cash/PRU and
-   disclose the new reference/provenances; journal version remains zero.
-5. Only after that check and separate authorization, re-enable writes on the ready
-   reference. Refresh ChatGPT tools as needed. Every future recording still requires
-   individual owner instruction and the existing browser approval. Never create a
-   fictitious real-portfolio transaction for acceptance.
+Generic command forms (placeholders only; not runnable deployment instructions):
 
 ```sh
-npx wrangler deploy \
-  --config .wrangler/live-readiness/wrangler.access-read.v1.1.reference-paused.private.jsonc \
-  --secrets-file .wrangler/live-readiness/access-read.secrets.json
-
-npx wrangler d1 time-travel info INSTRUMENTS_DB \
-  --config .wrangler/live-readiness/wrangler.access-read.v1.1.reference-ready.private.jsonc
-
-npx wrangler d1 execute INSTRUMENTS_DB --remote \
-  --config .wrangler/live-readiness/wrangler.access-read.v1.1.reference-ready.private.jsonc \
-  --command "SELECT COUNT(*) AS events FROM transaction_events"
-
+npx wrangler deploy --config "<approved-private-deployment-config>" \
+  --secrets-file "<existing-private-secrets-file>"
 npx wrangler d1 migrations list INSTRUMENTS_DB --remote \
-  --config .wrangler/live-readiness/wrangler.access-read.v1.1.reference-ready.private.jsonc
-
+  --config "<approved-private-deployment-config>"
 npx wrangler d1 migrations apply INSTRUMENTS_DB --remote \
-  --config .wrangler/live-readiness/wrangler.access-read.v1.1.reference-ready.private.jsonc
-
+  --config "<approved-private-deployment-config>"
 npx wrangler d1 execute INSTRUMENTS_DB --remote \
-  --config .wrangler/live-readiness/wrangler.access-read.v1.1.reference-ready.private.jsonc \
-  --file .wrangler/portfolio-reference-2026-11-21/import.private.sql
-
-npx wrangler deploy \
-  --config .wrangler/live-readiness/wrangler.access-read.v1.1.reference-ready.private.jsonc \
-  --secrets-file .wrangler/live-readiness/access-read.secrets.json
+  --config "<approved-private-deployment-config>" --file "<reviewed-private-reference-sql>"
 ```
 
-On failure stop and inspect, preserving the disabled-write state. Do not delete the
-new reference, reset journal history or restore the shared D1 automatically. Any
-code rollback must keep writes disabled: old-anchor recording is intentionally
-rejected once the operational reference exists. Publication and operational
-acceptance remain unperformed; this commit certifies local preparation only.
+On failure stop and keep writes disabled. Never reset journal history, delete the
+reference or restore D1 without new authority. An old-anchor recording is refused
+once the operational reference exists. A code rollback must preserve this boundary;
+old strict parsers also require removal of unsupported newer environment keys.

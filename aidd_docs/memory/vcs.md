@@ -3,8 +3,8 @@
 ## Setup
 
 - GitHub repository: `damienSavoldelli/pea-tracker`; main branch: `main`.
-- Public source, private financial data. The collector and cycle-monitor workflows exist under `.github/workflows/`, with manual dispatch and published weekday schedules. They guard jobs to `main`; local work on another branch does not change V1 automation. These are collection/monitoring workflows, not an automatic deployment pipeline. See the [collector guide](../../collector/README.md).
-- No issue tracker integration or repository commit hook is recorded by the existing project context; this refresh did not inspect machine-local hook configuration. Plugin SessionStart behavior is separate; see below. Schedule publication does not prove scheduled execution; the pending V1 check is in the [runbook](../tasks/2026_11/2026_11_14_live-quotations-read/runbook.md).
+- Public source, private financial data. Collector/monitor workflows are dispatch-only and guard jobs to `main`; Cloudflare schedules their execution. Local branch work does not change automation or deploy a Worker. See the [collector guide](../../collector/README.md) and [V1 acceptance](../releases/v1.0.0-validation.md).
+- No issue tracker integration or repository commit hook is recorded by the existing project context; this refresh did not inspect machine-local hook configuration. Plugin SessionStart behavior is separate; see below. Dispatch acceptance does not prove collection; existing operational evidence is linked above, not rerun for documentation.
 
 ## Conventions
 
@@ -36,7 +36,7 @@
 
 - Intentional staging, commits and pushes each require explicit user authorization covering that action. Permission to edit, validate or commit does not imply permission to push.
 - Production or non-production deployments, cloud-resource creation, paid-service activation and release publication require explicit approval for the specific action; a commit, push, merge or architecture approval is insufficient.
-- Prior V1 publication/deployment approvals are historical and operation-specific, not standing permission for future remote commands. A local tracking ref is cached evidence, not a fresh remote check; do not fetch/pull/push merely to synchronize documentation. No V1 tag/release has been created according to the handover; final scheduled-cycle validation remains pending.
+- Prior publication/deployment approvals are historical and operation-specific, not standing permission for future remote commands. A local tracking ref is cached evidence, not a fresh remote check; do not fetch/pull/push merely to synchronize documentation. V1.0.0 is published; a V1.1 tag/release still needs explicit owner scope/version authorization and must disclose the remaining acceptance limits.
 - Inspect `git status --short`, `git diff` and `git diff --cached` before authorized Git writes. Report unexpected staged changes; do not stage, unstage or discard them without approval.
 
 ## AIDD SessionStart hook

@@ -1,57 +1,47 @@
 # Architecture
 
-## Local operational restart — 2026-11-21
+## Current baseline — 2026-11-21
 
-Owner rejects reconstruction of intermediate trades. A single immutable operational
-opening may initialize the existing real portfolio's EMPTY journal; original V1
-openings/reads remain unchanged. Optional `FINANCIAL_OPERATIONAL_OPENING_ID` selects
-it for current holdings/PRU/cash with distinct cash provenance. Migration 0007 guards
-an empty journal, adds the reference and replaces historical-only journal FKs with
-equivalent immutable-anchor triggers. Import/config stay private; no remote changes
-authorized/executed for this increment. 11 targeted checks/typecheck passed.
-[Rules, limits and prepared procedure](../tasks/2026_11/2026_11_21_operational-start/plan.md).
+The real PEA remains the priority. One TypeScript/Hono application uses shared
+hexagonal services/ports, D1 adapters and separate REST/MCP transports. Python/yfinance
+supplies quotes through a distinct ingestion Worker; Cloudflare Cron/DO receipts
+schedule protected GitHub workflow_dispatch jobs. Diagnostic PoCs stay separate.
 
-## Financial MCP activation — 2026-11-21
+- Financial composition: `src/entrypoints/access-financial.ts`; active Worker version
+  `20f6a0fb-25cb-4d51-94bf-d7cb22ea5ec1`, write flag true. Published reference, real
+  portfolio/owner, D1 and Access bindings match the preceding verified deployment.
+- Historical V1 opening/positions/valuation remain intact. Current V1.1 reads use
+  the separately selected immutable operational reference plus subsequent journal.
+  The broker-verified operational start is dated 20 November; intervening operations
+  were deliberately not reconstructed. Journal was verified empty at initialization.
+- Journal: EUR trades/cash movements, actual fees/dividends, traceable reversals,
+  exact weighted cost/PRU, realized/unrealized gains and dated external flows.
+- Security: exact-owner Access/Managed OAuth identity receives explicit financial
+  `portfolio:write`; browser-only approval receives `portfolio:approve` under a
+  separate signed AUD. Preparation persists an expiring immutable intent; confirmation
+  requires its exact single-use server approval. No brokerage order, implicit
+  technical administration or reuse of quotation-ingestion grants.
+- Migration 0007 adds the operational reference and adapts the empty journal anchor
+  with guarded schema replacement. Original V1 data is not changed; nonempty
+  journals prevent the one-time migration/reinitialization. Configuration/source
+  artifacts stay private, with no paths or financial values stored in context.
+- Evidence: earlier local financial/MCP suites plus 11 targeted operational checks
+  and typecheck. Production D1/import/config comparisons, historical MCP reads/ping
+  and anonymous refusals passed. Owner reports current ChatGPT reads and financial
+  tool discovery. Real browser approval → write → immutable receipt/replay has
+  **not** been validated in production; no transaction was created for acceptance.
+- Remaining: bounded calendar assignments/activation not attested; freshness may
+  remain unknown; closing-monitor operational proof and advanced alerts incomplete.
+  Global economic gain requires a selected market-value reference, currently absent;
+  no global percentage return or fabricated prior performance.
 
-Owner separately authorized activation deployment, version
-`6f891ed9-a06f-4b8b-8c81-acc06fdeb492`. Published financial write flag is now true;
-all other bindings match the preceding disabled version. `portfolio:write` and
-browser-only `portfolio:approve` remain distinct; every operation still needs exact
-server approval. Authenticated ping/historical read succeed; anonymous MCP is 401
-and approval page redirects to login. No proposal/transaction was created or
-approved, and no migration/Access/OAuth/ingestion/scheduler change occurred.
-Each real recording requires new explicit owner instruction; the authenticated
-browser approval journey is not yet operationally certified.
-[Activation evidence](../tasks/2026_11/2026_11_21_financial-mcp/production-2026-11-21.md).
+[Production evidence](../tasks/2026_11/2026_11_21_operational-start/production.md),
+[security contract](../tasks/2026_11/2026_11_21_financial-mcp/contract.md),
+[delivery scope and remaining decisions](../roadmap.md).
 
-## Production financial foundation — 2026-11-21
-
-Authorized additive migrations 0005/0006 applied; existing financial Worker now uses
-the V1.1 composition, version `bd2d8531-7090-4bcd-91d6-572a21ed0770`, with
-`FINANCIAL_WRITES_ENABLED=false` verified on the published version. D1 binding and
-owner secret preserved; historical MCP read and ping succeed, financial tables
-remain empty. This running Codex connector retains its old eight-tool catalogue
-even after owner refresh: hosted V1.1 projected read/tool discovery remains pending.
-Ingestion/scheduler/OAuth unchanged; no financial event or activation authorized.
-[Operational evidence and rollback boundary](../tasks/2026_11/2026_11_21_financial-mcp/production-2026-11-21.md).
-
-## Local financial MCP — 2026-11-21
-
-Owner-authorized local extension: explicit `portfolio:write` business permission,
-separate `portfolio:approve` browser consent, immutable five-minute exact-intent
-proposals and single-use Memory/D1 approval consumption. MCP reuses the existing
-transaction service/repositories; browser consent requires a distinct verified
-Access AUD, not `confirmed=true` or tool annotations. Optional same-Worker
-`access-financial.ts` composition is not selected/deployed; historical V1 reader,
-ingestion and OAuth durations unchanged. 53 targeted checks/typecheck passed;
-hosted path configuration, pending migrations and actual ChatGPT confirmation are
-still to validate. [Contract and failure boundary](../tasks/2026_11/2026_11_21_financial-mcp/contract.md).
-
-## Current V1 — 2026-11-19
-
-Protected financial REST/read-only MCP and ingestion Workers share domain/application services and D1 adapters. A separate scheduler Worker with SQLite Durable Object receipts dispatches existing GitHub Python/yfinance workflows; it has no financial binding or public HTTP endpoint. The closure candidate removes native GitHub schedules and extends monitoring to 20:09 Paris to verify final due slots; collection remains 07:17–19:47.
-
-Since `d5e8fe3`, JWT signature, issuer/audience, machine identity and temporal validation remain mandatory without the arbitrary 300-second total-lifetime cap. Offline revocation remains bounded by assertion expiry. See [acceptance / evidence / RETEX](../releases/v1.0.0-validation.md). Earlier dated entries below retain historical context, not current activation state.
+The dated local-increment records below retain their original evidence scope.
+Claims there about inactive deployment or absent later calculations are historical,
+not a reason to restart completed development or a fresh remote authorization.
 
 ## Stack
 
@@ -68,8 +58,8 @@ Since `d5e8fe3`, JWT signature, issuer/audience, machine identity and temporal v
 - Approved baseline: Cloudflare Workers, Hono, strict TypeScript and D1; separate Python/yfinance collection through GitHub Actions.
 - One TypeScript application and a separate Python package in one repository; no monorepo refactor. The default diagnostic Worker is separate from the current financial reader and ingestion compositions. See [INSTALL.md](../INSTALL.md) for current evidence and the abbreviated layout.
 - Developed: instruments, immutable opening state/positions/cash, quotations/status/history and exact EUR valuation on shared application/domain services with Memory/native D1 ports. REST/MCP call those services directly. Python retrieves Yahoo data separately and delivers HTTPS batches; it has no D1 or portfolio access.
-- `src/entrypoints/access-read.ts` composes owner-only REST/MCP on D1 (`pea-tracker-financial-read`); explicitly enabled portfolio reads expose no administration. `src/entrypoints/access-collector.ts` composes batch-only ingestion (`pea-tracker-quotes-ingestion`) with no MCP/financial reads. Access owner and machine identities/audiences/grants stay distinct; administration is separately authorized.
-- Prior local synthetic checks and real ChatGPT reads/hosted ingestion are different evidence levels. The scheduled 16 November cycle remains unconfirmed; use the [V1 runbook](../tasks/2026_11/2026_11_14_live-quotations-read/runbook.md). No current remote verification is implied by this memory refresh.
+- `src/entrypoints/access-financial.ts` now composes owner REST/MCP consultation and protected journal commands; `access-read.ts` retains the preceding read-only composition. `access-collector.ts` serves only machine ingestion. Exact identities/audiences and financial write/browser approval/ingestion permissions remain separate.
+- Local checks and production observations are distinct. V1 automation acceptance is recorded in [the release evidence](../releases/v1.0.0-validation.md); the old pending 16 November checkpoint is historical. No new remote verification was performed for this documentary consolidation.
 - Local V1.1 transaction journal implemented under the owner's 2026-11-19 rules: EUR deposits/withdrawals, buys/sells and traceable counterposting, exact signed cash/quantity movements, Memory/native local D1, portfolio-scoped idempotence and CAS. An explicit owner/portfolio/kind/opening-revision binding preserves V1's global revisions. The isolated REST composition is not imported by any deployed Worker or MCP; migration 0005 is local-test-only until separately authorized. That initial journal increment did not calculate PRU; the separately authorized cost-read extension is described above. Gains/returns remain unavailable. See [journal contract](../tasks/2026_11/2026_11_19_financial-journal/contract.md).
 - Freshness context is injectable; the reader retains unknown when its optional calendar assignment is absent. Valuation still pins an opening revision, not an atomic cross-instrument quote snapshot. Existing valuation arithmetic remains unchanged; the new journal uses bounded exact signed integer-backed movements, not general division or financial-return formulas.
 - Calendar delivery is implemented and tested locally, not activated remotely: a generated, reviewed two-year reference supplies the existing MarketContext only for explicitly assigned XPAR continuous-core instruments. Never infer the profile from MIC/type or alias ALXP. Unestablished phases, half-day hours and out-of-range dates stay unknown; calendar configuration is isolated from strict authentication configuration. No domain freshness policy, runtime network call, D1 schema or collector schedule changes. See [scope, provenance and local evidence](../tasks/2026_11/2026_11_14_market-calendar/reference-validation.md); annual renewal requires review, not automatic extrapolation.
@@ -80,7 +70,7 @@ Since `d5e8fe3`, JWT signature, issuer/audience, machine identity and temporal v
 ```mermaid
 flowchart LR
     REST[REST adapter] --> Services[Shared business services]
-    MCP[Read-only MCP adapter] --> Services
+    MCP[MCP consultation and owner-approved journal commands] --> Services
     Services --> Ports[Repository interfaces]
     Ports --> D1[D1 adapter]
     Python[Python provider adapter] --> Provider[Yahoo Finance]
