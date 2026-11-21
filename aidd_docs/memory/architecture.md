@@ -1,5 +1,15 @@
 # Architecture
 
+## Local V2.0-D / D4 — 2026-11-21
+
+Isolated raw `EodhdHttpClient`, not active: fixed-origin GET with environment token,
+bounded socket timeout/body, no proxies/redirects/retries. Returns unparsed bytes,
+HTTP status and content type for success/errors; transport failures use sanitized
+codes. Shared `NoRedirect`/User-Agent conventions reused without changing ingestion.
+No synthetic adapter call, financial normalization/provenance, quota claim or Yahoo
+behavior change. Real price/time/venue/adjustment, licence and quota qualification
+remain open. [D4 reduced scope and 39 simulated HTTP checks](../tasks/2026_11/2026_11_21_eodhd-http/plan.md).
+
 ## Local V2.0-D ingestion grants — 2026-11-21
 
 Locally tested, not deployed: configuration uniqueness now covers the explicit

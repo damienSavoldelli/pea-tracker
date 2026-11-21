@@ -2,6 +2,13 @@
 
 ## Current state
 
+- Local V2.0-D / D4 raw transport: **39 simulated HTTP tests passed** in 0.06 seconds,
+  plus Python syntax and whitespace checks. Single/grouped requests, untouched
+  success/error/partial payloads, timeouts/network failures, body bounds, disabled
+  redirects/proxies and secret-safe output covered. No real socket, vendor call,
+  normalized quotation, quota use or production activation.
+  [Commands and limitations](../tasks/2026_11/2026_11_21_eodhd-http/plan.md).
+
 - Local multi-provider ingestion grants: **29 selected Worker/service tests passed**
   (10 new cases); typecheck passed. Three affected assertion cases were rerun and
   passed, without double-counting. Covers explicit shared-instrument pairs, exact
