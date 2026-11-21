@@ -99,7 +99,7 @@ export async function handleMcp(request: Request, financial?: FinancialContext):
     }
     if (financial.currentValuation && financial.principal.permissions.includes('portfolio:read') && financial.principal.permissions.includes('quotes:read')) {
       const valuation = financial.currentValuation;
-      server.registerTool('get_current_portfolio_valuation', { description: 'V1.1 valuation/gains and monetary economic gain after dated external flows. Requires an explicitly selected evidenced market reference; missing reference means unavailable monetary gain, never PRU substitution. Fees/dividends already inside cash/value. Quote warnings retained; no percentage return. V1 remains historical.',
+      server.registerTool('get_current_portfolio_valuation', { description: 'V1.1 valuation/gains, monetary economic gain and estimated Modified Dietz percentage return after dated external flows. Requires a server-selected market snapshot or owner-confirmed broker closing reference; missing/incompatible reference means unavailable performance, never PRU substitution. Return is not annualized or an exact historical TWR. Fees/dividends already inside cash/value. Source, period, precision and quote warnings retained. V1 remains historical.',
         inputSchema: valuationQuerySchema.omit({ revision: true }).extend({ portfolio_id: portfolioIdSchema }).strict(),
         annotations, _meta: { securitySchemes } }, ({ portfolio_id, ...selection }) => guarded(() => valuation.current(financial.principal, portfolio_id, selection)));
     }
