@@ -110,6 +110,45 @@ def test_cli_default_is_synthetic_and_logs_only_counters(tmp_path, capsys):
     assert not (tmp_path / "blocked").exists()
 
 
+@pytest.mark.parametrize("error", ["rate_limited", "invalid_provider_data"])
+def test_partial_live_cycle_is_delivered_but_cannot_satisfy_healthy_monitoring(mappings, tmp_path, monkeypatch, capsys, error):
+    """A single failed instrument must fail the real CLI even when ingestion succeeds."""
+    import pea_collector.__main__ as cli
+    from datetime import datetime, timezone
+    from pea_collector.monitor import missing
+
+    class PartialProvider:
+        def fetch(self, symbol):
+            if symbol == mappings[1].symbol:
+                raise ProviderError(error)
+            return raw_quote(mappings[0])
+
+    client = Client()
+    monkeypatch.setattr(cli, "YFinanceProvider", PartialProvider)
+    monkeypatch.setattr(cli, "machine_client", lambda *_args, **_kwargs: client)
+    environment = {"COLLECTOR_MAPPING_JSON": json.dumps([vars(mapping) for mapping in mappings]),
+                   "COLLECTOR_PROVIDER_APPROVED": "true", "COLLECTOR_COVERAGE_APPROVED": "true", "COLLECTOR_SECURITY_APPROVED": "true"}
+    exit_code = main(["--mode", "live", "--cycle-id", "synthetic-partial-live", "--state", str(tmp_path / "state")], environment)
+    assert exit_code == 1
+    assert json.loads(capsys.readouterr().out) == {"event": "cycle_complete", "observations": 2, "unavailable": 1, "delivered": True}
+    assert len(client.calls) == 1
+    observations = json.loads(client.calls[0][0])["observations"]
+    assert [item["outcome"] for item in observations] == ["success", "unavailable"]
+    assert observations[1]["price"] is None
+
+    run_metadata = {"id": 1, "display_title": "quotation-collector/live/2026-11-19T09:47:00.000Z",
+                    "head_branch": "main", "conclusion": "failure" if exit_code else "success", "updated_at": "2026-11-19T09:48:00Z"}
+    job = {"conclusion": run_metadata["conclusion"], "steps": [{"name": "Run collector", "conclusion": run_metadata["conclusion"]}]}
+    def fetch(path):
+        return {"jobs": [job]} if path.endswith("/jobs") else {"workflow_runs": [run_metadata]}
+
+    now = datetime(2026, 11, 19, 10, 9, tzinfo=timezone.utc)
+    assert missing(fetch, now, 30, paris=True)
+    # Recovery is recognized; identical prices are not treated as failed retrievals.
+    run_metadata["conclusion"] = job["conclusion"] = job["steps"][0]["conclusion"] = "success"
+    assert not missing(fetch, now, 30, paris=True)
+
+
 def slow_fetch(symbol, connection, directory):
     """Keep a child busy long enough to exercise the parent's process deadline."""
     time.sleep(5)

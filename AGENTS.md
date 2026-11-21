@@ -34,18 +34,29 @@
 - **Fan out genuinely independent subtasks when coordination costs less than serial work.**
 - **Name by intention, scope by responsibility** ; not mechanism.
 
+## AIDD and Technical Skills
+
+- At the start of each new mission, briefly assess whether an available AIDD or technical skill adds concrete value. Select proportionately to the task's complexity and risk; do not run every workflow or multiply sub-agents by default.
+- Prefer relevant existing skills for feasibility studies and targeted PoCs, durable decisions and contracts, planning and implementation, tests/reviews/quality checks, and memory/context updates. Use the project-local `git-commit` skill for Git commits.
+- Before using a skill, read its actual `SKILL.md` and the action-specific instructions needed for the task. Use the current available-skills catalog; do not invent commands or assume an older workflow still applies.
+- Reuse existing PRDs, contracts, plans, tests and evidence. Do not repeat completed audits or general exploration; investigate only the unresolved questions needed for the current mission.
+- Update AIDD memory at useful milestones, within the authorized scope, distinguishing validated facts, hypotheses and contemplated changes. Preserve generated sections and historical evidence; skill selection does not expand permissions.
+- Keep reliability of the real PEA, simplicity, security and maintainability as the permanent priorities.
+
 ## Project Boundaries
 
-- Architecture baseline: `aidd_docs/INSTALL.md`; foundation validated; initial local synthetic diagnostic Worker only.
+- Architecture baseline: [aidd_docs/INSTALL.md](aidd_docs/INSTALL.md); current scope: [aidd_docs/roadmap.md](aidd_docs/roadmap.md). V1 financial reads and ingestion are functional according to prior operational evidence; the diagnostic Worker is a separate composition. Protect the real PEA first.
 - Use synthetic data for technical MCP ping; it does not require portfolio infrastructure or satisfy production gates.
-- Do not introduce real financial data until mandatory production security and applicable release gates pass.
-- Keep OAuth selection open pending comparative evaluation. Defer accounting/performance rules to the PRD; never invent them.
-- Preserve exact decimal requirements, read-only MCP and separate administrative authorization.
+- Real-data use remains subject to mandatory production security and applicable release gates. Existing authorized V1 operation does not prove every gate passed or authorize new data loading, deployments or scope extensions.
+- Owner MCP uses Cloudflare Access/Managed OAuth; financial browser approval uses a distinct Access audience and permission. Ingestion uses separate Access Service Auth. The earlier Provider/Auth0 comparison is historical, not a reason to reopen these paths. Follow the approved financial contracts; never invent accounting or performance rules.
+- Distinguish developed, locally tested, deployed, validated in operation, planned and under study. The V1.1 financial foundation and separate operational reference are deployed, with writes enabled under explicit owner authorization. The actual browser-approved transaction/write/replay journey is not yet production-validated. Calendar activation, advanced monitoring and global-return limits remain open in the [roadmap](aidd_docs/roadmap.md). Reuse the [V1 evidence](aidd_docs/releases/v1.0.0-validation.md) rather than restarting the November bootstrap or scheduler investigation. Earlier approvals authorize no new remote change.
+- Reference financial calculations belong in the PEA Tracker domain. ChatGPT interprets results and may offer separate, explicitly indicative simulations. Trading Lab is complementary and isolated; future multi-portfolio work must preserve V1 compatibility.
+- Preserve exact decimals and historical V1 read contracts. MCP journal writes require explicit `portfolio:write` and exact-intent server approval from the independent browser channel (`portfolio:approve`); client flags/annotations never authorize them. Keep technical administration, quotation ingestion and financial permissions distinct. Never create fictitious real-PEA transactions for tests.
 - No dependency installation, cloud resources, deployment or paid-service activation without explicit authorization.
 - Preserve Codex workspace-write/on-request restrictions; never weaken security to meet the zero-cost target.
 - For Git reviews and commits, follow the project-local [git-commit skill](.agents/skills/git-commit/SKILL.md) and [VCS policy](aidd_docs/memory/vcs.md).
 - Codex execution rules remove system prompts only; staging/commits still require explicit user authorization, and amending requires specific authorization to amend.
-- Keep all documentation and context free of actual holdings, PRU values, transactions, credentials, tokens and private portfolio data. Use clearly identified synthetic examples only.
+- Keep all documentation and context free of actual holdings, PRU values, transactions, credentials, tokens, private configuration paths and private portfolio data. Use clearly identified synthetic examples and generic deployment placeholders only.
 
 ## Cloudflare Operations
 

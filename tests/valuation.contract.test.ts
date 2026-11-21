@@ -3,12 +3,40 @@ import { valuationFixture, valuationReader as reader, valuationSelection as sele
 import { observation, unavailable, quotationCollector as collector } from './helpers/quotations';
 import { firstId, secondId, portfolioAdmin } from './helpers/portfolio';
 import { InstrumentService } from '../src/application/instruments';
+import { QuotationService } from '../src/application/quotations';
+import { ValuationService } from '../src/application/valuation';
+import { createMarketCalendar } from '../src/adapters/calendar/market-calendar';
 
 for (const kind of ['memory', 'd1'] as const) describe(`${kind} deterministic valuation`, () => {
   let f: Awaited<ReturnType<typeof valuationFixture>>;
   beforeEach(async () => { f = await valuationFixture(kind); }, 30000);
   afterEach(async () => { await f?.dispose(); });
   const get = () => f.valuation.get(reader, selection);
+
+  it('qualifies an explicitly established calendar profile without changing exact valuation inputs or totals', async () => {
+    const id = '00000000-0000-4000-8000-000000000003';
+    await new InstrumentService(f.instruments, () => f.clock.now, () => id).create(portfolioAdmin,
+      { name: 'Synthetic calendar valuation', kind: 'stock', quote_currency: 'EUR', price_unit: 'currency_unit', exchange_mic: 'XPAR' }, 'calendar-instrument');
+    f.grants[0]!.instrument_ids.push(id);
+    await f.service.ingest(collector, { observations: [observation({ instrument_id: id, price: '0.005', provider_delay_seconds: null,
+      session_date: '2026-11-10', market_timestamp: '2026-11-10T10:00:00.000Z', fetched_at: '2026-11-10T10:01:00.000Z' })] }, 'calendar-quote');
+    await f.portfolio.append(portfolioAdmin, { ...f.input, correction_reason: 'Synthetic calendar fixture',
+      positions: [{ ...f.input.positions[0]!, instrument_id: id, quantity: '3' }] }, 1, 'calendar-position');
+    const calendar = createMarketCalendar(JSON.stringify([{ instrument_id: id, mic: 'XPAR', profile_id: 'xpar-continuous-core-v1' }]));
+    const unknownQuotes = new QuotationService(f.repository, f.instruments, [], () => f.clock.now);
+    const knownQuotes = new QuotationService(f.repository, f.instruments, [], () => f.clock.now,
+      (_selector, now, instrument) => calendar(instrument, now));
+    const before = await new ValuationService(f.portfolio, unknownQuotes).get(reader, selection);
+    const after = await new ValuationService(f.portfolio, knownQuotes).get(reader, selection);
+    for (const key of ['securities_subtotal', 'securities_total', 'portfolio_total', 'known_assets_subtotal', 'coverage', 'cash'] as const) {
+      expect(after[key]).toEqual(before[key]);
+    }
+    expect(after.positions[0]?.quotation.quote).toEqual(before.positions[0]?.quotation.quote);
+    expect(before.positions[0]?.quotation.freshness.status).toBe('unknown');
+    expect(after.positions[0]?.quotation).toMatchObject({ market_context: { phase: 'open', expected_session_date: '2026-11-10' },
+      freshness: { status: 'within_target', policy_version: 1, realtime_guaranteed: false } });
+    expect(after.securities_total).toEqual({ exact: '0.015', display: '0.02', currency: 'EUR' });
+  });
 
   it('exposes all quote inputs, provenance and clocks; sums unrounded amounts before EUR display', async () => {
     await f.seed();

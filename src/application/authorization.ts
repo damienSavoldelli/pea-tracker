@@ -1,6 +1,6 @@
 import { ApplicationError } from './errors';
 
-export type Permission = 'instruments:read' | 'instruments:admin' | 'quotes:ingest' | 'quotes:read' | 'portfolio:read' | 'portfolio:admin';
+export type Permission = 'instruments:read' | 'instruments:admin' | 'quotes:ingest' | 'quotes:read' | 'portfolio:read' | 'portfolio:write' | 'portfolio:approve' | 'portfolio:admin';
 export interface Principal {
   readonly subject: string;
   readonly permissions: readonly Permission[];

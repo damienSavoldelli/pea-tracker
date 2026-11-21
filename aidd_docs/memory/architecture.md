@@ -1,29 +1,89 @@
 # Architecture
 
-## Current V1 — 2026-11-19
+## Current baseline — 2026-11-21
 
-Protected financial REST/read-only MCP and ingestion Workers share domain/application services and D1 adapters. A separate scheduler Worker with SQLite Durable Object receipts dispatches existing GitHub Python/yfinance workflows; it has no financial binding or public HTTP endpoint. The closure candidate removes native GitHub schedules and extends monitoring to 20:09 Paris to verify final due slots; collection remains 07:17–19:47.
+The real PEA remains the priority. One TypeScript/Hono application uses shared
+hexagonal services/ports, D1 adapters and separate REST/MCP transports. Python/yfinance
+supplies quotes through a distinct ingestion Worker; Cloudflare Cron/DO receipts
+schedule protected GitHub workflow_dispatch jobs. Diagnostic PoCs stay separate.
 
-Since `d5e8fe3`, JWT signature, issuer/audience, machine identity and temporal validation remain mandatory without the arbitrary 300-second total-lifetime cap. Offline revocation remains bounded by assertion expiry. See [acceptance / evidence / RETEX](../releases/v1.0.0-validation.md). Earlier dated entries below retain historical context, not current activation state.
+- Financial composition: `src/entrypoints/access-financial.ts`; active Worker version
+  `20f6a0fb-25cb-4d51-94bf-d7cb22ea5ec1`, write flag true. Published reference, real
+  portfolio/owner, D1 and Access bindings match the preceding verified deployment.
+- Historical V1 opening/positions/valuation remain intact. Current V1.1 reads use
+  the separately selected immutable operational reference plus subsequent journal.
+  The broker-verified operational start is dated 20 November; intervening operations
+  were deliberately not reconstructed. Journal was verified empty at initialization.
+- Journal: EUR trades/cash movements, actual fees/dividends, traceable reversals,
+  exact weighted cost/PRU, realized/unrealized gains and dated external flows.
+- Security: exact-owner Access/Managed OAuth identity receives explicit financial
+  `portfolio:write`; browser-only approval receives `portfolio:approve` under a
+  separate signed AUD. Preparation persists an expiring immutable intent; confirmation
+  requires its exact single-use server approval. No brokerage order, implicit
+  technical administration or reuse of quotation-ingestion grants.
+- Migration 0007 adds the operational reference and adapts the empty journal anchor
+  with guarded schema replacement. Original V1 data is not changed; nonempty
+  journals prevent the one-time migration/reinitialization. Configuration/source
+  artifacts stay private, with no paths or financial values stored in context.
+- Evidence: earlier local financial/MCP suites plus 11 targeted operational checks
+  and typecheck. Production D1/import/config comparisons, historical MCP reads/ping
+  and anonymous refusals passed. Owner reports current ChatGPT reads and financial
+  tool discovery. Real browser approval → write → immutable receipt/replay has
+  **not** been validated in production; no transaction was created for acceptance.
+- Remaining: bounded calendar assignments/activation not attested; freshness may
+  remain unknown; closing-monitor operational proof and advanced alerts incomplete.
+  Global economic gain requires a selected market-value reference, currently absent;
+  no global percentage return or fabricated prior performance.
+
+[Production evidence](../tasks/2026_11/2026_11_21_operational-start/production.md),
+[security contract](../tasks/2026_11/2026_11_21_financial-mcp/contract.md),
+[delivery scope and remaining decisions](../roadmap.md).
+
+The dated local-increment records below retain their original evidence scope.
+Claims there about inactive deployment or absent later calculations are historical,
+not a reason to restart completed development or a fresh remote authorization.
 
 ## Stack
 
+- Current local monetary-performance increment: exact dated external flows (including effective corrections, excluding trades/dividends/fees), opening cash, and optional selected-market-reference economic gain in EUR. Initial market value is recomputed from evidenced quotes/cash, never PRU; dates/identity/selection/backdating checked. No real reference selected/persisted: economic gain stays unavailable by default; no percentage return implemented. One captured portfolio/journal snapshot feeds valuation/flows; no new repository, migration, provider or remote activation. [Rules/evidence](../tasks/2026_11/2026_11_19_financial-journal/performance.md). Earlier statements about absent global performance remain true for percentage returns and actual-reference activation.
+
+- Current local gains increment: one exact cost replay also derives realized sale gains, excluding reversed sales once and marking unknown/ambiguous cost unavailable. Unrealized gains reuse stored-quote market values minus remaining cost; percentages use securities cost, complete totals require complete price/cost coverage. Signed exact fractions share the existing 18-place half-even representation; historical V1 and valuation amounts unchanged. No global return or new persistence/provider. [Rules/evidence](../tasks/2026_11/2026_11_19_financial-journal/gains.md). Earlier exclusions of gains below describe prior phases; cash-flow-adjusted performance remains undefined/unavailable.
+
+- Current local dividend increment: received EUR cash, optional catalogue instrument, existing date/provenance/reference, immutable counterposts and no quantity/cost/PRU movement. One captured journal version also supplies a `dividends` received/reversed/net summary since opening; this is not performance. Cost policy v3 describes cash-only dividends without changing the weighted-average method. Memory/D1 adapters and schema unchanged; no remote activation. [Rules/evidence](../tasks/2026_11/2026_11_19_financial-journal/dividends.md). Earlier exclusions of dividends below describe prior phases.
+
+- Current local fee extension (20 November): optional explicit trade fees debit/capitalize purchase gross + fees; sales credit nonnegative gross − fees without changing remaining PRU. `cost_basis_policy.version=2` identifies unknown opening fees and undeclared historic fees, never a global fee-exclusive/inclusive PRU. Existing no-fee canonical receipts/results remain unchanged; storage needs no new migration. [Rules/evidence](../tasks/2026_11/2026_11_19_financial-journal/fees.md). The prior cost-only description below is historical regarding excluded fees; dividends/performance remain unavailable.
+
+- Local V1.1 projected reads reuse `PortfolioService.current` and `ValuationService.current` at one journal version. The authorized 20 November increment adds weighted-average remaining cost/PRU through `src/domain/cost-basis.ts`: exact BigInt fractions, decimal representation rounded only at 18 places, declared-opening provenance, explicit unknown/conflicting-cost states, fees/dividends excluded. Performance remains unavailable. Historical V1 contracts/valuation and deployed compositions unchanged. See [cost rules](../tasks/2026_11/2026_11_19_financial-journal/cost-basis.md) and [connection evidence](../tasks/2026_11/2026_11_19_financial-journal/phase-2.md).
+
 - Approved baseline: Cloudflare Workers, Hono, strict TypeScript and D1; separate Python/yfinance collection through GitHub Actions.
-- Default Worker implements public REST health and official SDK stateless MCP ping only. Synthetic instrument CRUD uses shared services/repository port with Memory and native D1 adapters, reachable only in isolated tests and separate loopback harnesses. Local JWT security composition is implemented; D1 is local-only, and ledger/financial calculations, collection and hosted OAuth remain unimplemented. See [INSTALL.md](../INSTALL.md).
+- One TypeScript application and a separate Python package in one repository; no monorepo refactor. The default diagnostic Worker is separate from the current financial reader and ingestion compositions. See [INSTALL.md](../INSTALL.md) for current evidence and the abbreviated layout.
+- Developed: instruments, immutable opening state/positions/cash, quotations/status/history and exact EUR valuation on shared application/domain services with Memory/native D1 ports. REST/MCP call those services directly. Python retrieves Yahoo data separately and delivers HTTPS batches; it has no D1 or portfolio access.
+- `src/entrypoints/access-financial.ts` now composes owner REST/MCP consultation and protected journal commands; `access-read.ts` retains the preceding read-only composition. `access-collector.ts` serves only machine ingestion. Exact identities/audiences and financial write/browser approval/ingestion permissions remain separate.
+- Local checks and production observations are distinct. V1 automation acceptance is recorded in [the release evidence](../releases/v1.0.0-validation.md); the old pending 16 November checkpoint is historical. No new remote verification was performed for this documentary consolidation.
+- Local V1.1 transaction journal implemented under the owner's 2026-11-19 rules: EUR deposits/withdrawals, buys/sells and traceable counterposting, exact signed cash/quantity movements, Memory/native local D1, portfolio-scoped idempotence and CAS. An explicit owner/portfolio/kind/opening-revision binding preserves V1's global revisions. The isolated REST composition is not imported by any deployed Worker or MCP; migration 0005 is local-test-only until separately authorized. That initial journal increment did not calculate PRU; the separately authorized cost-read extension is described above. Gains/returns remain unavailable. See [journal contract](../tasks/2026_11/2026_11_19_financial-journal/contract.md).
+- Freshness context is injectable; the reader retains unknown when its optional calendar assignment is absent. Valuation still pins an opening revision, not an atomic cross-instrument quote snapshot. Existing valuation arithmetic remains unchanged; the new journal uses bounded exact signed integer-backed movements, not general division or financial-return formulas.
+- Calendar delivery is implemented and tested locally, not activated remotely: a generated, reviewed two-year reference supplies the existing MarketContext only for explicitly assigned XPAR continuous-core instruments. Never infer the profile from MIC/type or alias ALXP. Unestablished phases, half-day hours and out-of-range dates stay unknown; calendar configuration is isolated from strict authentication configuration. No domain freshness policy, runtime network call, D1 schema or collector schedule changes. See [scope, provenance and local evidence](../tasks/2026_11/2026_11_14_market-calendar/reference-validation.md); annual renewal requires review, not automatic extrapolation.
+- Portfolio revision selection/sequence remains global in V1. V1.1 adds explicit portfolio identity on the separate journal without rewriting old keys, cursors or replay outcomes. This is not a full multi-portfolio registry or API; future activation, anchor reconciliation, PRU/gain/return conventions remain separately scoped. The [roadmap](../roadmap.md) preserves the real PEA priority and isolates future Trading Lab use.
 
 ## How it fits together
 
 ```mermaid
 flowchart LR
     REST[REST adapter] --> Services[Shared business services]
-    MCP[Read-only MCP adapter] --> Services
+    MCP[MCP consultation and owner-approved journal commands] --> Services
     Services --> Ports[Repository interfaces]
     Ports --> D1[D1 adapter]
-    Python[Python provider adapter] --> Ingest[Restricted ingestion adapter]
+    Python[Python provider adapter] --> Provider[Yahoo Finance]
+    Python --> Ingest[Restricted ingestion adapter]
     Ingest --> Services
 ```
 
-## Key decisions
+## Historical decisions and slice evidence
+
+The entries below retain the decisions and limits recorded at each earlier stage.
+Local-only, inactive-schedule and open-OAuth statements describe those stages, not
+current V1 operation. Subsequent deployment/collection evidence is summarized above
+and in the runbook; earlier approvals do not authorize repeating those operations.
 
 - 2026-11-11: [machine ingestion slice](../tasks/2026_11/2026_11_11_remote-ingestion/plan.md) reuses Cloudflare Access Service Tokens/Service Auth with a dedicated application AUD and signed empty-sub/common_name identity. Owner and machine policies share Access JWT/JWKS verification; only the machine policy grants quotes:ingest to a stable internal subject, with existing provider/instrument grants. Python sends the service credential pair, never the interactive MCP identity or an assumed OAuth token endpoint. Opt-in ingestion composition has no MCP/health/financial read/admin routes. Remote setup, actual assertion lifetime <=300 seconds, lifecycle and deployment remain approval-gated; stateless revocation is bounded, not instantaneous. Existing deployed entrypoints and MCP policy are unchanged.
 - 2026-11-12: A separate `src/entrypoints/access-collector.ts` now composes machine-authenticated ingestion with the existing D1 schema. Its Wrangler fixture is local-only, synthetic and has no remote database ID, hostname or production audience. It exposes no MCP/health/financial-read/admin routes and fails closed on invalid configuration. Local D1, Python-client, access-denial and dry-run evidence is recorded in the [remote-ingestion contract](../tasks/2026_11/2026_11_11_remote-ingestion/contract.md); deployment and remote setup remain approval-gated.

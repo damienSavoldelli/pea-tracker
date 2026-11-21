@@ -12,12 +12,18 @@ import { quotationHistoryQuerySchema } from '../../application/quotations';
 import { quotationSelectorSchema } from '../../domain/quotations';
 import type { ValuationService } from '../../application/valuation';
 import { valuationQuerySchema } from '../../domain/valuation';
+import { portfolioIdSchema } from '../../domain/transactions';
+import type { FinancialMcpService } from '../../application/financial-mcp';
+import { registerFinancialTools } from './financial-tools';
 
 export interface ProtectedMcpDependencies {
+  financialOperations?: FinancialMcpService;
   service: InstrumentService;
   portfolio?: PortfolioService;
   quotations?: QuotationService;
   valuation?: ValuationService;
+  currentPortfolio?: PortfolioService;
+  currentValuation?: ValuationService;
   authenticate(request: Request): Promise<Principal>;
   challenge(status: 401 | 403): string;
   metadata?: { resource: string; authorization_servers: string[]; scopes_supported: string[]; bearer_methods_supported: string[] };
@@ -25,11 +31,14 @@ export interface ProtectedMcpDependencies {
   restMetadata?: { resource: string; authorization_servers: string[]; scopes_supported: string[]; bearer_methods_supported: string[] };
 }
 interface FinancialContext {
+  financialOperations?: FinancialMcpService;
   principal: Principal;
   service: InstrumentService;
   portfolio?: PortfolioService;
   quotations?: QuotationService;
   valuation?: ValuationService;
+  currentPortfolio?: PortfolioService;
+  currentValuation?: ValuationService;
   challenge(status: 401 | 403): string;
   oauthScopes?: readonly string[];
 }
@@ -63,6 +72,7 @@ export async function handleMcp(request: Request, financial?: FinancialContext):
           ...(failure.status === 401 || failure.status === 403 ? { _meta: { 'mcp/www_authenticate': [financial.challenge(failure.status)] } } : {}) };
       }
     };
+    if (financial.financialOperations) registerFinancialTools(server, financial.financialOperations, financial.principal, guarded);
     server.registerTool('list_instruments', { description: 'List authorized instrument metadata.',
       inputSchema: z.object({ limit: z.number().int().min(1).max(100).optional(), active: z.boolean().optional(), cursor: z.string().max(256).optional() }).strict(),
       outputSchema: z.object({ data: z.array(instrumentSchema), page: z.object({ next_cursor: z.string().nullable() }) }),
@@ -80,6 +90,18 @@ export async function handleMcp(request: Request, financial?: FinancialContext):
       const valuation = financial.valuation;
       server.registerTool('get_portfolio_valuation', { description: 'Estimate EUR market values from explicit provider/kind, with exact amounts, coverage and quote warnings. No gains or realtime guarantee.',
         inputSchema: valuationQuerySchema, annotations, _meta: { securitySchemes } }, input => guarded(() => valuation.get(financial.principal, input)));
+    }
+    if (financial.currentPortfolio && financial.principal.permissions.includes('portfolio:read')) {
+      const portfolio = financial.currentPortfolio;
+      server.registerTool('get_current_portfolio', { description: 'V1.1 projected holdings/cash, opening cash, exact costs/PRU, dividends, realized gains and dated external cash flows at one journal version. Flow corrections included; trades/dividends are not external contributions. Historic cost fees remain unknown. No global percentage return. V1 stays historical.',
+        inputSchema: z.object({ portfolio_id: portfolioIdSchema }).strict(), annotations, _meta: { securitySchemes } },
+      input => guarded(() => portfolio.current(financial.principal, input.portfolio_id)));
+    }
+    if (financial.currentValuation && financial.principal.permissions.includes('portfolio:read') && financial.principal.permissions.includes('quotes:read')) {
+      const valuation = financial.currentValuation;
+      server.registerTool('get_current_portfolio_valuation', { description: 'V1.1 valuation/gains, monetary economic gain and estimated Modified Dietz percentage return after dated external flows. Requires a server-selected market snapshot or owner-confirmed broker closing reference; missing/incompatible reference means unavailable performance, never PRU substitution. Return is not annualized or an exact historical TWR. Fees/dividends already inside cash/value. Source, period, precision and quote warnings retained. V1 remains historical.',
+        inputSchema: valuationQuerySchema.omit({ revision: true }).extend({ portfolio_id: portfolioIdSchema }).strict(),
+        annotations, _meta: { securitySchemes } }, ({ portfolio_id, ...selection }) => guarded(() => valuation.current(financial.principal, portfolio_id, selection)));
     }
     if (financial.portfolio && financial.principal.permissions.includes('portfolio:read')) {
       const portfolio = financial.portfolio;
