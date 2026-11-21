@@ -15,8 +15,9 @@ const grantSchema = z.array(z.object({
   const seen = new Set<string>();
   for (const grant of grants) {
     for (const instrumentId of grant.instrument_ids) {
-      if (seen.has(instrumentId)) context.addIssue({ code: 'custom', message: 'Duplicate instrument grant' });
-      seen.add(instrumentId);
+      const pair = JSON.stringify([grant.provider, instrumentId]);
+      if (seen.has(pair)) context.addIssue({ code: 'custom', message: 'Duplicate provider/instrument grant' });
+      seen.add(pair);
     }
   }
 });

@@ -119,6 +119,92 @@ describe('dedicated Access quote-ingestion Worker', () => {
       expect(await f.local!.db.prepare('SELECT count(*) n FROM quotation_observations').first('n')).toBe(0);
     });
 
+    it.each([
+      { providers: ['yahoo'] },
+      { providers: ['yahoo', 'synthetic_secondary'] },
+      { providers: ['yahoo', 'synthetic_secondary', 'synthetic_third'] },
+    ])('persists and replays only explicit provider grants for one instrument: $providers', async ({ providers }) => {
+      const app = createAccessCollectorWorker({ ...env, COLLECTOR_INGESTION_GRANTS: JSON.stringify(
+        providers.map(provider => ({ provider, instrument_ids: [firstId] }))),
+      }, { fetch: auth.keys });
+      const assertion = await auth.token();
+      const send = () => app.fetch(new Request('https://synthetic.invalid/api/v1/quotation-batches', {
+        method: 'POST', headers: { 'Cf-Access-Jwt-Assertion': assertion, 'Content-Type': 'application/json',
+          'Idempotency-Key': 'synthetic-multiple-provider-grants' },
+        body: JSON.stringify({ observations: providers.map(provider => observation({ provider, instrument_id: firstId })) }),
+      }));
+      const first = await send();
+      expect(first.status).toBe(201);
+      const original = await first.json();
+      expect(original).toMatchObject({ accepted: providers.length,
+        data: [...providers].sort().map(provider => ({ provider, instrument_id: firstId })) });
+      const replay = await send();
+      expect(replay.status).toBe(201);
+      expect(await replay.json()).toEqual(original);
+      expect(await f.local!.db.prepare('SELECT count(*) n FROM quotation_observations').first('n')).toBe(providers.length);
+      expect(await f.local!.db.prepare('SELECT count(*) n FROM quotation_batch_outcomes').first('n')).toBe(1);
+    });
+
+    it.each([
+      { provider: 'unapproved', instrument_id: firstId },
+      { provider: 'yahoo', instrument_id: secondId },
+      { provider: 'synthetic_secondary', instrument_id: secondId },
+    ])('rejects an unauthorized pair in a mixed provider batch atomically: %j', async denied => {
+      const measured = measuredD1(f.local!.db);
+      const app = createAccessCollectorWorker({ ...env, INSTRUMENTS_DB: measured.binding,
+        COLLECTOR_INGESTION_GRANTS: JSON.stringify(['yahoo', 'synthetic_secondary']
+          .map(provider => ({ provider, instrument_ids: [firstId] }))),
+      }, { fetch: auth.keys });
+      const response = await app.fetch(new Request('https://synthetic.invalid/api/v1/quotation-batches', {
+        method: 'POST', headers: { 'Cf-Access-Jwt-Assertion': await auth.token(), 'Content-Type': 'application/json',
+          'Idempotency-Key': 'synthetic-denied-provider-pair' },
+        body: JSON.stringify({ observations: [observation({ provider: 'yahoo', instrument_id: firstId }), observation(denied)] }),
+      }));
+      expect(response.status).toBe(403);
+      expect(await response.json()).toMatchObject({ code: 'quotation_ingestion_not_allowed' });
+      expect(measured.calls).toMatchObject({ reads: 1, batches: 0, other: 0, bindings: [[firstId]] });
+      expect(await f.local!.db.prepare('SELECT count(*) n FROM quotation_observations').first('n')).toBe(0);
+      expect(await f.local!.db.prepare('SELECT count(*) n FROM quotation_batch_outcomes').first('n')).toBe(0);
+    });
+
+    it.each([
+      { provider: 'yahoo', instrument_id: secondId },
+      { provider: 'synthetic_secondary', instrument_id: firstId },
+    ])('does not turn explicit provider grants into a provider/instrument cross product: %j', async denied => {
+      const measured = measuredD1(f.local!.db);
+      const app = createAccessCollectorWorker({ ...env, INSTRUMENTS_DB: measured.binding,
+        COLLECTOR_INGESTION_GRANTS: JSON.stringify([
+          { provider: 'yahoo', instrument_ids: [firstId] },
+          { provider: 'synthetic_secondary', instrument_ids: [secondId] },
+        ]),
+      }, { fetch: auth.keys });
+      const response = await app.fetch(new Request('https://synthetic.invalid/api/v1/quotation-batches', {
+        method: 'POST', headers: { 'Cf-Access-Jwt-Assertion': await auth.token(), 'Content-Type': 'application/json',
+          'Idempotency-Key': 'synthetic-no-cross-product' }, body: JSON.stringify({ observations: [observation(denied)] }),
+      }));
+      expect(response.status).toBe(403);
+      expect(await response.json()).toMatchObject({ code: 'quotation_ingestion_not_allowed' });
+      expect(measured.calls).toMatchObject({ reads: 0, batches: 0, other: 0, bindings: [] });
+    });
+
+    it.each([
+      { grants: [{ provider: 'yahoo', instrument_ids: [firstId, firstId] }] },
+      { grants: [{ provider: 'yahoo', instrument_ids: [firstId] }, { provider: 'yahoo', instrument_ids: [firstId] },
+        { provider: 'synthetic_secondary', instrument_ids: [firstId] }] },
+    ])('rejects duplicate provider grants before authentication or database access: %j', async ({ grants }) => {
+      const measured = measuredD1(f.local!.db);
+      const keys = vi.fn(auth.keys);
+      const broken = { ...env, INSTRUMENTS_DB: measured.binding, COLLECTOR_INGESTION_GRANTS: JSON.stringify(grants) };
+      expect(() => createAccessCollectorWorker(broken, { fetch: keys })).toThrow('Invalid collector configuration');
+      const response = await accessCollectorWorker.fetch(new Request('https://synthetic.invalid/api/v1/quotation-batches', {
+        method: 'POST', headers: { 'Cf-Access-Jwt-Assertion': await auth.token() }, body: '{}',
+      }), broken);
+      expect(response.status).toBe(503);
+      expect(await response.json()).toMatchObject({ code: 'ingestion_unavailable' });
+      expect(keys).not.toHaveBeenCalled();
+      expect(measured.calls).toMatchObject({ reads: 0, batches: 0, other: 0 });
+    });
+
     it('treats an empty grant list as deny-all without accessing D1 when ingestion is enabled', async () => {
       const measured = measuredD1(f.local!.db);
       const denyAll = createAccessCollectorWorker({ ...env, INSTRUMENTS_DB: measured.binding,

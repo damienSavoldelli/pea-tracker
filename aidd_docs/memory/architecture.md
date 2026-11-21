@@ -1,5 +1,16 @@
 # Architecture
 
+## Local V2.0-D ingestion grants — 2026-11-21
+
+Locally tested, not deployed: configuration uniqueness now covers the explicit
+`(provider, instrument_id)` pair rather than the instrument alone. Distinct provider
+grants may share an instrument; exact duplicates still fail closed. Existing
+subject/provider/instrument checks, Access verification, deny-all empty grants and
+ingestion/read isolation are unchanged. No actual grants or supplier activation
+changed. The earlier configuration blocker is resolved in local code only; the
+shared collector subject remains the security model.
+[Targeted tests, limits and separate change scope](../tasks/2026_11/2026_11_21_multi-provider-grants/plan.md).
+
 ## Local V2.0-D / D3 — 2026-11-21
 
 Offline-only `EodhdFixtureProvider` implements the structural fetch interface with

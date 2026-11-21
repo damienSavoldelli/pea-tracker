@@ -2,6 +2,14 @@
 
 ## Current state
 
+- Local multi-provider ingestion grants: **29 selected Worker/service tests passed**
+  (10 new cases); typecheck passed. Three affected assertion cases were rerun and
+  passed, without double-counting. Covers explicit shared-instrument pairs, exact
+  duplicates, forbidden cross products, atomic refusal, deny-all and existing
+  Access/read-isolation rules. Synthetic identities/native local D1 only; no
+  external network, supplier API or production configuration change.
+  [Commands, evidence and scope](../tasks/2026_11/2026_11_21_multi-provider-grants/plan.md).
+
 - Local V2.0-D / D3: **68 targeted tests passed** in 0.28 seconds (25 new fixture
   adapter, 38 D2 and 5 D1 cases). Offline EODHD-format snapshots cover metadata/time/
   price refusals, partial failures, copied fixture state and provider separation.
