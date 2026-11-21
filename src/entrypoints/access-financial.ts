@@ -18,6 +18,7 @@ import { FinancialMcpService } from '../application/financial-mcp';
 import { portfolioIdSchema } from '../domain/transactions';
 import { createFinancialManagementApp } from '../financial-app';
 import { D1OperationalOpeningRepository } from '../adapters/d1/operational-opening';
+import { brokerReferenceSchema } from '../domain/performance';
 
 const configuration = z.object({
   INSTRUMENTS_DB: z.custom<D1Database>(value => value !== null && typeof value === 'object' && 'prepare' in value && 'batch' in value),
@@ -31,6 +32,7 @@ const configuration = z.object({
   FINANCIAL_OWNER_ID: z.string().min(1).max(128).default('owner:financial-read'),
   FINANCIAL_OPENING_ID: z.string().uuid(), FINANCIAL_OPENING_REVISION: z.coerce.number().int().positive(),
   FINANCIAL_OPERATIONAL_OPENING_ID: z.string().uuid().optional(),
+  FINANCIAL_MARKET_REFERENCE: z.string().max(4096).optional(),
 }).strict();
 const unavailable = () => new Response('financial_service_unavailable', { status: 503, headers: { 'Cache-Control': 'no-store' } });
 
@@ -65,7 +67,11 @@ export function createAccessFinancialWorker(environment: D1LocalEnv & Record<str
   const market = createMarketCalendar(MARKET_CALENDAR_ASSIGNMENTS);
   const quotations = new QuotationService(new D1QuotationRepository(config.INSTRUMENTS_DB), instruments, [], clock,
     (_selector, now, instrument) => market(instrument, now));
-  const valuation = new ValuationService(portfolio, quotations);
+  const reference = config.FINANCIAL_MARKET_REFERENCE ? brokerReferenceSchema.parse(JSON.parse(config.FINANCIAL_MARKET_REFERENCE)) : undefined;
+  if (reference && (reference.portfolio_id !== binding.portfolio_id || reference.kind !== binding.kind ||
+    reference.opening_state.id !== binding.opening_id || reference.opening_state.revision !== binding.opening_revision))
+    throw new Error('financial_reference_binding_mismatch');
+  const valuation = new ValuationService(portfolio, quotations, reference);
   const service = new InstrumentService(instruments, clock);
   const authenticate = (request: Request) => access.authenticateMcp(request);
   const backend = createFinancialManagementApp({ financial, access, origin: config.FINANCIAL_ORIGIN,

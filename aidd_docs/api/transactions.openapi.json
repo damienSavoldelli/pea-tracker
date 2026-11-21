@@ -3082,6 +3082,9 @@
                 "$ref": "#/components/schemas/MarketReference"
               },
               {
+                "$ref": "#/components/schemas/BrokerMarketReference"
+              },
+              {
                 "type": "null"
               }
             ]
@@ -3110,20 +3113,14 @@
             ]
           },
           "return_percentage": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "status",
-              "reason"
-            ],
-            "properties": {
-              "status": {
-                "const": "unavailable"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModifiedDietzReturn"
               },
-              "reason": {
-                "const": "return_method_not_defined"
+              {
+                "$ref": "#/components/schemas/UnavailablePerformance"
               }
-            }
+            ]
           },
           "warnings": {
             "type": "array",
@@ -3176,6 +3173,181 @@
           },
           "prior_performance_available": {
             "const": false
+          }
+        }
+      },
+      "BrokerMarketReference": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "portfolio_id",
+          "kind",
+          "opening_id",
+          "opening_revision",
+          "journal_version",
+          "evaluated_at",
+          "initial_value",
+          "initial_cash",
+          "selection",
+          "quotes",
+          "warnings",
+          "source_type",
+          "market_date",
+          "timestamp_precision",
+          "provenance",
+          "securities_value"
+        ],
+        "properties": {
+          "portfolio_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "enum": [
+              "real",
+              "simulated"
+            ]
+          },
+          "opening_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "opening_revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "journal_version": {
+            "const": 0
+          },
+          "evaluated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "initial_value": {
+            "$ref": "#/components/schemas/CalculatedCostValue"
+          },
+          "initial_cash": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$"
+          },
+          "selection": {
+            "type": "null"
+          },
+          "quotes": {
+            "type": "array",
+            "maxItems": 0
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "source_type": {
+            "const": "broker_statement"
+          },
+          "market_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "timestamp_precision": {
+            "const": "session_date"
+          },
+          "provenance": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source",
+              "reference",
+              "owner_confirmed"
+            ],
+            "properties": {
+              "source": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "reference": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "owner_confirmed": {
+                "const": true
+              }
+            }
+          },
+          "securities_value": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^[0-9]+(?:\\.[0-9]{1,2})?$"
+          }
+        }
+      },
+      "ModifiedDietzReturn": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "value",
+          "exact",
+          "rounded",
+          "method",
+          "weighting",
+          "annualized",
+          "period_start",
+          "period_end",
+          "weighted_capital"
+        ],
+        "properties": {
+          "status": {
+            "const": "available"
+          },
+          "value": {
+            "type": "string",
+            "pattern": "^-?[0-9]+(?:\\.[0-9]{1,18})?$"
+          },
+          "exact": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "numerator",
+              "denominator"
+            ],
+            "properties": {
+              "numerator": {
+                "type": "string",
+                "pattern": "^(0|-?[1-9][0-9]*)$"
+              },
+              "denominator": {
+                "type": "string",
+                "pattern": "^[1-9][0-9]*$"
+              }
+            }
+          },
+          "rounded": {
+            "type": "boolean"
+          },
+          "method": {
+            "const": "modified_dietz"
+          },
+          "weighting": {
+            "const": "elapsed_utc_time"
+          },
+          "annualized": {
+            "const": false
+          },
+          "period_start": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "period_end": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "weighted_capital": {
+            "$ref": "#/components/schemas/CalculatedCostValue"
           }
         }
       }

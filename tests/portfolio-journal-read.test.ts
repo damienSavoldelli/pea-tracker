@@ -60,6 +60,20 @@ async function fixture(kind: 'memory' | 'd1' = 'memory') {
 }
 
 for (const kind of ['memory', 'd1'] as const) describe(`${kind} projected portfolio reads`, () => {
+  it('uses a separately sourced broker reference in projected reads without changing historical valuation', async () => {
+    const f = await fixture(kind); await f.seed();
+    const selected = new ValuationService(f.portfolio, f.service, { source_type: 'broker_statement', portfolio_id: portfolioId,
+      kind: 'real', opening_state: { id: f.opening.id, revision: 1 }, journal: { version: 0 },
+      evaluated_at: f.opening.effective_at, market_date: new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris' }).format(new Date(f.opening.effective_at)),
+      timestamp_precision: 'session_date', currency: 'EUR', securities_value: '30', cash_value: '100', total_value: '130',
+      provenance: { source: 'Synthetic broker', reference: 'Synthetic closing statement', owner_confirmed: true } });
+    const current = await selected.current(reader, portfolioId, valuationSelection);
+    assertProjected('CurrentPortfolioValuation', current);
+    expect(current.performance.economic_gain).toMatchObject({ status: 'available', value: '0' });
+    expect(current.performance.reference).toMatchObject({ source_type: 'broker_statement', quotes: [], initial_value: { value: '130' } });
+    expect(await selected.get(reader, valuationSelection)).toEqual(await f.valuation.get(reader, valuationSelection));
+  }, 30000);
+
   it('requires a selected market reference for monetary gain and treats dated flows, dividends and fees once', async () => {
     const f = await fixture(kind);
     f.context.expected_session_date = '2026-11-10';
@@ -82,7 +96,7 @@ for (const kind of ['memory', 'd1'] as const) describe(`${kind} projected portfo
     expect(state).not.toHaveProperty('events');
     expect(state).toMatchObject({ opening_state: { cash: { amount: '100' } }, cash_flows: { deposits: '20', withdrawals: '5', net_contributions: '15' } });
     expect(value).toMatchObject({ portfolio_total: { exact: '146' }, performance: { reference: { initial_value: { value: '130' } },
-      economic_gain: { value: '1' }, cash_flows: state.cash_flows, return_percentage: { status: 'unavailable' } } });
+      economic_gain: { value: '1' }, cash_flows: state.cash_flows, return_percentage: { status: 'available', method: 'modified_dietz' } } });
     expect(value.performance.warnings).toContain('freshness_stale');
     expect(await f.valuation.get(reader, valuationSelection)).toMatchObject({ portfolio_total: { exact: '130' } });
   }, 30000);

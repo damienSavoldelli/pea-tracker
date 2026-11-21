@@ -6,15 +6,15 @@ import type { QuotationService } from './quotations';
 import type { OpeningState } from '../domain/portfolio';
 import type { QuotationSelector } from '../domain/quotations';
 import { unrealizedGains } from '../domain/gains';
-import { monetaryPerformance, type MarketReferenceSnapshot } from '../domain/performance';
+import { monetaryPerformance, type PerformanceReference } from '../domain/performance';
 
 type Selection = Pick<QuotationSelector, 'provider' | 'price_kind' | 'adjustment'>;
 interface ValuedPosition { instrument_id: string; quantity: string; currency: string }
 
 /** Builds a read-only estimate from one opening revision and explicitly selected quotes. */
 export class ValuationService {
-  private readonly reference: MarketReferenceSnapshot | undefined;
-  constructor(private readonly portfolio: PortfolioService, private readonly quotations: QuotationService, reference?: MarketReferenceSnapshot) {
+  private readonly reference: PerformanceReference | undefined;
+  constructor(private readonly portfolio: PortfolioService, private readonly quotations: QuotationService, reference?: PerformanceReference) {
     this.reference = reference ? structuredClone(reference) : undefined;
   }
 

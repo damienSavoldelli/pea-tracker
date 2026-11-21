@@ -212,7 +212,16 @@ it('official MCP SDK: prepare → signed browser approval → D1 journal append,
     ACCESS_READ_ENABLED: 'true', ACCESS_PORTFOLIO_READ_ENABLED: 'true', FINANCIAL_WRITES_ENABLED: 'true',
     ACCESS_CONFIRMATION_AUD: config.browserAudience, FINANCIAL_ORIGIN: origin,
     FINANCIAL_PORTFOLIO_ID: portfolioId, FINANCIAL_OWNER_ID: writer.subject,
-    FINANCIAL_OPENING_ID: opening.id, FINANCIAL_OPENING_REVISION: String(opening.revision) };
+    FINANCIAL_OPENING_ID: opening.id, FINANCIAL_OPENING_REVISION: String(opening.revision),
+    FINANCIAL_MARKET_REFERENCE: JSON.stringify({ source_type: 'broker_statement', portfolio_id: portfolioId,
+      kind: 'real', opening_state: { id: opening.id, revision: opening.revision }, journal: { version: 0 },
+      evaluated_at: opening.effective_at, market_date: new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris' }).format(new Date(opening.effective_at)),
+      timestamp_precision: 'session_date', currency: 'EUR', securities_value: '20', cash_value: '100', total_value: '120',
+      provenance: { source: 'Synthetic broker', reference: 'Synthetic closing statement', owner_confirmed: true } }) };
+  expect(() => createAccessFinancialWorker({ ...environment,
+    FINANCIAL_MARKET_REFERENCE: environment.FINANCIAL_MARKET_REFERENCE.replace(portfolioId, crypto.randomUUID()) }, { fetch: auth.keys }))
+    .toThrow('financial_reference_binding_mismatch');
+  expect(() => createAccessFinancialWorker({ ...environment, FINANCIAL_MARKET_REFERENCE: '{}' }, { fetch: auth.keys })).toThrow();
   const app = createAccessFinancialWorker(environment, { fetch: auth.keys });
   const mcpToken = await auth.token();
   const client = new Client({ name: 'synthetic-financial-owner', version: '1' });
@@ -234,6 +243,9 @@ it('official MCP SDK: prepare → signed browser approval → D1 journal append,
   expect((await app.request(`${origin}/api/v1/quotation-batches`, { method: 'POST' })).status).toBe(404);
   expect((await app.request(`${origin}/api/v1/portfolios/${portfolioId}/transactions`, { method: 'POST' })).status).toBe(404);
   expect((await client.callTool({ name: 'ping', arguments: {} })).structuredContent).toMatchObject({ status: 'ok' });
+  expect((await client.callTool({ name: 'get_current_portfolio_valuation', arguments: { portfolio_id: portfolioId,
+    provider: 'yahoo', price_kind: 'last_trade', adjustment: 'unadjusted' } })).structuredContent)
+    .toMatchObject({ performance: { reference: { source_type: 'broker_statement', initial_value: { value: '120' } } } });
   const prepared = await client.callTool({ name: 'prepare_recorded_buy', arguments: { portfolio_id: portfolioId, ...Object.fromEntries(Object.entries(trade()).filter(([key]) => key !== 'type')) } });
   expect(prepared.isError).not.toBe(true);
   const p = prepared.structuredContent as unknown as Awaited<ReturnType<typeof f.prepare>>;
