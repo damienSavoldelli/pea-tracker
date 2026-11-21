@@ -92,7 +92,10 @@ multiple real/simulated portfolios, independent real browser approval and explic
 simulated MCP confirmation. Active status is rechecked at confirmation and SQL
 append; V1 proposals/hashes/receipts remain compatible. Not deployed; no automatic
 trading or real production event. [Scope and 55 local checks](tasks/2026_11/2026_11_21_portfolio-writes/plan.md).
-V2.0-D provider feasibility and implementation remain separate and unstarted.
+V2.0-C finalized locally at `5264794`; successor branch `feat/v2.0d-multi-provider`.
+V2.0-D feasibility study completed: **conditional GO** for adaptive collection and
+N-provider routing; no provider/fallback activation or yfinance replacement qualified.
+Local implementation has started; V2.0-D is not deployed. [Evidence, gates and proposed slices](backlog/spikes/adaptive-multi-provider-feasibility.md).
 
 **21 November 2026 — local V2.0-B delivered:** owner-scoped server resolution,
 read-only active/archived portfolio consultation through separate REST v2 routes

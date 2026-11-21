@@ -2,6 +2,21 @@
 
 ## Current state
 
+- Local V2.0-D / D2: **91 targeted Python tests passed** in 2.32 seconds (38 new
+  mapping/normalization cases, 53 existing model/D1/runner cases). Synthetic-only
+  checks cover N providers per UUID, provider symbols, distinct trade/close streams,
+  adjusted/bar rejection, provenance, subunits, clocks, missing/invalid data and
+  unchanged Yahoo/replay/deadline behavior. No provider API, full suite or deployment.
+  [Exact command, prepared contract and remaining gates](../tasks/2026_11/2026_11_21_provider-mappings/plan.md).
+
+- Local V2.0-D / D1: **17 targeted Python tests passed** (5 new boundary cases,
+  12 existing runner/CLI/replay/deadline cases). Yahoo raw fields and sanitized
+  errors, exact normalization, partial failures and byte-identical journal replay
+  preserved. Synthetic data/module stubs only; no supplier calls or full suite.
+  Earlier Yahoo PoC counts are observations, not performance guarantees; other
+  supplier results are owner-reported, not independently revalidated in D1.
+  Not deployed; [commands, supplier evidence and limits](../tasks/2026_11/2026_11_21_provider-abstraction/plan.md).
+
 - Local V2.0-C: **55 targeted tests** passed (16 financial C, 1 signed Worker/SDK
   real+simulated journey, 1 populated B→C migration/V1 proposal compatibility,
   21 existing financial/browser, 5 versioned migration, 11 B read cases), plus

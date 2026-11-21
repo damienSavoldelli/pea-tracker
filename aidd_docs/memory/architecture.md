@@ -1,5 +1,43 @@
 # Architecture
 
+## Local V2.0-D / D2 — 2026-11-21
+
+Prepared, **not activated or deployed**: `provider_mapping.py` reuses the legacy
+instrument-mapping validation for explicit provider/symbol/exchange/data-kind/
+adjustment streams. Multiple providers may map one canonical UUID; inconsistent
+local canonical metadata and ambiguous associations fail. Neutral normalization
+preserves exact prices, units, provenance and independent clocks for the existing
+unadjusted last-trade/session-close observation contract only. OHLCV bars and
+adjusted streams can be declared but are rejected for emission; date-only prices
+never acquire invented market timestamps. No live imports, new ingestion grants,
+schema changes, supplier activation or financial selection changes. Yahoo's
+existing chain and the D1 interface remain unchanged.
+[D2 decisions, 91 targeted tests and D3 limits](../tasks/2026_11/2026_11_21_provider-mappings/plan.md).
+
+## Local V2.0-D / D1 — 2026-11-21
+
+Minimal Python `QuotationProvider` protocol in the existing provider module;
+Yahoo implements its unchanged `fetch(symbol)` raw-field contract and the runner
+uses protocol annotations. No batch/session optimization, fallback, provider router,
+adaptive cadence or secondary feed. Live CLI remains Yahoo-only; the additional
+synthetic provider exists only in tests. Normalization/provenance remain explicitly
+Yahoo-specific, not a generic secondary-feed admission mechanism. Supplier results
+are recorded with measured Yahoo versus owner-reported external-provider evidence.
+Locally tested, not deployed; [D1 scope, tests and remaining gates](../tasks/2026_11/2026_11_21_provider-abstraction/plan.md).
+
+## V2.0-D feasibility — 2026-11-21
+
+Study only, **not implemented or deployed**. C finalized locally at `5264794`;
+successor branch `feat/v2.0d-multi-provider` inherits A/B/C. Conditional GO for
+adaptive collection and N-provider routing using existing Cron/DO/GitHub/Python/D1.
+Provider-scoped immutable storage exists; selection/fallback and per-instrument
+planning do not. Keep yfinance and historical explicit-provider valuation unchanged.
+EODHD delayed quotes merit a bounded PoC, subject to its indicative-data disclaimer;
+Twelve Data's XPAR page specifies EOD, not demonstrated Paris intraday. Exact
+catalogue sample, licensed retention/private MCP, data equivalence, quota budgets
+and monotonic market timestamps remain gates. No quote API PoC or remote change.
+[Evidence, official sources, cost bounds and proposed slices](../backlog/spikes/adaptive-multi-provider-feasibility.md).
+
 ## Local V2.0-C — 2026-11-21
 
 Implemented and locally tested, **not deployed**: shared `PortfolioContextService`
