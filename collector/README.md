@@ -161,6 +161,13 @@ collection window, not an exchange calendar. `COLLECTOR_INTERVAL_MINUTES` accept
 they do not change backend warning/stale thresholds. A separate read-only workflow
 detects missing successful **actual live steps**, excluding synthetic/skipped jobs.
 It adds `actions: read` solely to inspect run/job conclusions; no ingestion secret.
+One unavailable instrument already makes the collector CLI fail after delivering
+the complete batch of success/failure observations. Ingestion success alone is not
+a healthy cycle. The safe counters distinguish unavailable instruments from
+unchanged prices, which are normal before opening or outside market sessions.
+Targeted synthetic CLI-to-monitor regression cases cover partial delivery and
+recovery. The monitor retains its existing grace/age threshold and closing-slot
+checks; no new notification channel or repeated per-instrument alert is added.
 GitHub Actions email/web failure notifications were shown and saving was requested;
 saved settings and actual alert delivery were not independently verified. Retain
 these notifications for both collector and monitor. Fixed failure summaries contain no private data.
