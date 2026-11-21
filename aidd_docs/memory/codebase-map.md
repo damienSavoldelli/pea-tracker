@@ -1,5 +1,12 @@
 # Codebase Map
 
+- Local V2.0-A: `src/{domain,ports,application,adapters/d1}/portfolio-registry.ts`,
+  additive `migrations/0008_portfolio_registry.sql`. Independent openings are
+  immutable snapshots in registry rows; historical references stay in old tables.
+  No entrypoint imports the new service. Tests: `portfolio-registry.test.ts`,
+  `portfolio-registry-migration.test.ts` and existing targeted migration/MCP checks.
+  [Scope, evidence and remaining integration](../tasks/2026_11/2026_11_21_portfolio-registry/plan.md).
+
 - Current financial entrypoint: `src/entrypoints/access-financial.ts`; operational
   opening: `src/domain/operational-opening.ts`, `src/ports/operational-opening.ts`,
   `src/adapters/d1/operational-opening.ts`, migration 0007 and the local-only broker

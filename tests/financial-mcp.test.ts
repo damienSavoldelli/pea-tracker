@@ -233,6 +233,10 @@ it('official MCP SDK: prepare → signed browser approval → D1 journal append,
   });
   await client.connect(transport); cleanups.push(() => client.close());
   const tools = (await client.listTools()).tools;
+  expect(tools).toHaveLength(18);
+  expect(tools.map(tool => tool.name)).not.toContain('create_portfolio');
+  expect(tools.map(tool => tool.name)).not.toContain('register_portfolio');
+  expect((await app.request(`${origin}/api/v1/portfolios`, { method: 'POST' })).status).toBe(404);
   expect(tools.map(tool => tool.name)).toContain('confirm_financial_operation');
   expect(tools.map(tool => tool.name)).not.toContain('approve_financial_operation');
   expect(tools.find(tool => tool.name === 'confirm_financial_operation')?.annotations?.readOnlyHint).toBe(false);

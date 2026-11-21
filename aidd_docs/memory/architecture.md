@@ -1,5 +1,19 @@
 # Architecture
 
+## Local V2.0-A — 2026-11-21
+
+Implemented and locally tested, **not deployed**: additive migration 0008 creates
+`portfolios` with explicit owner/kind/status, immutable opening reference and
+atomic independent-opening JSON. N real/simulated portfolios are supported by the
+internal registry service; no new REST/MCP surface or financial writes are enabled.
+Existing operational references/journals are adopted by their stored UUID/owner,
+including populated journals, without rewriting V1/V1.1 data or canonical receipts.
+Historical global opening revisions remain dedicated to V1. Registry metadata
+version is separate from journal/opening versions; archive does not affect V1.1
+services until future resolution/status enforcement. New journal anchors, financial
+approval routing and multi-provider work remain future slices.
+[Decisions, tests and migration/rollback limits](../tasks/2026_11/2026_11_21_portfolio-registry/plan.md).
+
 ## Current baseline — 2026-11-21
 
 The real PEA remains the priority. One TypeScript/Hono application uses shared

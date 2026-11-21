@@ -2,6 +2,14 @@
 
 ## Current state
 
+- Local V2.0-A registry: **21 targeted tests** passed (11 registry, 3 populated/empty
+  V1.1 adoption scenarios, 5 versioned native D1 migration cases, 2 existing MCP
+  compatibility/security cases), plus typecheck. Synthetic old table snapshots,
+  holdings/cash/PRU, event sequences, receipts and approval digests survive upgrade;
+  no administration tool/endpoint added, simulated MCP writes still refused.
+  No full suite, remote migration or production validation.
+  [Commands, decisions and limits](../tasks/2026_11/2026_11_21_portfolio-registry/plan.md).
+
 - Current production baseline: the separately deployed operational reference and
   later write reactivation are recorded in [production evidence](../tasks/2026_11/2026_11_21_operational-start/production.md).
   Historical reads, private reference/D1 comparisons and anonymous refusal passed;

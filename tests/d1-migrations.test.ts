@@ -6,7 +6,8 @@ import { openingStateSchema } from '../src/domain/portfolio';
 
 const originalId = '10000000-0000-4000-8000-000000000001';
 const time = '2026-11-08T10:00:00.000Z';
-const migrationNames = ['0001_instruments.sql', '0002_instrument_create_outcomes.sql', '0003_opening_portfolio.sql', '0004_quotations.sql', '0005_transactions.sql'];
+const migrationNames = ['0001_instruments.sql', '0002_instrument_create_outcomes.sql', '0003_opening_portfolio.sql', '0004_quotations.sql', '0005_transactions.sql',
+  '0006_financial_approvals.sql', '0007_operational_opening.sql', '0008_portfolio_registry.sql'];
 
 async function seedOriginal(db: D1Database) {
   await db.prepare(`INSERT INTO instruments

@@ -87,6 +87,14 @@ Le calendrier borné XPAR de la branche V1.1 est implémenté et testé localeme
 
 ## V2.0 — Fondations multi-portefeuille et multi-provider
 
+**21 November 2026 — local V2.0-A delivered:** owner-scoped registry and independent
+immutable openings, additive migration and synthetic populated-journal preservation
+checks. Not deployed; no multi-portfolio REST/MCP resolution or financial activation.
+See [decisions and local evidence](tasks/2026_11/2026_11_21_portfolio-registry/plan.md).
+Approved next slices: V2.0-B server resolution/authorization/reads; V2.0-C financial
+writes/approvals; V2.0-D hybrid A+B providers, adaptive collection and controlled
+fallback after a separate feasibility study. Those slices are not implemented here.
+
 ### Multi-portefeuille
 
 - PEA réel, Trading Lab fictif et futurs portefeuilles possibles ;
