@@ -1,5 +1,40 @@
 # Architecture
 
+## Local operational restart — 2026-11-21
+
+Owner rejects reconstruction of intermediate trades. A single immutable operational
+opening may initialize the existing real portfolio's EMPTY journal; original V1
+openings/reads remain unchanged. Optional `FINANCIAL_OPERATIONAL_OPENING_ID` selects
+it for current holdings/PRU/cash with distinct cash provenance. Migration 0007 guards
+an empty journal, adds the reference and replaces historical-only journal FKs with
+equivalent immutable-anchor triggers. Import/config stay private; no remote changes
+authorized/executed for this increment. 11 targeted checks/typecheck passed.
+[Rules, limits and prepared procedure](../tasks/2026_11/2026_11_21_operational-start/plan.md).
+
+## Financial MCP activation — 2026-11-21
+
+Owner separately authorized activation deployment, version
+`6f891ed9-a06f-4b8b-8c81-acc06fdeb492`. Published financial write flag is now true;
+all other bindings match the preceding disabled version. `portfolio:write` and
+browser-only `portfolio:approve` remain distinct; every operation still needs exact
+server approval. Authenticated ping/historical read succeed; anonymous MCP is 401
+and approval page redirects to login. No proposal/transaction was created or
+approved, and no migration/Access/OAuth/ingestion/scheduler change occurred.
+Each real recording requires new explicit owner instruction; the authenticated
+browser approval journey is not yet operationally certified.
+[Activation evidence](../tasks/2026_11/2026_11_21_financial-mcp/production-2026-11-21.md).
+
+## Production financial foundation — 2026-11-21
+
+Authorized additive migrations 0005/0006 applied; existing financial Worker now uses
+the V1.1 composition, version `bd2d8531-7090-4bcd-91d6-572a21ed0770`, with
+`FINANCIAL_WRITES_ENABLED=false` verified on the published version. D1 binding and
+owner secret preserved; historical MCP read and ping succeed, financial tables
+remain empty. This running Codex connector retains its old eight-tool catalogue
+even after owner refresh: hosted V1.1 projected read/tool discovery remains pending.
+Ingestion/scheduler/OAuth unchanged; no financial event or activation authorized.
+[Operational evidence and rollback boundary](../tasks/2026_11/2026_11_21_financial-mcp/production-2026-11-21.md).
+
 ## Local financial MCP — 2026-11-21
 
 Owner-authorized local extension: explicit `portfolio:write` business permission,

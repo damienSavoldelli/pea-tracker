@@ -64,6 +64,7 @@ export class ValuationService {
       view: projected.view, portfolio_id: projected.portfolio_id, kind: projected.kind,
       calculation_version: 1 as const, evaluated_at: snapshot.evaluated_at, estimate: true as const, realtime_guaranteed: false as const,
       selection: parsed.data, opening_state: projected.opening_state, journal: projected.journal,
+      ...('operational_reference' in projected ? { operational_reference: projected.operational_reference } : {}),
       positions: unrealized.positions, cash: { ...projected.cash, status: 'known' as const, market_value: knownCash, effective_at: projected.journal.last_effective_at },
       coverage: { positions: positions.length, valued: values.length, not_valued: positions.length - values.length,
         securities_complete: complete, cash_known: true as const, total_complete: complete,

@@ -1,5 +1,11 @@
 # Financial MCP contract — local V1.1
 
+Production follow-up, 21 November: the separately authorized read-only deployment
+is recorded in [operational evidence](production-2026-11-21.md). Descriptions below
+of an unselected/unmigrated local composition refer to the earlier local milestone.
+Production writes remain disabled; hosted projected-read client verification is
+still pending in this running session.
+
 ## Confirmed implementation
 
 - MCP adapters call application services directly, just like the existing isolated

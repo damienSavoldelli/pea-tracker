@@ -2,6 +2,20 @@
 
 ## Current state
 
+- Local operational restart: **11 targeted tests** (7 new, including one explicitly
+  supplied private-reference check, plus 4 affected native D1 journal cases) and
+  typecheck passed. Covers unchanged V1, 20-position projected declarations, exact
+  cash/PRU, future trade/replay, nonempty/immutable/isolation guards, actual Worker
+  reads, OpenAPI and preserved MCP confirmation. No full suite or production write.
+  [Evidence/procedure](../tasks/2026_11/2026_11_21_operational-start/plan.md).
+
+- 21 November production follow-up: 0005/0006 and disabled-write Worker deployment
+  succeeded; published false flag, historical MCP read/ping, preserved D1 history
+  and empty financial tables verified. Anonymous financial calls return 401. The
+  running connector lacks new read tools despite owner refresh, so hosted projected
+  read/authenticated tool discovery are pending, not passed. No new test campaign
+  or financial event. [Operational evidence](../tasks/2026_11/2026_11_21_financial-mcp/production-2026-11-21.md).
+
 - Local financial MCP/owner browser approval: **53 distinct targeted tests** and
   typecheck passed (21 new, 31 affected journal/REST, 1 filtered V1/V1.1 read
   compatibility). Official MCP SDK → optional Worker composition → protected form →

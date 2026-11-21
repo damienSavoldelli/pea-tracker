@@ -17,6 +17,7 @@ import { TransactionService } from '../application/transactions';
 import { FinancialMcpService } from '../application/financial-mcp';
 import { portfolioIdSchema } from '../domain/transactions';
 import { createFinancialManagementApp } from '../financial-app';
+import { D1OperationalOpeningRepository } from '../adapters/d1/operational-opening';
 
 const configuration = z.object({
   INSTRUMENTS_DB: z.custom<D1Database>(value => value !== null && typeof value === 'object' && 'prepare' in value && 'batch' in value),
@@ -29,6 +30,7 @@ const configuration = z.object({
   FINANCIAL_ORIGIN: z.string().url(), FINANCIAL_PORTFOLIO_ID: portfolioIdSchema,
   FINANCIAL_OWNER_ID: z.string().min(1).max(128).default('owner:financial-read'),
   FINANCIAL_OPENING_ID: z.string().uuid(), FINANCIAL_OPENING_REVISION: z.coerce.number().int().positive(),
+  FINANCIAL_OPERATIONAL_OPENING_ID: z.string().uuid().optional(),
 }).strict();
 const unavailable = () => new Response('financial_service_unavailable', { status: 503, headers: { 'Cache-Control': 'no-store' } });
 
@@ -44,12 +46,22 @@ export function createAccessFinancialWorker(environment: D1LocalEnv & Record<str
     financialWritesEnabled: config.FINANCIAL_WRITES_ENABLED === 'true' }, options);
   const instruments = new D1InstrumentRepository(config.INSTRUMENTS_DB);
   const openings = new D1PortfolioRepository(config.INSTRUMENTS_DB);
+  const operational = config.FINANCIAL_OPERATIONAL_OPENING_ID ? new D1OperationalOpeningRepository(config.INSTRUMENTS_DB, {
+    portfolio_id: config.FINANCIAL_PORTFOLIO_ID, owner_subject: config.FINANCIAL_OWNER_ID,
+    id: config.FINANCIAL_OPERATIONAL_OPENING_ID,
+    historical_opening_id: config.FINANCIAL_OPENING_ID, historical_opening_revision: config.FINANCIAL_OPENING_REVISION,
+  }) : undefined;
+  const journalOpenings = operational ? { get: async (revision?: number) => {
+    const reference = await operational.get();
+    return reference && (revision === undefined || revision === reference.opening.revision) ? reference.opening : null;
+  } } : openings;
   const binding = { portfolio_id: config.FINANCIAL_PORTFOLIO_ID, owner_subject: config.FINANCIAL_OWNER_ID, kind: 'real' as const,
-    opening_id: config.FINANCIAL_OPENING_ID, opening_revision: config.FINANCIAL_OPENING_REVISION };
-  const journal = new TransactionService(new D1TransactionRepository(config.INSTRUMENTS_DB), openings, instruments, binding, clock);
+    opening_id: config.FINANCIAL_OPERATIONAL_OPENING_ID ?? config.FINANCIAL_OPENING_ID,
+    opening_revision: operational ? 1 : config.FINANCIAL_OPENING_REVISION };
+  const journal = new TransactionService(new D1TransactionRepository(config.INSTRUMENTS_DB), journalOpenings, instruments, binding, clock);
   const financial = new FinancialMcpService(journal, { portfolio_id: binding.portfolio_id, owner_subject: binding.owner_subject },
     new D1FinancialApprovalRepository(config.INSTRUMENTS_DB), clock, config.FINANCIAL_ORIGIN);
-  const portfolio = new PortfolioService(openings, instruments, clock, undefined, journal);
+  const portfolio = new PortfolioService(openings, instruments, clock, undefined, journal, operational);
   const market = createMarketCalendar(MARKET_CALENDAR_ASSIGNMENTS);
   const quotations = new QuotationService(new D1QuotationRepository(config.INSTRUMENTS_DB), instruments, [], clock,
     (_selector, now, instrument) => market(instrument, now));

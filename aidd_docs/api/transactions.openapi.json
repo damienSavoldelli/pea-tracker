@@ -1208,6 +1208,9 @@
           },
           "cash_flows": {
             "$ref": "#/components/schemas/ExternalFlows"
+          },
+          "operational_reference": {
+            "$ref": "#/components/schemas/OperationalReference"
           }
         }
       },
@@ -2218,6 +2221,9 @@
           },
           "performance": {
             "$ref": "#/components/schemas/MonetaryPerformance"
+          },
+          "operational_reference": {
+            "$ref": "#/components/schemas/OperationalReference"
           }
         }
       },
@@ -3124,6 +3130,52 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "OperationalReference": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "reason",
+          "historical_opening",
+          "cash_provenance",
+          "prior_performance_available"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "historical_opening": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "revision"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          },
+          "cash_provenance": {
+            "$ref": "#/components/schemas/Provenance"
+          },
+          "prior_performance_available": {
+            "const": false
           }
         }
       }

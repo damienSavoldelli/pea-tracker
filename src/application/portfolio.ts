@@ -9,6 +9,7 @@ import { costBasisPolicy, projectFinancialState } from '../domain/cost-basis';
 import { TransactionRuleError } from '../domain/transactions';
 import { summarizeDividends } from '../domain/dividends';
 import { summarizeExternalFlows } from '../domain/performance';
+import type { OperationalOpeningRepository } from '../ports/operational-opening';
 
 function parse<T>(schema: z.ZodType<T>, input: unknown, status: 400 | 422 = 422): T {
   const result = schema.safeParse(input);
@@ -26,7 +27,8 @@ export class PortfolioService {
   constructor(private readonly repository: PortfolioRepository, private readonly instruments: InstrumentRepository,
     private readonly clock: () => string = () => new Date().toISOString(),
     private readonly id: () => string = () => crypto.randomUUID(),
-    private readonly journal?: Pick<TransactionService, 'get'>) {}
+    private readonly journal?: Pick<TransactionService, 'get'>,
+    private readonly operational?: Pick<OperationalOpeningRepository, 'get'>) {}
 
   /** Reads one captured journal version as current quantities and cash; opening declarations remain immutable.
    * Current cost/PRU is derived separately; historical declarations remain unchanged.
@@ -40,7 +42,9 @@ export class PortfolioService {
     requirePermission(principal, 'portfolio:read');
     if (!this.journal) throw new ApplicationError(503, 'portfolio_journal_unavailable');
     const { balances, events } = await this.journal.get(principal, portfolioId);
-    const opening = await this.get(principal, balances.opening_revision);
+    const reference = this.operational ? await this.operational.get() : null;
+    if (this.operational && !reference) throw new ApplicationError(503, 'operational_opening_unavailable');
+    const opening = reference?.opening ?? await this.get(principal, balances.opening_revision);
     if (opening.id !== balances.opening_id) throw new ApplicationError(409, 'opening_anchor_mismatch');
     const evaluatedAt = this.clock();
     if (balances.last_effective_at > evaluatedAt) throw new ApplicationError(409, 'portfolio_state_after_evaluation');
@@ -56,6 +60,9 @@ export class PortfolioService {
       view: 'current_projected' as const, portfolio_id: balances.portfolio_id, kind: balances.kind, evaluated_at: evaluatedAt,
       opening_state: { id: opening.id, revision: opening.revision, effective_at: opening.effective_at,
         recorded_at: opening.recorded_at, provenance: opening.provenance, cash: opening.cash },
+      ...(reference ? { operational_reference: { id: opening.id, reason: reference.reason,
+        historical_opening: { id: reference.historical_opening_id, revision: reference.historical_opening_revision },
+        cash_provenance: reference.cash_provenance, prior_performance_available: false as const } } : {}),
       journal: { version: balances.version, last_effective_at: balances.last_effective_at },
       positions,
       cash: { ...balances.cash }, holdings_basis: 'opening_state_and_transactions' as const,
