@@ -35,6 +35,7 @@ export function createApp(dependencies: { instruments?: InstrumentHttpDependenci
           ...(protectedMcp.quotations ? { quotations: protectedMcp.quotations } : {}),
           ...(protectedMcp.currentPortfolio ? { currentPortfolio: protectedMcp.currentPortfolio } : {}),
           ...(protectedMcp.financialOperations ? { financialOperations: protectedMcp.financialOperations } : {}),
+          ...(protectedMcp.portfolioFinancial ? { portfolioFinancial: protectedMcp.portfolioFinancial } : {}),
           ...(protectedMcp.portfolioReads ? { portfolioReads: protectedMcp.portfolioReads } : {}),
           ...(protectedMcp.currentValuation ? { currentValuation: protectedMcp.currentValuation } : {}),
           ...(protectedMcp.valuation ? { valuation: protectedMcp.valuation } : {}) });

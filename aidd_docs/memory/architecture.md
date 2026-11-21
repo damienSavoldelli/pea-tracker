@@ -1,5 +1,17 @@
 # Architecture
 
+## Local V2.0-C — 2026-11-21
+
+Implemented and locally tested, **not deployed**: shared `PortfolioContextService`
+resolves B/C read/write/browser contexts. V2 proposals bind version 2 and real/
+simulated kind; the existing transaction engine is reused. Real operations retain
+independent browser approval; simulated operations need explicit MCP confirmation.
+Four new tools bring the full catalogue to 26. V1 hashes/proposals/receipts remain
+compatible and fixed to the PEA. Additive migration 0009 extends journal anchors
+and atomically refuses archived/mismatched event appends without rewriting rows.
+Consumed proposals without receipts require reconciliation, not automatic retry.
+[Contract, 55 local tests and limits](../tasks/2026_11/2026_11_21_portfolio-writes/plan.md).
+
 ## Local V2.0-B — 2026-11-21
 
 Implemented and locally tested, **not deployed**: `PortfolioReadService` resolves

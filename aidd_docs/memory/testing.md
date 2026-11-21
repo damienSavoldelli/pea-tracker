@@ -2,6 +2,14 @@
 
 ## Current state
 
+- Local V2.0-C: **55 targeted tests** passed (16 financial C, 1 signed Worker/SDK
+  real+simulated journey, 1 populated B→C migration/V1 proposal compatibility,
+  21 existing financial/browser, 5 versioned migration, 11 B read cases), plus
+  typecheck. Archive/append races, concurrent consumption/replay, exact cost/PRU,
+  circuit/owner/anchor isolation and preserved old hashes/receipts covered.
+  Synthetic local D1 only; no full suite or production validation.
+  [Commands and failure boundaries](../tasks/2026_11/2026_11_21_portfolio-writes/plan.md).
+
 - Local V2.0-B: **35 distinct targeted tests** passed (11 new native D1/service/
   REST/OpenAPI/SDK/signed Worker cases, 2 existing financial compatibility/security
   cases, 22 common Hono/MCP diagnostic cases), plus typecheck. Two synthetic owners,

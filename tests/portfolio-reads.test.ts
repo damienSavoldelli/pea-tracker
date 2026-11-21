@@ -254,7 +254,7 @@ describe('owner-scoped multi-portfolio consultation', () => {
       fetch: async (url, init) => { const request = new Request(url, init); request.headers.set('Cf-Access-Jwt-Assertion', token); return backend.fetch(request); },
     }));
     const toolNames = (await client.listTools()).tools.map(tool => tool.name);
-    expect(toolNames).toHaveLength(22);
+    expect(toolNames).toHaveLength(26);
     expect(toolNames).toEqual(expect.arrayContaining(['get_positions', 'get_opening_state', 'get_portfolio_valuation',
       'get_current_portfolio', 'get_current_portfolio_valuation', 'confirm_financial_operation', 'get_portfolio_state']));
     expect((await client.callTool({ name: 'get_current_portfolio', arguments: { portfolio_id: legacyId } })).isError).not.toBe(true);

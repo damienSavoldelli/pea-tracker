@@ -5,7 +5,7 @@ import type { FinancialMcpService } from '../../application/financial-mcp';
 
 const escape = (value: string) => value.replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]!));
 /** No scripts, external assets, management UI, or approval endpoint reachable through MCP. */
-export function financialConfirmationRoutes(service: FinancialMcpService,
+export function financialConfirmationRoutes(service: Pick<FinancialMcpService, 'confirmationPage' | 'approve'>,
   authenticateBrowser: (request: Request) => Promise<Principal>, origin: string) {
   if (!origin.startsWith('https://') || new URL(origin).origin !== origin) throw new Error('HTTPS confirmation origin required');
   const app = new Hono();
@@ -31,7 +31,8 @@ export function financialConfirmationRoutes(service: FinancialMcpService,
         const title = { buy: 'Achat exécuté', sell: 'Vente exécutée', deposit: 'Versement', withdrawal: 'Retrait', dividend: 'Dividende encaissé', reversal: 'Contrepassation' }[operation.type];
         const object = (value: unknown): Record<string, unknown> => value !== null && typeof value === 'object' ? value as Record<string, unknown> : {};
         const field = (value: unknown) => typeof value === 'string' ? value : 'Indisponible';
-        const rows: [string, string][] = [['Opération', title], ['Date UTC', operation.effective_at],
+        const rows: [string, string][] = [['Portefeuille', result.portfolio.name], ['Identifiant du portefeuille', result.portfolio.id],
+          ['Nature', result.portfolio.kind === 'real' ? 'Réel' : 'Fictif'], ['Opération', title], ['Date UTC', operation.effective_at],
           ['Source', operation.provenance.source], ['Référence source', operation.provenance.reference ?? 'Non renseignée']];
         if (operation.type !== 'reversal') rows.push([operation.type === 'dividend' ? 'Montant effectivement reçu' : 'Montant hors frais', `${operation.amount} EUR`]);
         else rows.push(['Opération corrigée', operation.reversal_of], ['Motif', operation.reason]);

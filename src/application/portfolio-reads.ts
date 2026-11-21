@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PortfolioRegistryService } from './portfolio-registry';
+import { PortfolioContextService } from './portfolio-context';
 import { PortfolioService } from './portfolio';
 import { TransactionService } from './transactions';
 import { ValuationService } from './valuation';
@@ -17,13 +17,13 @@ export const portfolioListQuerySchema = z.object({ limit: z.number().int().min(1
 
 /** Read-only resolution. No active-portfolio state and no write/approval service escapes this boundary. */
 export class PortfolioReadService {
-  private readonly registry: PortfolioRegistryService;
+  private readonly contexts: PortfolioContextService;
   private readonly references: ReadonlyMap<string, PerformanceReference>;
   constructor(private readonly dependencies: {
     registry: PortfolioRegistryRepository; instruments: InstrumentRepository; transactions: TransactionRepository;
     quotations: QuotationService; references?: ReadonlyMap<string, PerformanceReference>; clock?: () => string;
   }) {
-    this.registry = new PortfolioRegistryService(dependencies.registry, dependencies.instruments, dependencies.clock);
+    this.contexts = new PortfolioContextService(dependencies.registry, dependencies.instruments);
     this.references = new Map([...(dependencies.references ?? [])].map(([id, reference]) => [id, structuredClone(reference)]));
   }
   async list(principal: Principal | null, input: unknown = {}) {
@@ -36,10 +36,9 @@ export class PortfolioReadService {
     return { data, page: { next_after: rows.length > data.length ? data.at(-1)!.id : null }, read_only: true as const };
   }
   private async resolve(principal: Principal | null, id: unknown) {
-    const portfolio = await this.registry.get(principal, id);
+    const { portfolio, opening } = await this.contexts.resolve(principal, id);
     // The registry parser validates both kind and status. Archived portfolios are readable,
     // never reactivated or written; they are not promised a frozen archive-date valuation.
-    const opening = await this.registry.opening(principal, portfolio.id);
     const reference = this.references.get(portfolio.id);
     if (reference && (reference.portfolio_id !== portfolio.id || reference.kind !== portfolio.kind ||
       reference.opening_state.id !== opening.id || reference.opening_state.revision !== opening.revision))

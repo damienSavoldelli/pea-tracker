@@ -21,6 +21,8 @@ import { D1OperationalOpeningRepository } from '../adapters/d1/operational-openi
 import { brokerReferenceSchema } from '../domain/performance';
 import { D1PortfolioRegistryRepository } from '../adapters/d1/portfolio-registry';
 import { PortfolioReadService } from '../application/portfolio-reads';
+import { PortfolioContextService } from '../application/portfolio-context';
+import { PortfolioFinancialService } from '../application/portfolio-financial';
 
 const configuration = z.object({
   INSTRUMENTS_DB: z.custom<D1Database>(value => value !== null && typeof value === 'object' && 'prepare' in value && 'batch' in value),
@@ -63,8 +65,18 @@ export function createAccessFinancialWorker(environment: D1LocalEnv & Record<str
     opening_id: config.FINANCIAL_OPERATIONAL_OPENING_ID ?? config.FINANCIAL_OPENING_ID,
     opening_revision: operational ? 1 : config.FINANCIAL_OPENING_REVISION };
   const journal = new TransactionService(new D1TransactionRepository(config.INSTRUMENTS_DB), journalOpenings, instruments, binding, clock);
+  const registry = new D1PortfolioRegistryRepository(config.INSTRUMENTS_DB);
+  const contexts = new PortfolioContextService(registry, instruments);
+  const approvals = new D1FinancialApprovalRepository(config.INSTRUMENTS_DB);
   const financial = new FinancialMcpService(journal, { portfolio_id: binding.portfolio_id, owner_subject: binding.owner_subject },
-    new D1FinancialApprovalRepository(config.INSTRUMENTS_DB), clock, config.FINANCIAL_ORIGIN);
+    approvals, clock, config.FINANCIAL_ORIGIN, { format: 1, kind: 'real', check: async principal => {
+      const context = await contexts.resolve(principal, binding.portfolio_id, principal.permissions.includes('portfolio:write') ? 'write' : 'approve');
+      if (context.binding.kind !== binding.kind || context.opening.id !== binding.opening_id || context.opening.revision !== binding.opening_revision)
+        throw new Error('legacy_financial_binding_mismatch');
+      return { id: context.portfolio.id, name: context.portfolio.name, kind: context.portfolio.kind };
+    } });
+  const portfolioFinancial = new PortfolioFinancialService({ registry, instruments, transactions: new D1TransactionRepository(config.INSTRUMENTS_DB),
+    approvals, clock, origin: config.FINANCIAL_ORIGIN, legacy: financial });
   const portfolio = new PortfolioService(openings, instruments, clock, undefined, journal, operational);
   const market = createMarketCalendar(MARKET_CALENDAR_ASSIGNMENTS);
   const quotations = new QuotationService(new D1QuotationRepository(config.INSTRUMENTS_DB), instruments, [], clock,
@@ -74,7 +86,7 @@ export function createAccessFinancialWorker(environment: D1LocalEnv & Record<str
     reference.opening_state.id !== binding.opening_id || reference.opening_state.revision !== binding.opening_revision))
     throw new Error('financial_reference_binding_mismatch');
   const valuation = new ValuationService(portfolio, quotations, reference);
-  const reads = new PortfolioReadService({ registry: new D1PortfolioRegistryRepository(config.INSTRUMENTS_DB),
+  const reads = new PortfolioReadService({ registry,
     instruments, transactions: new D1TransactionRepository(config.INSTRUMENTS_DB), quotations, clock,
     references: new Map(reference ? [[binding.portfolio_id, reference]] : []) });
   const service = new InstrumentService(instruments, clock);
@@ -83,7 +95,7 @@ export function createAccessFinancialWorker(environment: D1LocalEnv & Record<str
     rest: { portfolioReads: { service: reads, authenticate }, instruments: { service, authenticate }, quotations: { service: quotations, authenticate },
       portfolio: { service: portfolio, authenticate }, valuation: { service: valuation, authenticate },
       currentPortfolio: { portfolio, valuation, authenticate } },
-    mcp: { service, portfolio, quotations, valuation, currentPortfolio: portfolio, currentValuation: valuation, portfolioReads: reads,
+    mcp: { service, portfolio, quotations, valuation, currentPortfolio: portfolio, currentValuation: valuation, portfolioReads: reads, portfolioFinancial,
       challenge: () => 'Bearer', oauthScopes: [] } });
   const app = new Hono();
   app.use('*', async (context, next) => { await next(); context.header('Cache-Control', 'no-store'); context.header('X-Content-Type-Options', 'nosniff'); });

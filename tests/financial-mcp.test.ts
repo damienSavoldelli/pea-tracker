@@ -207,6 +207,12 @@ it('official MCP SDK: prepare → signed browser approval → D1 journal append,
   const f = await fixture('d1'); const auth = await accessFixture();
   const config = { ...accessConfig, browserAudience: 'b'.repeat(64), internalSubject: writer.subject, financialWritesEnabled: true };
   const opening = await f.openingService.get(portfolioReader);
+  // This fixture initializes legacy data after migrations; explicitly adopt its stable binding.
+  await f.local!.db.prepare(`INSERT INTO transaction_journals(portfolio_id,kind,owner_subject,opening_id,opening_revision,version)
+    VALUES (?,'real',?,?,?,0)`).bind(portfolioId, writer.subject, opening.id, opening.revision).run();
+  await f.local!.db.prepare(`INSERT INTO portfolios(id,owner_subject,name,kind,status,version,opening_source,opening_id,opening_revision,created_at,updated_at)
+    VALUES (?,?,'Synthetic historical PEA','real','active',1,'historical',?,?,?,?)`)
+    .bind(portfolioId, writer.subject, opening.id, opening.revision, opening.recorded_at, opening.recorded_at).run();
   const environment = { INSTRUMENTS_DB: f.local!.db, ACCESS_TEAM_DOMAIN: config.issuer,
     ACCESS_READ_AUD: config.audience, ACCESS_OWNER_SUB: config.ownerSubject,
     ACCESS_READ_ENABLED: 'true', ACCESS_PORTFOLIO_READ_ENABLED: 'true', FINANCIAL_WRITES_ENABLED: 'true',
@@ -233,7 +239,7 @@ it('official MCP SDK: prepare → signed browser approval → D1 journal append,
   });
   await client.connect(transport); cleanups.push(() => client.close());
   const tools = (await client.listTools()).tools;
-  expect(tools).toHaveLength(22);
+  expect(tools).toHaveLength(26);
   expect(tools.map(tool => tool.name)).not.toContain('create_portfolio');
   expect(tools.map(tool => tool.name)).not.toContain('register_portfolio');
   expect((await app.request(`${origin}/api/v1/portfolios`, { method: 'POST' })).status).toBe(404);

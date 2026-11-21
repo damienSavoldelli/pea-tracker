@@ -1,5 +1,13 @@
 # Codebase Map
 
+- Local V2.0-C: `src/application/portfolio-context.ts` (shared B/C resolution),
+  `portfolio-financial.ts` (V2 routing), `src/adapters/mcp/portfolio-financial.ts`,
+  versioned proposal union and existing financial service/approval adapters.
+  Browser dispatch/identity: `src/financial-app.ts`, `src/adapters/rest/financial-confirmation.ts`.
+  Migration 0009 extends journal anchors and active-status SQL guards.
+  Tests: `portfolio-financial{,.worker}.test.ts`, `portfolio-writes-migration.test.ts`.
+  [Decisions and evidence](../tasks/2026_11/2026_11_21_portfolio-writes/plan.md).
+
 - Local V2.0-B: `src/application/portfolio-reads.ts`,
   `src/adapters/{rest,mcp}/portfolio-reads.ts`; optional Hono/MCP wiring and financial
   entrypoint injection. Contract: `aidd_docs/api/portfolio-reads.openapi.json`.
