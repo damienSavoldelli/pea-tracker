@@ -13,22 +13,43 @@
   `portfolio-registry-migration.test.ts` and existing targeted migration/MCP checks.
   [Scope, evidence and remaining integration](../tasks/2026_11/2026_11_21_portfolio-registry/plan.md).
 
+## Published V1.1.0 — reviewed 2026-11-22
+
+[Release](../releases/v1.1.0.md) and [validation/RETEX](../releases/v1.1.0-validation.md)
+define the shipped scope and acceptance limits, including the first real approved
+financial write/receipt/replay still to validate.
+
+- Broker market-value reference, economic gain and estimated Modified Dietz:
+  `src/domain/performance.ts`, `src/application/valuation.ts` and the existing
+  financial entrypoint. Current projections use the separate 20 November
+  operational opening; historical V1 reads remain unchanged.
+- Partial venue calendar: `src/adapters/calendar/market-calendar.ts` accepts explicit
+  closure-only assignments for 19 XPAR instruments alongside individual profiles.
+  No individual mode is inferred; intraday/ALXP remain unknown. Closing monitoring
+  at 20:09 Paris was observed successful on 20 November.
+- The 18 MCP tools comprise 11 reads/diagnostics, six preparations and one confirmation;
+  exact-intent browser approval remains a separately authorized channel. Financial
+  OpenAPI: [transactions.openapi.json](../api/transactions.openapi.json).
+
 - Current financial entrypoint: `src/entrypoints/access-financial.ts`; operational
   opening: `src/domain/operational-opening.ts`, `src/ports/operational-opening.ts`,
   `src/adapters/d1/operational-opening.ts`, migration 0007 and the local-only broker
   preparation script. Historical/current service selection is separate.
-  [Production state](../tasks/2026_11/2026_11_21_operational-start/production.md)
-  supersedes older statements below that the financial entrypoint is unselected.
+  [Operational-reference deployment](../tasks/2026_11/2026_11_21_operational-start/production.md)
+  records that stage; consolidated release evidence above supersedes older inactive claims.
 
 - Financial MCP: `src/application/financial-mcp.ts`,
   `src/adapters/mcp/financial-tools.ts`, `src/domain/financial-proposal.ts`,
-  `src/ports/financial-approval.ts`, Memory/D1 approval adapters and additive local
+  `src/ports/financial-approval.ts`, Memory/D1 approval adapters and applied
   migration `0006_financial_approvals.sql`. Browser form:
   `src/adapters/rest/financial-confirmation.ts`; exact-owner/two-AUD policy:
   `src/adapters/auth/financial-access.ts`. Active same-Worker entrypoint
   `src/entrypoints/access-financial.ts` reuses journal/projected services and V1 reads.
   [Initial local evidence](../tasks/2026_11/2026_11_21_financial-mcp/plan.md);
   [current security contract](../tasks/2026_11/2026_11_21_financial-mcp/contract.md).
+
+The following dated checkpoint preserves earlier local-only and unavailable-state
+claims; it does not describe the published V1.1.0 baseline above.
 
 ## Local V1.1 financial journal — 2026-11-19
 
@@ -49,7 +70,7 @@
 - `src/transaction-app.ts`, `aidd_docs/api/transactions.openapi.json`: opt-in REST composition, never mounted by production entrypoints or MCP. Tests: `tests/transactions{,.d1}.test.ts`.
 - [Contract and limits](../tasks/2026_11/2026_11_19_financial-journal/contract.md); [calendar assignment evidence](../tasks/2026_11/2026_11_14_market-calendar/finalization-2026-11-19.md).
 
-Current reference: [V1 acceptance and RETEX](../releases/v1.0.0-validation.md). Earlier slice descriptions below are historical.
+Release reference: [V1.1 acceptance and RETEX](../releases/v1.1.0-validation.md); [V1 acceptance](../releases/v1.0.0-validation.md) preserves history. Earlier slice descriptions below are historical.
 
 - Scheduler: `src/entrypoints/scheduler.ts`, `src/scheduling/github-dispatch.ts`, `wrangler.scheduler.jsonc`; durable receipts, no financial D1 binding.
 - Dispatch-only workflows: `.github/workflows/quotation-collector.yml`, `.github/workflows/quotation-monitor.yml`.

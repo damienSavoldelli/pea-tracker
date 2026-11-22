@@ -6,7 +6,7 @@ The source repository is public; tracked fixtures are synthetic. Production port
 
 ## Project status
 
-V1.0.0 was published on 2026-11-19. The V1.1 financial foundation is developed, locally tested and deployed through separately authorized stages. The operational reference is distinct from historical V1; journal writes are enabled with independent browser approval. No real transaction has yet completed that approval/write/replay journey in production. No V1.1 tag or release is claimed.
+V1.1.0 was published on 2026-11-21, after V1.0.0 on 2026-11-19. Financial management, EUR gains, estimated Modified Dietz returns and a partial venue calendar are deployed. Current reads use the separate operational reference at the close of 20 November, preserving historical V1. Journal writes are enabled with independent browser approval; the first real approval/write/receipt/replay journey is still not production-validated.
 
 | Capability | Status |
 | --- | --- |
@@ -15,14 +15,14 @@ V1.0.0 was published on 2026-11-19. The V1.1 financial foundation is developed, 
 | REST/MCP consultation | Historical V1 preserved; separate V1.1 projected holdings, cash, PRU, gains and journal reads |
 | Python/yfinance ingestion | Operational, through a dedicated Cloudflare Access machine policy |
 | Automation | Cloudflare Cron and Durable Object receipts → GitHub workflow_dispatch → Python → ingestion |
-| V1 monitoring | Hourly 07:09–20:09 Paris; explicit final-slot check at 20:09 |
-| V1.1 calendar | Bounded XPAR continuous-core adapter implemented and tested locally; no production assignment/activation |
+| V1 monitoring | Hourly 07:09–20:09 Paris; closing check observed successful on 20 November |
+| V1.1 calendar | 19 XPAR instruments assigned to known full-day closures for 2026–2027; individual continuous/fixing modes unqualified, intraday phases and ALXP remain unknown |
 | V1.1 financial management | EUR trades, cash movements, fees, dividends, reversals, exact weighted PRU and realized/unrealized gains implemented and deployed; real write journey not yet production-validated |
-| Financial MCP commands | Prepare → owner browser approval → exact-intent confirmation; separate server permissions, expiry, single consumption and idempotent receipts |
-| Global performance | Dated external flows and conditional monetary gain implemented; real market-value reference absent, percentage return unavailable |
+| Financial MCP commands | 18 tools: 11 reads/diagnostics, six preparations, one confirmation; independent browser approval, separate server permissions, expiry and idempotent receipts |
+| Global performance | Broker closing market-value reference selected for 20 November; economic gain in EUR and estimated, non-annualized Modified Dietz percentage adjusted for dated external flows; explicit unavailable statuses on missing inputs |
 | Diagnostic Workers | Separate historical PoCs, not the production financial read endpoint |
 
-See [V1 acceptance and RETEX](aidd_docs/releases/v1.0.0-validation.md) and [release notes](aidd_docs/releases/v1.0.0.md).
+See [V1.1.0 release notes](aidd_docs/releases/v1.1.0.md), [V1.1 validation and RETEX](aidd_docs/releases/v1.1.0-validation.md) and [historical V1 acceptance](aidd_docs/releases/v1.0.0-validation.md).
 
 ## Architecture
 
@@ -108,8 +108,8 @@ The [V1 acceptance record](aidd_docs/releases/v1.0.0-validation.md) preserves th
 
 The [roadmap](aidd_docs/roadmap.md) separates the delivered financial foundation from remaining work:
 
-- **V1.1 financial foundation:** implemented and deployed; real owner-approved write/replay acceptance remains open. The reference is not reconstructed history or an initial market valuation.
-- **V1.1 remaining:** qualify/activate bounded calendar assignments, verify closing monitoring in operation, decide useful per-instrument/external alerting, and establish a valid market-value reference before reporting global economic gain. Percentage return is not implemented. Any deferral from the original full V1.1 scope needs an explicit release-scope decision.
+- **V1.1.0 delivered:** journal, cash, fees/dividends, exact cost/PRU/gains, protected financial MCP, separate operational opening, broker market-value reference and Modified Dietz. Operational positions/PRU are distinct from the explicitly selected market valuation used for performance. No earlier trades or prices were reconstructed.
+- **V1.1 limits:** first real owner-approved write/replay acceptance, individual continuous/fixing modes, ALXP and unestablished intraday phases remain open. Monitoring depends on GitHub; advanced/independent alerting is not delivered. Returns remain estimates with source/freshness caveats, not reconstructed pre-reference history or exact TWR.
 - **V2.0:** multi-portfolio isolation and shared market data; multi-provider support.
 - **V2.1:** OHLCV, watchlists and deterministic indicators.
 - **V2.2:** Trading Lab decision journal; evaluate TradingView Paper Trading before any optional internal simulation.
@@ -124,6 +124,7 @@ Small Trading Lab increments remain conditional on feasibility and preserving th
 - [Roadmap and validated scope decisions](aidd_docs/roadmap.md)
 - [Approved financial backend PRD](aidd_docs/tasks/2026_11/2026_11_08-financial-backend-prd.md)
 - [OpenAPI contract](aidd_docs/api/openapi.json)
+- [V1.1 financial OpenAPI contract](aidd_docs/api/transactions.openapi.json)
 - [Collector guide](collector/README.md)
 - [Collector implementation and evidence](aidd_docs/tasks/2026_11/2026_11_11_collector/plan.md)
 - [Quotation and freshness contract](aidd_docs/tasks/2026_11/2026_11_11_quotations/contract.md)
