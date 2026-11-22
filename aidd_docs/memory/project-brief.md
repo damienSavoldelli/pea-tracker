@@ -1,22 +1,27 @@
 # Project Brief
 
-## Current delivery — 2026-11-21
+## Published delivery — reviewed 2026-11-22
 
-V1.0.0 is published. The V1.1 financial foundation is implemented, locally tested
-and deployed on the existing financial Worker. Historical V1 reads are preserved;
+V1.1.0 was published on 21 November after V1.0.0. The financial foundation is
+implemented, locally tested and deployed on the existing Worker. Historical V1 reads are preserved;
 current reads use a separately imported operational reference and an initially
 empty journal, without reconstructing omitted trades. Financial MCP commands are
 enabled with exact-owner authorization and independent browser approval. No real
 transaction has validated that complete approval/write/replay journey in production.
 
 Exact cost/PRU, fees, dividends, realized/unrealized gains and dated external flows
-are implemented. Historical fee treatment remains unknown. No initial market-value
-reference has been selected for global monetary performance; no percentage return
-is implemented. Calendar qualification/activation and advanced monitoring remain
+are implemented. Historical fee treatment remains unknown. The separate broker
+market-value reference at the 20 November close supports EUR economic gain and
+estimated non-annualized Modified Dietz with dated external flows, source caveats
+and explicit unavailable states. No earlier transactions/prices are reconstructed.
+The 18 MCP tools provide 11 reads/diagnostics, six preparations and one confirmation;
+browser approval has its own server permission. The partial venue calendar covers
+19 XPAR instruments on fully closed days; individual modes/intraday/ALXP remain
+unknown. Closing monitoring succeeded on 20 November; independent alerting remains
 open in the [roadmap](../roadmap.md). Do not reopen completed OAuth diagnostics or
 financial implementation solely because older slice documents describe local scope.
 
-[Operational evidence](../tasks/2026_11/2026_11_21_operational-start/production.md)
+[Release scope](../releases/v1.1.0.md), [consolidated validation](../releases/v1.1.0-validation.md)
 and [financial security contract](../tasks/2026_11/2026_11_21_financial-mcp/contract.md).
 New commits and remote changes still require the applicable explicit authorization.
 
@@ -40,7 +45,7 @@ New commits and remote changes still require the applicable explicit authorizati
 | Declared PRU | Broker-supplied unit value retained as a declaration; not an exact reconstructed historical total cost |
 | Calculated PRU / cost basis | Implemented exact weighted-average cost; declared buy fees capitalized, sell fees deducted from proceeds; historical fee treatment unknown |
 | Unrealized gains | Current valuation relative to approved remaining cost basis; distinct from total portfolio performance |
-| Total portfolio performance | Period-based result requiring approved cash-flow/history methodology; unavailable when source history is insufficient |
+| Total portfolio performance | EUR economic gain and estimated Modified Dietz since the selected 20 November broker market-value reference, adjusted for dated external flows; unavailable on missing/incompatible inputs, not reconstructed prior history |
 | market_timestamp | Timestamp associated with the provider's market observation |
 | fetched_at | Time the collector obtained the observation |
 | MCP ping | Non-sensitive protocol connectivity probe; proves neither portfolio correctness nor authentication |
@@ -52,4 +57,4 @@ New commits and remote changes still require the applicable explicit authorizati
 - Detailed portfolio accounting and performance methodology belong in a PRD before implementation; do not infer rules from the architecture.
 - The [financial backend PRD](../tasks/2026_11/2026_11_08-financial-backend-prd.md) preserves its owner-approved product baseline (2026-11-08) and adds a dated current-scope supplement. Dated opening state initializes existing holdings without fabricated transactions; incomplete source history means unavailable historical performance.
 - The owner approved [Financial Instruments implementation](../tasks/2026_11/2026_11_08_financial-instruments/plan.md), including real loopback HTTP tests with synthetic principals; its [OpenAPI contract](../api/openapi.json) is implemented locally. Catalog delivery does not depend on advanced financial rules. The broader [design proposal](../tasks/2026_11/2026_11_06_financial-backend/design.md) remains context, not blanket approval.
-- Historical authorization started with synthetic instrument/local D1 slices; separately authorized V1 operation followed with Access owner reads and machine ingestion. The bounded calendar is now separately authorized, implemented and tested locally; see [calendar evidence and exclusions](../tasks/2026_11/2026_11_14_market-calendar/reference-validation.md). This does not approve broader V1.1 feasibility or remote activation. Code, new data loads, tests, remote operations, Git staging/publication and security changes still require their applicable authorization; none of these historical permissions is permanent. Scheduled operation on 16 November still needs confirmation; a functional V1 does not certify all security/recovery gates.
+- Historical synthetic/local approvals were followed by separately authorized V1 operation and the published V1.1.0. Use the [consolidated evidence](../releases/v1.1.0-validation.md) for delivered scope, partial calendar activation and closing monitoring, keeping earlier pending checkpoints historical. The first real owner-approved financial write remains unvalidated; functional reads do not certify all security/recovery gates. Code, new data loads, tests, remote operations, Git staging/publication and security changes still require their applicable authorization; historical permissions are not permanent.
