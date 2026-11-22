@@ -2,7 +2,7 @@
 
 Architecture baseline, current implementation and remaining validation requirements.
 
-Current status (2026-11-21): V1.0.0 published and accepted with minor reservations. The V1.1 financial foundation and separate operational reference are now deployed; financial MCP writes are enabled with exact-owner authorization and independent browser consent. Actual transaction approval/write/replay is not yet production-validated. Calendar activation, advanced monitoring and global-return limits remain explicit in the [roadmap delivery matrix](roadmap.md). See [V1 acceptance](releases/v1.0.0-validation.md) and [V1.1 production evidence](tasks/2026_11/2026_11_21_operational-start/production.md). Earlier dated gates below are historical where superseded by these records.
+Current release baseline (reviewed 2026-11-22): V1.1.0 was published on 21 November, preserving V1.0.0. Financial management, the separate operational opening and broker market-value reference at the close of 20 November, EUR gains and estimated Modified Dietz returns are deployed. Financial MCP writes require exact-owner authorization and independent browser consent; the first real approval/write/receipt/replay journey remains unvalidated. The partial calendar covers full-day closures for 19 XPAR instruments; individual modes, intraday phases and ALXP remain unknown. Closing monitoring was observed successful on 20 November. See [V1.1 release](releases/v1.1.0.md), [consolidated validation](releases/v1.1.0-validation.md), [historical V1 evidence](releases/v1.0.0-validation.md) and the [remaining scope](roadmap.md). Earlier dated gates below are historical where superseded by these records.
 
 Foundation approved 2026-11-06; documentation synchronized 2026-11-14 with the
 owner handover and [roadmap scope decisions](roadmap.md). Historical V1 contracts
@@ -14,15 +14,15 @@ deployment or spending authorization.
 
 | Status | Scope and limits |
 | --- | --- |
-| Developed / locally tested | V1 reads plus V1.1 journal, projected holdings/cash, fees/dividends, exact cost/PRU/gains, dated external flows, conditional monetary gain, protected MCP commands and independent browser approval |
+| Developed / locally tested | V1 reads plus V1.1 journal, projected holdings/cash, fees/dividends, exact cost/PRU/gains, external flows, broker-reference economic gain, Modified Dietz, protected MCP commands and partial venue calendar |
 | Tested locally | Prior synthetic domain, Memory/native D1, REST/OpenAPI/MCP, idempotency, concurrency, migration and restart checks recorded in slice contracts/plans; not rerun here |
-| Deployed / verified | V1 preservation, operational-reference import, empty journal, published write flag, unchanged D1/owner/audiences, authenticated historical MCP reads and anonymous refusal; owner reports current reads in ChatGPT |
+| Deployed / verified | V1 preservation, operational-reference import with empty journal at initialization, write flag and separate audiences, historical MCP reads, anonymous refusal, 19 XPAR closure contexts and closing monitor; owner confirmed current reads, 18 tools and EUR/Modified Dietz in ChatGPT |
 | Still to confirm | Real owner browser approval → exact financial write → unique receipt/replay → projected reads. No fictitious real-PEA transaction is permitted for acceptance |
-| Remaining / planned | Qualified calendar activation, closing-monitor proof and additional alerts, evidenced initial market valuation/global return; V2.0–V2.3 remain future scope |
+| Remaining / planned | Individual continuous/fixing modes, ALXP/intraday uncertainty, independent alerting, recovery and runtime-budget evidence; pre-reference history is not reconstructed and Modified Dietz remains an estimate; V2.0–V2.3 remain future scope |
 
 The financial reader is `pea-tracker-financial-read`; ingestion is
 `pea-tracker-quotes-ingestion`. The root diagnostic composition and old OAuth PoCs
-are separate. V1.0.0 is published; no V1.1 tag/release is claimed. Runtime profiling, independent
+are separate. V1.1.0 is published at tag `v1.1.0`, merge `c6e7dee`. Runtime profiling, independent
 recovery and other unproven requirements below remain unproven; functional V1
 reads are not evidence that every original production gate passed.
 
@@ -287,11 +287,17 @@ today's PRU or double-count dividends using adjusted prices plus cash distributi
 
 ### Authentication, authorization and historical evaluation
 
-**Current V1:** owner reads use Cloudflare Access with Managed OAuth and exact
-owner verification. Machine ingestion uses separate Access Service Tokens/Service
+**Current V1/V1.1:** owner MCP uses Cloudflare Access with Managed OAuth and exact
+owner verification. Its 18 tools comprise 11 reads/diagnostics, six preparations and
+one confirmation. `portfolio:write` does not grant browser-only `portfolio:approve`;
+approval uses a distinct signed audience and binds the exact expiring intent once.
+Client flags never authorize a financial write. Machine ingestion uses separate Access Service Tokens/Service
 Auth with a distinct audience and signed machine identity, mapped only to bounded
 ingestion grants. The existing adapters verify JWT signatures, issuer, audience
-and time bounds; the machine assertion lifetime limit remains 300 seconds.
+and time bounds (`iat`, `exp`, `nbf`, clock tolerance). The arbitrary 300-second
+total assertion-lifetime cap was removed in V1 (`d5e8fe3`); cryptographic/temporal
+validation and identity/grant checks remain mandatory. The financial proposal's
+five-minute expiry is a separate business safeguard, not a JWT lifetime limit.
 The collector does not acquire an interactive owner OAuth token.
 
 The table below preserves the original Provider/Auth0 comparison as historical
@@ -383,9 +389,10 @@ Cloudflare schedules dispatch-only GitHub collection weekdays 07:17–19:47 Pari
 with DST-aware planning and hourly monitoring through 20:09. Native GitHub schedules
 were removed after irregular triggering; the V1 acceptance record preserves that
 incident and the successful replacement. This is a scheduling window, not a market
-calendar. The bounded XPAR adapter is locally tested, but per-instrument qualification
-and production assignment are not established by the available evidence; unknown
-phases stay unknown. Bounded retries, timeouts,
+calendar. The 20:09 closing monitor was observed successful on 20 November. The
+bounded calendar has 19 explicit XPAR venue assignments for known full-day closures;
+this does not qualify continuous/fixing hours. Individual intraday phases and ALXP
+stay unknown, with no extrapolation beyond 2026–2027. Bounded retries, timeouts,
 concurrency and idempotent delivery are implemented. A fresh GitHub rerun without
 the original private journal fails closed; it is not automatic cross-run recovery.
 

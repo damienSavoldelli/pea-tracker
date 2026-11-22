@@ -31,22 +31,22 @@ Objectif : consulter le PEA réel depuis ChatGPT : positions, liquidités, derni
 
 La V1.0.0 est publiée sur le commit `1f6ba490550e0355be65d8667e3e80b5ca98ddef`, tag annoté `v1.0.0`. L'automatisation Cloudflare → GitHub Actions a été validée avec réserves mineures le 19 novembre : 21 collectes consécutives, 20 instruments ingérés par cycle, 13 monitorings exécutés. Les incidents du matin et les limites de preuve sont conservés dans le [bilan V1 et RETEX](releases/v1.0.0-validation.md). Les anciens schedules GitHub et le workflow de diagnostic ont été supprimés ; `workflow_dispatch` et les protections sont conservés. Ne pas compromettre cette V1.
 
-Le calendrier borné XPAR de la branche V1.1 est implémenté et testé localement ; sans affectation instrument/profil vérifiée et activation autorisée, la production conserve sa fraîcheur inconnue. Le monitoring dépend encore de GitHub et le heartbeat externe n'est pas configuré. Le contrôle de clôture à 20 h 09 Paris vérifie les derniers créneaux attendus ; son déploiement ne remplace pas sa preuve d'exécution. Une limite d'appels de consultation n'établit pas un échec de collecte.
+La V1.1 publiée ajoute un calendrier de place partiel : 19 affectations XPAR pour les journées entièrement fermées, sans qualification des modes continu/fixing ni des phases intraday ; ALXP reste `unknown`. Le monitoring dépend encore de GitHub et le heartbeat externe n'est pas configuré. Le contrôle de clôture à 20 h 09 Paris a été observé réussi le 20 novembre ; cette preuve ultérieure ne modifie pas le bilan historique du 19. Une limite d'appels de consultation n'établit pas un échec de collecte.
 
 ## V1.1 — Gestion quotidienne du PEA réel
 
-**État documentaire au 21 novembre : socle financier développé, testé localement et déployé.** Journal EUR, achats/ventes, versements/retraits, contrepassations, frais, dividendes, coût/PRU pondéré et gains réalisés/latents sont raccordés aux lectures V1.1 ; contrats V1 préservés. Les écritures MCP sont activées avec permissions serveur et approbation indépendante par navigateur, mais aucune transaction réelle n'a encore validé tout le parcours en production. L'état opérationnel Bourse Direct au 20 novembre est distinct de l'ouverture historique du 13 ; le journal commence sans reconstituer les opérations intermédiaires. Voir les [preuves opérationnelles](tasks/2026_11/2026_11_21_operational-start/production.md).
+**V1.1.0 publiée le 21 novembre 2026, tag `v1.1.0`, commit `c6e7dee` ; état revu le 22 novembre.** Journal EUR, achats/ventes, versements/retraits, contrepassations, frais, dividendes, coût/PRU pondéré, gains et rendement estimatif Modified Dietz sont livrés ; contrats V1 préservés. Les 18 outils MCP comprennent 11 lectures/diagnostics, six préparations et une confirmation ; l'approbation indépendante par navigateur conserve sa permission propre. Aucune transaction réelle n'a encore validé tout le parcours en production. L'état opérationnel Bourse Direct à la clôture du 20 novembre est distinct de l'ouverture historique du 13 ; les opérations intermédiaires ne sont pas reconstituées. La référence initiale de marché, séparée du PRU, conserve sa provenance courtier. Voir la [release](releases/v1.1.0.md) et les [preuves consolidées](releases/v1.1.0-validation.md).
 
 | Bloc | Développé / testé localement | Déploiement / limite restante |
 | --- | --- | --- |
 | Journal, liquidités, frais, dividendes, PRU et gains | Oui, services métier exacts et isolation explicite | Déployés ; aucune nouvelle transaction de production ni historique artificiel |
 | MCP financier et approbation navigateur | Oui, refus, expiration, empreinte, consommation unique et rejeu couverts | Drapeau actif, identité/audiences séparées et accès anonymes refusés ; parcours réel complet encore non validé |
 | Reprise opérationnelle, migration 0007 | Oui, référence immuable et garde journal vide | Déployée, données privées comparées exactement et V1 préservée |
-| Calendrier / fraîcheur | XPAR continu borné 2026–2027, phases non établies à `unknown` | Affectations instrument/profil et activation réelle non attestées ; aucune promesse de temps réel |
-| Monitoring | Cycles manquants et contrôle des derniers créneaux | Socle V1 opérationnel ; preuve du contrôle de clôture actualisé à compléter, heartbeat externe et alertes par instrument non livrés |
-| Performance globale | Flux externes datés et gain économique EUR conditionnel | Pas de référence initiale de marché sélectionnée pour le PEA ; gain global indisponible par défaut, rendement en pourcentage non implémenté |
+| Calendrier / fraîcheur | Calendrier de place distinct des profils individuels, borné 2026–2027 | 19 XPAR activés pour les fermetures connues ; modes continu/fixing non qualifiés, intraday et ALXP à `unknown` ; aucune promesse de temps réel |
+| Monitoring | Cycles manquants, échecs partiels et contrôle des derniers créneaux | Clôture du 20 novembre à 20 h 09 Paris observée réussie ; heartbeat externe et alertes indépendantes/par instrument non livrés |
+| Performance globale | Référence de marché Bourse Direct au 20 novembre, flux externes datés, gain EUR et Modified Dietz | Lecture confirmée par le propriétaire dans ChatGPT ; rendement de période estimatif, non annualisé, réserves de source/fraîcheur et indisponibilités explicites ; aucune histoire antérieure reconstruite |
 
-**Livraison `v1.1.0` :** le socle financier peut constituer un périmètre de publication avec réserves explicites, sous décision et autorisation du propriétaire. Il ne faut pas l'annoncer comme validation complète du périmètre V1.1 initial. Le parcours réel d'écriture reste une acceptation ouverte ; calendrier/monitoring avancé et rendement doivent être livrés ou explicitement reportés dans la décision de release. Aucun tag/release créé par cette clôture documentaire.
+**Livraison `v1.1.0` publiée :** le propriétaire a validé le périmètre financier, le rendement estimatif et le calendrier partiel avec les limites explicites de la [release officielle](https://github.com/damienSavoldelli/pea-tracker/releases/tag/v1.1.0). Le parcours réel d'écriture, les profils intraday/ALXP et le monitoring indépendant restent ouverts. Publication et lecture opérationnelle ne constituent pas une validation de ces éléments. Cette synchronisation documentaire n'autorise aucune nouvelle opération distante.
 
 **Priorité métier :** disposer de calculs financiers fiables et traçables, sans sacrifier l’existant.
 
@@ -67,7 +67,7 @@ Le calendrier borné XPAR de la branche V1.1 est implémenté et testé localeme
 
 - recalcul automatique du PRU, cohérence achats/ventes ;
 - capital investi, plus-values latentes et réalisées, liquidités et valorisation ;
-- **étude d'un rendement simple explicite**, avec définition, période, flux, couverture et limites à valider ; aucune formule n'est arrêtée ;
+- **rendement de période Modified Dietz livré** depuis la référence du 20 novembre : gain économique rapporté au capital pondéré par le temps UTC écoulé des flux externes ; estimation non annualisée, sans double comptage des frais/dividendes, avec réserves et statuts indisponibles explicites ;
 - règles métier explicites et tests de cas limites ;
 - tous les calculs financiers de référence appartiennent au domaine métier PEA Tracker ; ChatGPT interprète les résultats et peut effectuer des simulations distinctes, explicitement indicatives, sans les substituer aux résultats du moteur ;
 - performances périodiques, TWR/XIRR et analyses avancées réservés à V2.3.

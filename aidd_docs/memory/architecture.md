@@ -38,27 +38,36 @@ services until future resolution/status enforcement. New journal anchors, financ
 approval routing and multi-provider work remain future slices.
 [Decisions, tests and migration/rollback limits](../tasks/2026_11/2026_11_21_portfolio-registry/plan.md).
 
-## Current baseline — 2026-11-21
+## Published V1.1.0 baseline — reviewed 2026-11-22
 
 The real PEA remains the priority. One TypeScript/Hono application uses shared
 hexagonal services/ports, D1 adapters and separate REST/MCP transports. Python/yfinance
 supplies quotes through a distinct ingestion Worker; Cloudflare Cron/DO receipts
 schedule protected GitHub workflow_dispatch jobs. Diagnostic PoCs stay separate.
 
-- Financial composition: `src/entrypoints/access-financial.ts`; active Worker version
-  `20f6a0fb-25cb-4d51-94bf-d7cb22ea5ec1`, write flag true. Published reference, real
-  portfolio/owner, D1 and Access bindings match the preceding verified deployment.
+- V1.1.0 was published on 21 November at tag `v1.1.0`, merge `c6e7dee`.
+  Financial composition: `src/entrypoints/access-financial.ts`; release Worker
+  `84f0d820-dd10-4f81-9c60-6c83e48e591d`, write flag true. Published reference,
+  portfolio/owner, D1 and Access bindings matched the approved configuration.
 - Historical V1 opening/positions/valuation remain intact. Current V1.1 reads use
   the separately selected immutable operational reference plus subsequent journal.
   The broker-verified operational start is dated 20 November; intervening operations
   were deliberately not reconstructed. Journal was verified empty at initialization.
 - Journal: EUR trades/cash movements, actual fees/dividends, traceable reversals,
   exact weighted cost/PRU, realized/unrealized gains and dated external flows.
+- Performance: a distinct owner-confirmed broker closing market-value reference
+  at 20 November initializes EUR economic gain and estimated Modified Dietz returns,
+  adjusted for dated deposits/withdrawals. Exact fractions, half-even representation,
+  source/freshness caveats and unavailable statuses are preserved. No pre-reference
+  history is reconstructed; the return is not annualized or an exact historical TWR.
 - Security: exact-owner Access/Managed OAuth identity receives explicit financial
   `portfolio:write`; browser-only approval receives `portfolio:approve` under a
   separate signed AUD. Preparation persists an expiring immutable intent; confirmation
   requires its exact single-use server approval. No brokerage order, implicit
   technical administration or reuse of quotation-ingestion grants.
+- MCP has 18 tools: 11 reads/diagnostics, six preparations and one confirmation.
+  Browser approval is not an MCP tool or a client flag. The old 300-second JWT
+  lifetime cap is removed; signatures, issuer/audience, time/identity checks remain.
 - Migration 0007 adds the operational reference and adapts the empty journal anchor
   with guarded schema replacement. Original V1 data is not changed; nonempty
   journals prevent the one-time migration/reinitialization. Configuration/source
@@ -68,12 +77,17 @@ schedule protected GitHub workflow_dispatch jobs. Diagnostic PoCs stay separate.
   and anonymous refusals passed. Owner reports current ChatGPT reads and financial
   tool discovery. Real browser approval → write → immutable receipt/replay has
   **not** been validated in production; no transaction was created for acceptance.
-- Remaining: bounded calendar assignments/activation not attested; freshness may
-  remain unknown; closing-monitor operational proof and advanced alerts incomplete.
-  Global economic gain requires a selected market-value reference, currently absent;
-  no global percentage return or fabricated prior performance.
+- Calendar: 19 XPAR assignments recognize only known full-day venue closures in
+  2026–2027. Individual continuous/fixing modes are unqualified; intraday phases
+  and ALXP remain unknown. No MIC-based trading-mode inference is admitted.
+- Closing monitoring at 20:09 Paris was observed successful on 20 November.
+  Independent alerting, recovery/runtime-budget evidence and the first real
+  approved write/receipt/replay remain open. Owner ChatGPT confirmation of current
+  reads and EUR/Modified Dietz is distinct from direct legacy-client checks.
 
-[Production evidence](../tasks/2026_11/2026_11_21_operational-start/production.md),
+[Published release](../releases/v1.1.0.md),
+[consolidated production/test evidence](../releases/v1.1.0-validation.md),
+[earlier operational-reference deployment](../tasks/2026_11/2026_11_21_operational-start/production.md),
 [security contract](../tasks/2026_11/2026_11_21_financial-mcp/contract.md),
 [delivery scope and remaining decisions](../roadmap.md).
 
@@ -81,7 +95,7 @@ The dated local-increment records below retain their original evidence scope.
 Claims there about inactive deployment or absent later calculations are historical,
 not a reason to restart completed development or a fresh remote authorization.
 
-## Stack
+## Historical implementation checkpoints
 
 - Current local monetary-performance increment: exact dated external flows (including effective corrections, excluding trades/dividends/fees), opening cash, and optional selected-market-reference economic gain in EUR. Initial market value is recomputed from evidenced quotes/cash, never PRU; dates/identity/selection/backdating checked. No real reference selected/persisted: economic gain stays unavailable by default; no percentage return implemented. One captured portfolio/journal snapshot feeds valuation/flows; no new repository, migration, provider or remote activation. [Rules/evidence](../tasks/2026_11/2026_11_19_financial-journal/performance.md). Earlier statements about absent global performance remain true for percentage returns and actual-reference activation.
 
@@ -160,5 +174,5 @@ and in the runbook; earlier approvals do not authorize repeating those operation
 ## Gotchas
 
 - Architecture validation is not evidence of runtime tests and does not authorize implementation or deployment.
-- Protocol POST does not grant mutation permission; MCP remains read-only, with separately authorized administrative REST and quotation ingestion.
+- Protocol POST does not grant mutation permission. Preserve V1 historical reads and require explicit financial `portfolio:write` plus independent exact-intent browser approval for V1.1 journal writes; technical administration and quotation ingestion stay separate.
 - €0 is a target, not permission to weaken security or activate paid plans.

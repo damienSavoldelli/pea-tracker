@@ -25,12 +25,23 @@
   No full suite, remote migration or production validation.
   [Commands, decisions and limits](../tasks/2026_11/2026_11_21_portfolio-registry/plan.md).
 
-- Current production baseline: the separately deployed operational reference and
-  later write reactivation are recorded in [production evidence](../tasks/2026_11/2026_11_21_operational-start/production.md).
-  Historical reads, private reference/D1 comparisons and anonymous refusal passed;
-  the real browser-approved write/receipt/replay journey remains unvalidated. Older
-  disabled-write/catalogue-pending entries below retain their dated stage scope.
-  No test or remote check was rerun for the documentary closure.
+- Published V1.1.0 baseline: [consolidated validation](../releases/v1.1.0-validation.md)
+  records the final Worker, protected writes, broker reference and 19 XPAR closure
+  assignments. Historical reads, private reference/D1 comparisons, anonymous refusal
+  and the 20 November 20:09 Paris monitor passed. The owner confirmed current reads,
+  18-tool discovery and EUR/Modified Dietz in ChatGPT; direct deployment-session
+  checks were limited to its legacy catalogue. The first real approved
+  write/receipt/replay journey remains unvalidated. No application test or production
+  check was rerun for this documentary synchronization.
+- Final targeted checkpoints: **52 TypeScript tests** for broker-reference/Dietz and
+  projected reads/SDK, **54 calendar tests**, **two Python partial-cycle/monitor
+  recovery cases**, with recorded typecheck success. These overlap earlier suites;
+  do not sum them as one campaign. See [release evidence](../releases/v1.1.0-validation.md).
+
+## Earlier checkpoints and test infrastructure
+
+The records below preserve the scope of each earlier increment; disabled-write,
+missing-reference and stale-client observations are not the final release state.
 
 - Local operational restart: **11 targeted tests** (7 new, including one explicitly
   supplied private-reference check, plus 4 affected native D1 journal cases) and
@@ -68,7 +79,7 @@
 
 - `npm test` runs Vitest against the Hono app using Web-standard Request/Response and the official MCP client; it covers the complete SDK initialization/discovery/invocation path plus invalid requests.
 - `npm run typecheck` performs strict checks; `npm run build` checks Worker bundling. A local Wrangler smoke test complements Node-based tests; these do not prove deployed CPU budgets or ChatGPT connectivity.
-- Existing financial suites include `tests/portfolio.contract.test.ts`, `tests/portfolio.restart.test.ts`, `tests/valuation.{domain,contract,http}.test.ts`, `tests/quotations.domain.test.ts`, `tests/d1-migrations.test.ts` and `tests/access-read.worker.test.ts`. They cover implemented opening/quotation/valuation behavior, not unimplemented ledger/PRU/gain/return rules. [Valuation evidence](../tasks/2026_11/2026_11_11_valuation/plan.md) retains the exact products/sums, half-even display and partial/unknown-cash cases.
+- Earlier financial suites include `tests/portfolio.contract.test.ts`, `tests/portfolio.restart.test.ts`, `tests/valuation.{domain,contract,http}.test.ts`, `tests/quotations.domain.test.ts`, `tests/d1-migrations.test.ts` and `tests/access-read.worker.test.ts`. They cover opening/quotation/valuation behavior; dedicated later V1.1 tests establish journal/PRU/gain/return rules separately. [Valuation evidence](../tasks/2026_11/2026_11_11_valuation/plan.md) retains the exact products/sums, half-even display and partial/unknown-cash cases.
 - Prior automation evidence: 44 targeted Python tests passed for schedule/cadence/monitoring preparation, including actual-live-step selection rather than skipped jobs; see the [live-read plan](../tasks/2026_11/2026_11_14_live-quotations-read/plan.md). Published schedules are not proof of a successful Scheduled execution. Instrument market age, successful-fetch age and workflow success need separate interpretation, especially without recent trades.
 - Calendar local evidence: 127 targeted TypeScript tests and 17 generator Python tests passed, along with typecheck, reader dry-run bundling and reference reproducibility. Commands and results are recorded in [calendar validation](../tasks/2026_11/2026_11_14_market-calendar/reference-validation.md); finalization reused them without rerunning application tests. Coverage includes explicit profile/MIC agreement, unknown fallbacks, closures, half-days, DST, bounded renewal, freshness and unchanged REST/MCP/valuation behavior. These are local proofs, not deployed activation or CPU-budget evidence.
 - Instrument suites cover domain/repository/service policy, idempotency, CAS updates, pagination, bounded HTTP errors and default-entrypoint isolation. Network tests start ephemeral 127.0.0.1 servers with fixed synthetic principals, validate real HTTP responses against OpenAPI, and close all servers. Sandbox permission to bind loopback is required.
@@ -83,7 +94,7 @@
 
 - The architecture permits a bounded synthetic-data MCP initialization/ping proof of concept without portfolio, backup or calculation infrastructure.
 - OAuth, CPU, decimal correctness, private-data authorization, monitoring and restoration require their own evidence; ping alone proves none of them.
-- The bounded calendar has its own authorized local implementation and checks; broader V1.1 feasibility remains under study. Future calendar extensions, ledger, signed arithmetic/division, PRU/gains and simple-return checks must derive from approved rules; existing valuation coverage is not global feasibility evidence. Periodic returns/TWR/XIRR and allocation belong to the future V2.3 scope in the [roadmap](../roadmap.md).
+- V1.1.0 has targeted evidence for the journal, exact arithmetic/PRU/gains, broker-reference Modified Dietz and partial venue calendar. These results do not establish individual continuous/fixing modes, intraday/ALXP coverage, independent alerting or real owner-approved financial writes. Future extensions need approved rules and proportionate new checks; periodic returns/TWR/XIRR and allocation remain future scope in the [roadmap](../roadmap.md).
 - Documentation-only work checks local links, generated markers, scope, diffs and secrets without running application tests or context hooks. Independent backup/restore proof, actual alert delivery, hosted lifecycle checks and runtime profiling remain evidence gaps where the handover does not establish them.
 - Synthetic catalog authorization fixtures do not prove OAuth issuer/owner/audience verification or persistent abuse controls. Real local D1 tests prove tested batch atomicity and graceful process restarts only. Node real HTTP plus Worker dry-run bundling does not establish production CPU budgets, remote durability, power-loss behavior or backup restoration.
 - Use synthetic fixtures in public CI and logs. Never use actual holdings, brokerage credentials, financial exports or access tokens as fixtures.

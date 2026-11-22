@@ -36,7 +36,7 @@
 
 - Intentional staging, commits and pushes each require explicit user authorization covering that action. Permission to edit, validate or commit does not imply permission to push.
 - Production or non-production deployments, cloud-resource creation, paid-service activation and release publication require explicit approval for the specific action; a commit, push, merge or architecture approval is insufficient.
-- Prior publication/deployment approvals are historical and operation-specific, not standing permission for future remote commands. A local tracking ref is cached evidence, not a fresh remote check; do not fetch/pull/push merely to synchronize documentation. V1.0.0 is published; a V1.1 tag/release still needs explicit owner scope/version authorization and must disclose the remaining acceptance limits.
+- Prior publication/deployment approvals are historical and operation-specific, not standing permission for future remote commands. A local tracking ref is cached evidence, not a fresh remote check; do not fetch/pull/push merely to synchronize documentation. V1.0.0 and [V1.1.0](../releases/v1.1.0.md) are published; `v1.1.0` points to merge `c6e7dee`. Future commits, pushes, tags/releases and deployments each require their applicable explicit authorization. Preserve the [remaining V1.1 acceptance limits](../releases/v1.1.0-validation.md); this documentary update does not authorize retagging or release edits.
 - Inspect `git status --short`, `git diff` and `git diff --cached` before authorized Git writes. Report unexpected staged changes; do not stage, unstage or discard them without approval.
 
 ## AIDD SessionStart hook
