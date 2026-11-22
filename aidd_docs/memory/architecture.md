@@ -1,5 +1,18 @@
 # Architecture
 
+## Local V2.0-E / E2 — 2026-11-21
+
+Installed yfinance 1.8.0/curl_cffi 0.17.0 exercised behind mandatory mocked HTTP
+and blocked Python/native network exits in spawned experiment workers. A fresh
+Ticker per attempt shares one Session; no cached info object crosses attempts.
+Parent-owned observations survive worker errors/deadlines. A controlled native
+POSIX wait ignoring SIGTERM was killed/reaped and following work resumed in a new
+worker/session/cache. This does not qualify curl deadlocks or real market freshness.
+Existing regularMarketPrice/Time normalization/journal replay is reused unchanged;
+no previous-close/bar replacement or live collection activation. Shared state must
+be discarded on timeout and upstream rate limits must not be bypassed.
+[E2's 14 checks, limits and intraday NO-GO criteria](../tasks/2026_11/2026_11_21_yfinance-offline/plan.md).
+
 ## Local V2.0-E / E1 — 2026-11-21
 
 Offline session-lifetime experiment under `collector/experiments`, outside the

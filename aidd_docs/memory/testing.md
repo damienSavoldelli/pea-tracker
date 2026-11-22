@@ -2,6 +2,14 @@
 
 ## Current state
 
+- Local V2.0-E / E2: **14 installed-yfinance offline tests passed** in 8.69 seconds,
+  plus syntax check. Real get_info behind mocked HTTP preserves normalized fields,
+  original/stale market times and journal replay; missing/error/rate-limited symbols
+  do not erase other successes. Native POSIX wait ignoring SIGTERM was terminated
+  via SIGKILL, reaped, and followed by a fresh worker; no curl-deadlock claim. Explicit
+  network probes are blocked before I/O. Mocked request counts are not real HTTP
+  savings or freshness evidence. [Commands, version pin and live comparison gates](../tasks/2026_11/2026_11_21_yfinance-offline/plan.md).
+
 - Local V2.0-E / E1: **19 targeted synthetic tests passed** in 0.03 seconds, plus
   syntax checks. 1/3/20-symbol comparisons preserve complete normalized fields,
   exact prices/subunits, both clocks and identical journals/replay bytes. Partial
