@@ -1,5 +1,17 @@
 # Architecture
 
+## Local V2.0-E / E1 — 2026-11-21
+
+Offline session-lifetime experiment under `collector/experiments`, outside the
+installed collector package. Compares fresh-session attempts with cycle-shared
+synthetic sessions using existing collection/normalization/journal code. Only
+session state is reused; no intercycle price cache. Broken simulated sessions reset
+without recollecting successes. Logical calls, attempts and simulated request events
+are separate. The assumed setup/quote trace does not measure yfinance HTTP or
+qualify a performance improvement. Yahoo and active composition are unchanged.
+Actual library state, global rate limits and native hangs remain E2 offline gates.
+[E1 scope, 19 tests and model limits](../tasks/2026_11/2026_11_21_yahoo-cycle-poc/plan.md).
+
 ## Local V2.0-D / D4 — 2026-11-21
 
 Isolated raw `EodhdHttpClient`, not active: fixed-origin GET with environment token,

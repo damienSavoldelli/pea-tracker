@@ -2,6 +2,14 @@
 
 ## Current state
 
+- Local V2.0-E / E1: **19 targeted synthetic tests passed** in 0.03 seconds, plus
+  syntax checks. 1/3/20-symbol comparisons preserve complete normalized fields,
+  exact prices/subunits, both clocks and identical journals/replay bytes. Partial
+  simulated timeouts/session failures, missing data, rate limits and invalid/bar
+  substitutions covered; successful symbols are not refetched. No network or
+  actual yfinance call; counters describe an assumed protocol, not measured HTTP.
+  Native hang isolation remains unverified. [Commands and E2 gates](../tasks/2026_11/2026_11_21_yahoo-cycle-poc/plan.md).
+
 - Local V2.0-D / D4 raw transport: **39 simulated HTTP tests passed** in 0.06 seconds,
   plus Python syntax and whitespace checks. Single/grouped requests, untouched
   success/error/partial payloads, timeouts/network failures, body bounds, disabled
