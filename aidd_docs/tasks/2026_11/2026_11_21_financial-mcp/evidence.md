@@ -147,3 +147,12 @@ Seven targeted tests passed (27 skipped), plus typecheck and diff check. No comm
 deployment, actual logout/revocation or financial operation was performed.
 The authenticated cause and successful reconnection remain unverified.
 Source consulted 23 November 2026: [Cloudflare session management](https://developers.cloudflare.com/cloudflare-one/access-controls/access-settings/session-management/).
+
+Subsequent owner-authorized delivery: source `bbf6d0f879fbfeaae1400d9a04ffc01985150787`
+deployed as `c2178996-c949-4c05-b96b-73d80c734abc`, replacing V1.1.2 Worker
+`47055795-4856-45d6-91d8-dd6c4a1f7d48`, with the same approved private configuration
+and `--keep-vars`. The seven local checks were reused without rerunning tests.
+No Access/secret modification, session revocation, financial transaction or D1 write.
+The owner's successful reconnection and the cause of `invalid_token` are not claimed.
+Minimal availability checks passed: anonymous MCP HTTP 401, confirmation GET with
+UTM HTTP 302. The logout endpoint was not invoked during validation.
