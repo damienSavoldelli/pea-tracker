@@ -2,6 +2,8 @@
 
 Architecture baseline, current implementation and remaining validation requirements.
 
+Current patch, 23 November 2026: [v1.1.1](releases/v1.1.1.md) deploys tracking-safe confirmation GET navigation and responsive styling, preserving the V1.1 financial foundation below. Worker `aef16740-0557-4d8d-a080-0bb182e33342`; anonymous MCP 401 and browser authentication redirect 302 verified. No migration or Access/secret change; the first real approved financial write remains unvalidated.
+
 Current release baseline (reviewed 2026-11-22): V1.1.0 was published on 21 November, preserving V1.0.0. Financial management, the separate operational opening and broker market-value reference at the close of 20 November, EUR gains and estimated Modified Dietz returns are deployed. Financial MCP writes require exact-owner authorization and independent browser consent; the first real approval/write/receipt/replay journey remains unvalidated. The partial calendar covers full-day closures for 19 XPAR instruments; individual modes, intraday phases and ALXP remain unknown. Closing monitoring was observed successful on 20 November. See [V1.1 release](releases/v1.1.0.md), [consolidated validation](releases/v1.1.0-validation.md), [historical V1 evidence](releases/v1.0.0-validation.md) and the [remaining scope](roadmap.md). Earlier dated gates below are historical where superseded by these records.
 
 Foundation approved 2026-11-06; documentation synchronized 2026-11-14 with the

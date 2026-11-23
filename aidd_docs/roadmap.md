@@ -6,6 +6,8 @@ Cette roadmap ne vaut ni spécification financière ni autorisation de développ
 
 ## Statuts et preuves
 
+- **V1.1.1 patch, 23 November 2026:** confirmation GET accepts known UTM tracking parameters; responsive form deployed with unchanged financial authorization. Local evidence and minimal production availability checks are recorded in the [release](releases/v1.1.1.md). The owner's real approved MCP write/receipt/replay acceptance remains pending; no V2 development is included.
+
 - **Développé** : capacité présente dans le code ; cela ne prouve pas son exploitation.
 - **Testé localement** : preuves antérieures sur fixtures synthétiques, consignées dans les contrats/plans V1 ; aucun test relancé pour ce lot documentaire.
 - **Validé en exploitation** : observations antérieures rapportées dans la reprise utilisateur ; aucune vérification distante effectuée pour ce lot.

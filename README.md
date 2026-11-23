@@ -6,6 +6,8 @@ The source repository is public; tracked fixtures are synthetic. Production port
 
 ## Project status
 
+Latest release: [v1.1.1](aidd_docs/releases/v1.1.1.md), 23 November 2026. The financial confirmation page now accepts known UTM tracking parameters on GET and provides a responsive layout. The patch is deployed; the first real owner-approved MCP write/receipt/replay journey remains unvalidated.
+
 V1.1.0 was published on 2026-11-21, after V1.0.0 on 2026-11-19. Financial management, EUR gains, estimated Modified Dietz returns and a partial venue calendar are deployed. Current reads use the separate operational reference at the close of 20 November, preserving historical V1. Journal writes are enabled with independent browser approval; the first real approval/write/receipt/replay journey is still not production-validated.
 
 | Capability | Status |

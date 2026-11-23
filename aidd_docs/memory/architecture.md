@@ -1,5 +1,14 @@
 # Architecture
 
+## V1.1.1 patch — deployed 2026-11-23
+
+Financial Worker `aef16740-0557-4d8d-a080-0bb182e33342` deploys source commit
+`98872bbc3682ca05f8e0d39d719ec310b5d5f4e4`: allowlisted tracking parameters only on
+confirmation GET, query-free POST and responsive nonce-protected styling. D1,
+financial rules, Access/secret configuration and independent approval are unchanged.
+Anonymous availability checks passed; no real financial write was performed.
+See [release and deployment evidence](../releases/v1.1.1.md).
+
 ## Published V1.1.0 baseline — reviewed 2026-11-22
 
 The real PEA remains the priority. One TypeScript/Hono application uses shared

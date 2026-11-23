@@ -83,3 +83,16 @@ and 390px: screenshots inspected, no horizontal overflow, mobile rows stacked,
 48px approval button and nonce-authorized styling applied. This rendering check
 used no real identity, portfolio or approval; opening from ChatGPT and the hosted
 Access journey remain unverified for this fix. Release evidence above is historical.
+
+## V1.1.1 production delivery — 23 November 2026
+
+Following explicit owner authorization, source commit
+`98872bbc3682ca05f8e0d39d719ec310b5d5f4e4` on `main` was deployed to the existing
+financial Worker as `aef16740-0557-4d8d-a080-0bb182e33342`, replacing
+`84f0d820-dd10-4f81-9c60-6c83e48e591d`. The previously compared private configuration
+and `--keep-vars` were used. No migration, secret/Access change or financial write.
+Minimal anonymous checks returned MCP HTTP 401 and confirmation GET with UTM HTTP
+302 to authentication. Earlier local test/visual evidence was reused, not rerun.
+This does not validate an authenticated ChatGPT/browser approval or real journal
+write/receipt/replay; the owner will perform that separate acceptance after delivery.
+Public release summary: [v1.1.1](../../../releases/v1.1.1.md).

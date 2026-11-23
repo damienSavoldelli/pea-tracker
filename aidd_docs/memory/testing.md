@@ -2,12 +2,13 @@
 
 ## Current state
 
-- Local-only confirmation navigation fix, 23 November: allowlisted UTM parameters
+- V1.1.1 confirmation navigation fix, deployed 23 November: allowlisted UTM parameters
   on GET, query-free approval POST and nonce-protected responsive styling;
   29 distinct financial MCP cases passed (native-D1 case rerun with a 15s CLI
-  deadline after a 5s timeout), plus typecheck and diff check. No deployment or
-  production acceptance. Synthetic Chrome rendering checked at 1280px and 390px
-  without horizontal overflow; no hosted Access journey tested. See the [dated evidence](../tasks/2026_11/2026_11_21_financial-mcp/evidence.md#local-confirmation-navigation-fix--23-november-2026).
+  deadline after a 5s timeout), plus typecheck and diff check, reused without reruns.
+  Synthetic Chrome rendering checked at 1280px and 390px without horizontal overflow.
+  Production checks: anonymous MCP 401 and browser redirect 302. No real approved
+  write/receipt/replay acceptance. See the [release](../releases/v1.1.1.md) and [dated local evidence](../tasks/2026_11/2026_11_21_financial-mcp/evidence.md#local-confirmation-navigation-fix--23-november-2026).
 - Published V1.1.0 baseline: [consolidated validation](../releases/v1.1.0-validation.md)
   records the final Worker, protected writes, broker reference and 19 XPAR closure
   assignments. Historical reads, private reference/D1 comparisons, anonymous refusal
