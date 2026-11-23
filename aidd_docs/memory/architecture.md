@@ -1,5 +1,13 @@
 # Architecture
 
+## V1.1.2 presentation patch — deployed 2026-11-23
+
+Worker `47055795-4856-45d6-91d8-dd6c4a1f7d48`, source `e11e65bc1b9b9b03cbf67481ad99191e12712cce`.
+The REST confirmation adapter delegates markup to `financial-confirmation-page.ts`.
+Static native JavaScript uses a per-response CSP nonce for an absolute expiry
+countdown; the server remains authoritative. No financial service, identity,
+proposal format, database, dependency or V2 change. See [v1.1.2](../releases/v1.1.2.md).
+
 ## V1.1.1 patch — deployed 2026-11-23
 
 Financial Worker `aef16740-0557-4d8d-a080-0bb182e33342` deploys source commit

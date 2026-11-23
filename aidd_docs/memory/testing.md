@@ -2,7 +2,7 @@
 
 ## Current state
 
-- V1.1.2 presentation: 33 targeted financial MCP tests passed with a 15s per-test
+- V1.1.2 presentation, deployed 23 November: 33 targeted financial MCP tests passed with a 15s per-test
   CLI deadline, plus typecheck/diff checks. Covers exact preview display, Paris
   winter/summer time, undeclared fees, nonce CSP, absolute countdown/reload,
   warning/expiry/disabled states, styled errors and unchanged approval/UTM rules.

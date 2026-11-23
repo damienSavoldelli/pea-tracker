@@ -118,3 +118,13 @@ Public release summary: [v1.1.1](../../../releases/v1.1.1.md).
   independent CSP nonces. Synthetic countdown tests cover boundaries and reload.
 - No real financial write, Access/OAuth change or new dependency. The reported
   hosted `invalid_token` issue is not diagnosed or fixed by this presentation patch.
+
+### Production delivery
+
+Explicitly authorized deployment of `e11e65bc1b9b9b03cbf67481ad99191e12712cce`
+to the existing financial Worker succeeded as `47055795-4856-45d6-91d8-dd6c4a1f7d48`,
+replacing V1.1.1 `aef16740-0557-4d8d-a080-0bb182e33342`. The same approved private
+configuration and `--keep-vars` were used; no migration, financial operation,
+secret or Access change. See [v1.1.2](../../../releases/v1.1.2.md).
+Minimal anonymous checks: MCP HTTP 401 and confirmation GET with UTM HTTP 302.
+No authenticated browser approval or real-write acceptance is claimed.
