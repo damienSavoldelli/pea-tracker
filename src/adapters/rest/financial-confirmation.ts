@@ -59,7 +59,16 @@ export function financialConfirmationRoutes(service: FinancialMcpService,
       return context.html(confirmationDocument('Approbation enregistrée', `<h1>Approbation enregistrée</h1><p>L'enregistrement financier n'est pas encore effectué. Revenez dans ChatGPT pour confirmer cette proposition avant son expiration.</p><p class="secondary">Référence de proposition : ${id}</p><p class="secondary">Aucun reçu d'enregistrement n'est disponible à ce stade.</p>`, context.get('styleNonce')));
     } catch (error) {
       const failure = error instanceof ApplicationError ? error : new ApplicationError(500, 'internal_error');
-      const presentation = confirmationError(failure.code);
+      let reconnectUrl: string | undefined;
+      const id = context.req.param('id');
+      if (failure.code === 'invalid_token' && context.req.method === 'GET' &&
+        new URL(context.req.url).origin === origin && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(id)) {
+        // Official user-initiated Access logout; never redirect or revoke a session automatically.
+        const logout = new URL('/cdn-cgi/access/logout', origin);
+        logout.searchParams.set('returnTo', `${origin}/financial-confirmation/${id}`);
+        reconnectUrl = logout.href;
+      }
+      const presentation = confirmationError(failure.code, reconnectUrl);
       return new Response(confirmationDocument(presentation.title, presentation.body, context.get('styleNonce')), {
         status: failure.status, headers: { 'Content-Type': 'text/html; charset=utf-8' },
       });

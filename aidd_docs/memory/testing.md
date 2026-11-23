@@ -2,6 +2,11 @@
 
 ## Current state
 
+- Local reconnect-button follow-up: seven targeted cases passed, plus typecheck
+  and diff check. Official Access logout/return flow is explicit and warns about
+  cross-application logout; no session was revoked and nothing deployed. Browser
+  redirect audience matches expectations; authenticated `invalid_token` remains
+  undiagnosed. See the [dated evidence](../tasks/2026_11/2026_11_21_financial-mcp/evidence.md#local-explicit-reconnection-link--23-november-2026).
 - V1.1.2 presentation, deployed 23 November: 33 targeted financial MCP tests passed with a 15s per-test
   CLI deadline, plus typecheck/diff checks. Covers exact preview display, Paris
   winter/summer time, undeclared fees, nonce CSP, absolute countdown/reload,

@@ -148,6 +148,32 @@ describe('immutable financial preparation and single-use approval', () => {
 });
 
 describe('browser-only approval boundary', () => {
+  it('offers an explicit Access reconnect link only for a same-origin GET authentication error', async () => {
+    const f = await fixture(); const p = await f.prepare(); const auth = await accessFixture();
+    const access = new FinancialAccessAuthenticator({ ...accessConfig, browserAudience: 'b'.repeat(64),
+      internalSubject: writer.subject, financialWritesEnabled: true }, { fetch: auth.keys });
+    const routes = financialConfirmationRoutes(f.service, request => access.authenticateBrowser(request), origin);
+    const url = `${origin}/${p.operation_id}?utm_source=chatgpt.com`;
+    const response = await routes.request(url); const html = await response.text();
+    expect(response.status).toBe(401);
+    expect(html).toContain('Réinitialiser ma connexion Access');
+    expect(html).toContain('autres applications Access'); expect(html).toContain('connecteur MCP');
+    expect(html).not.toContain('http-equiv="refresh"'); expect(html).not.toContain('<script');
+    const href = /<a class="button" href="([^"]+)">/.exec(html)![1]!;
+    const login = new URL(href);
+    expect(login.origin).toBe(origin); expect(login.pathname).toBe('/cdn-cgi/access/logout');
+    expect(login.searchParams.get('returnTo')).toBe(`${origin}/financial-confirmation/${p.operation_id}`);
+    expect([...login.searchParams.keys()]).toEqual(['returnTo']);
+    expect(html).not.toContain(p.proposal.digest);
+    expect(await f.approvals.get(p.operation_id)).toMatchObject({ status: 'prepared', csrf: null });
+    const post = await routes.request(`${origin}/${p.operation_id}`, { method: 'POST' });
+    expect(post.status).toBe(401); expect(await post.text()).not.toContain('/cdn-cgi/access/logout');
+    const foreign = await routes.request(`https://other.invalid/${p.operation_id}`);
+    expect(foreign.status).toBe(403); expect(await foreign.text()).not.toContain('/cdn-cgi/access/logout');
+    const malformed = await routes.request(`${origin}/not-a-proposal`);
+    expect(malformed.status).toBe(401); expect(await malformed.text()).not.toContain('/cdn-cgi/access/logout');
+    expect((await f.journal.get(portfolioReader, portfolioId)).events).toEqual([]);
+  });
   it('presents exact preview amounts, instrument identity, Paris execution time and position impacts', async () => {
     const f = await fixture(); const p = await f.prepare(trade());
     const routes = financialConfirmationRoutes(f.service, async () => approver, origin);

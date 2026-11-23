@@ -49,8 +49,8 @@ export function confirmationDocument(title: string, body: string, nonce: string,
     details{border-top:1px solid #e2e8f0;padding-top:16px;margin:24px 0;overflow-wrap:anywhere}summary{cursor:pointer;font-weight:600}details dl{margin-top:16px;font-size:.875rem}
     #expiry{padding:16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;--timer:#2563EB}#expiry[data-level=warning]{--timer:#b45309}#expiry[data-level=danger]{--timer:#b91c1c}
     #remaining{color:var(--timer);font-variant-numeric:tabular-nums;font-weight:700}progress{display:block;width:100%;height:6px;margin-top:12px;accent-color:var(--timer)}progress::-webkit-progress-value{background:var(--timer)}progress::-webkit-progress-bar{background:#e2e8f0;border-radius:4px}
-    button{width:100%;min-height:44px;padding:10px 16px;border:0;border-radius:8px;background:#2563EB;color:#fff;font:inherit;font-weight:600;cursor:pointer}button:hover:not(:disabled){background:#1E40AF}button:disabled{background:#cbd5e1;color:#475569;cursor:not-allowed}
-    button:focus-visible,summary:focus-visible{outline:3px solid #2563EB;outline-offset:4px}.error-code{font-size:.85rem;color:#64748B;overflow-wrap:anywhere}
+    button,.button{display:block;width:100%;min-height:44px;padding:10px 16px;border:0;border-radius:8px;background:#2563EB;color:#fff;font:inherit;font-weight:600;cursor:pointer;text-align:center;text-decoration:none}button:hover:not(:disabled),.button:hover{background:#1E40AF}button:disabled{background:#cbd5e1;color:#475569;cursor:not-allowed}
+    button:focus-visible,.button:focus-visible,summary:focus-visible{outline:3px solid #2563EB;outline-offset:4px}.error-code{font-size:.85rem;color:#64748B;overflow-wrap:anywhere}
     @media(max-width:520px){body{padding:16px 12px}article{padding:20px 16px}dl{grid-template-columns:1fr}.key{grid-template-columns:1fr 1fr}h1{font-size:1.4rem}}
   </style></head><body><main><header><svg class="brand-icon" aria-hidden="true" viewBox="0 0 32 32" fill="none"><rect x="2" y="2" width="28" height="28" rx="7" stroke="currentColor" stroke-width="2"/><path d="M8 22V17M16 22V12M24 22V8" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>PEA Tracker</header><article>${body}</article></main>${countdown ? `<script nonce="${nonce}">${countdownScript}</script>` : ''}</body></html>`;
 }
@@ -80,7 +80,7 @@ export function confirmationBody(result: Confirmation, id: string, csrf: string)
   return body + `<form method="post" action="/financial-confirmation/${escape(id)}"><input type="hidden" name="csrf" value="${csrf}"><button id="approve" type="submit">Approuver l'enregistrement</button></form><p class="secondary">L'expiration et l'autorisation sont contrôlées par le serveur.</p>`;
 }
 
-export function confirmationError(code: string) {
+export function confirmationError(code: string, reconnectUrl?: string) {
   const messages: Record<string, [string, string]> = {
     financial_proposal_expired: ['Proposition expirée', 'Préparez une nouvelle proposition depuis ChatGPT. Aucune nouvelle approbation ne peut être donnée pour cette proposition.'],
     financial_confirmation_already_used: ['Proposition déjà approuvée ou utilisée', "Ne l'approuvez pas de nouveau. Vérifiez son état et son éventuel reçu depuis ChatGPT avant de préparer une autre proposition."],
@@ -89,5 +89,7 @@ export function confirmationError(code: string) {
     financial_confirmation_rejected: ['Approbation refusée', 'La proposition ou le formulaire ne permet plus cette approbation. Vérifiez son état depuis ChatGPT.'],
   };
   const [title, message] = messages[code] ?? ['Confirmation indisponible', 'La demande ne peut pas être traitée. Vérifiez votre accès et la proposition depuis ChatGPT.'];
-  return { title, body: `<h1>${title}</h1><p>${message}</p><p class="secondary">Cette page ne confirme aucun enregistrement financier.</p><p class="error-code">Code : ${escape(code)}</p>` };
+  const reconnect = code === 'invalid_token' && reconnectUrl
+    ? `<section><p>Ce bouton réinitialise votre session Cloudflare Access, puis revient à cette proposition pour vous reconnecter avec le compte propriétaire.</p><p class="notice">Attention : cette déconnexion concerne aussi vos autres applications Access. Une reconnexion du connecteur MCP peut être nécessaire. Aucune opération financière ne sera approuvée.</p><a class="button" href="${escape(reconnectUrl)}">Réinitialiser ma connexion Access</a><p class="secondary">Si l'erreur persiste après reconnexion, le parcours d'authentification doit être vérifié. Une proposition expirée devra être préparée de nouveau.</p></section>` : '';
+  return { title, body: `<h1>${title}</h1><p>${message}</p>${reconnect}<p class="secondary">Cette page ne confirme aucun enregistrement financier.</p><p class="error-code">Code : ${escape(code)}</p>` };
 }

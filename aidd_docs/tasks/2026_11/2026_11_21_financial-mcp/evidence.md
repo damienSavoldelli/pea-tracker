@@ -128,3 +128,22 @@ configuration and `--keep-vars` were used; no migration, financial operation,
 secret or Access change. See [v1.1.2](../../../releases/v1.1.2.md).
 Minimal anonymous checks: MCP HTTP 401 and confirmation GET with UTM HTTP 302.
 No authenticated browser approval or real-write acceptance is claimed.
+
+### Local explicit reconnection link — 23 November 2026
+
+The anonymous confirmation redirect was checked without cookies/credentials: its
+Access application audience matches browser approval, not MCP. This does not
+explain the owner's authenticated `invalid_token`. A reconstructed direct login
+URL without Access-generated context returned HTTP 400 and is not used.
+
+The error page now offers the documented, user-initiated application-domain
+`/cdn-cgi/access/logout?returnTo=...` flow, only for `invalid_token` on same-origin
+GET with a UUID proposal path. The return destination is constructed server-side,
+without UTM or client-selected redirects. The visible warning explains that Access
+logout affects other applications and may require reconnecting MCP. No automatic
+logout, redirect, authentication relaxation or financial approval is introduced.
+
+Seven targeted tests passed (27 skipped), plus typecheck and diff check. No commit,
+deployment, actual logout/revocation or financial operation was performed.
+The authenticated cause and successful reconnection remain unverified.
+Source consulted 23 November 2026: [Cloudflare session management](https://developers.cloudflare.com/cloudflare-one/access-controls/access-settings/session-management/).
