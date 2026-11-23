@@ -96,3 +96,25 @@ Minimal anonymous checks returned MCP HTTP 401 and confirmation GET with UTM HTT
 This does not validate an authenticated ChatGPT/browser approval or real journal
 write/receipt/replay; the owner will perform that separate acceptance after delivery.
 Public release summary: [v1.1.1](../../../releases/v1.1.1.md).
+
+## V1.1.2 local presentation — 23 November 2026
+
+- Presentation is isolated in `financial-confirmation-page.ts`; authentication,
+  CSRF, query rules, financial services, proposal format and idempotency are unchanged.
+- Blue visual identity, static inline icon, structured instrument/amount/cash/position
+  recap and Paris-local execution/expiry dates. Preview values are reused; unit price
+  is explicitly labelled as calculated with the existing exact fraction helpers.
+  Missing fees/fields remain unavailable. Approval success is not a journal receipt.
+- Static native JavaScript has a per-response CSP nonce and reads absolute prepared/
+  expiry timestamps. No submission or network request; server expiry remains final.
+  Countdown is refreshed every second, warns at 60s/30s, disables approval at expiry,
+  and does not reset on reload. Exact expiry and a noscript explanation remain visible.
+- 33 targeted tests passed: `node node_modules/vitest/vitest.mjs run
+  tests/financial-mcp.test.ts --testTimeout 15000 --exclude '**/.wrangler/**'`.
+  TypeScript `--noEmit` and diff checks passed. No full-suite rerun.
+- Isolated Chrome rendering: confirmation 1280px/390px; status templates 390px.
+  Screenshots inspected, no horizontal overflow, 44px blue approval button,
+  actual nonce-authorized countdown running. Separate documents were used for
+  independent CSP nonces. Synthetic countdown tests cover boundaries and reload.
+- No real financial write, Access/OAuth change or new dependency. The reported
+  hosted `invalid_token` issue is not diagnosed or fixed by this presentation patch.

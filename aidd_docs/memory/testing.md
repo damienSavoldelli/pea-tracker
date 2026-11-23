@@ -2,6 +2,13 @@
 
 ## Current state
 
+- V1.1.2 presentation: 33 targeted financial MCP tests passed with a 15s per-test
+  CLI deadline, plus typecheck/diff checks. Covers exact preview display, Paris
+  winter/summer time, undeclared fees, nonce CSP, absolute countdown/reload,
+  warning/expiry/disabled states, styled errors and unchanged approval/UTM rules.
+  Synthetic Chrome confirmation layouts checked at 1280px/390px; success, expired,
+  already-used and generic error templates checked at 390px, with no overflow.
+  No real transaction or hosted browser authentication acceptance.
 - V1.1.1 confirmation navigation fix, deployed 23 November: allowlisted UTM parameters
   on GET, query-free approval POST and nonce-protected responsive styling;
   29 distinct financial MCP cases passed (native-D1 case rerun with a 15s CLI

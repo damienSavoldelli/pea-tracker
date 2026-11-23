@@ -148,6 +148,73 @@ describe('immutable financial preparation and single-use approval', () => {
 });
 
 describe('browser-only approval boundary', () => {
+  it('presents exact preview amounts, instrument identity, Paris execution time and position impacts', async () => {
+    const f = await fixture(); const p = await f.prepare(trade());
+    const routes = financialConfirmationRoutes(f.service, async () => approver, origin);
+    const page = await routes.request(`${origin}/${p.operation_id}`); const html = await page.text();
+    for (const label of ['PEA Tracker', 'Instrument', 'ISIN', 'Ticker fournisseur', '10/11/2026', '11:00:00',
+      'Quantité', 'Prix unitaire calculé', '20 €', 'Montant brut', 'Frais déclarés', '1 €', '21 €',
+      'Impact sur les liquidités', '100 €', '79 €', 'Impact sur les positions',
+      'Informations techniques et références', 'Approuver l\'enregistrement', '<noscript>']) expect(html).toContain(label);
+    expect(html).toContain('<dd>2</dd>'); expect(html).toContain('<dd>3</dd>');
+    expect(html).not.toContain('<table>');
+    const styleNonce = /<style nonce="([^"]+)">/.exec(html)![1]!;
+    const scriptNonce = /<script nonce="([^"]+)">/.exec(html)![1]!;
+    expect(scriptNonce).toBe(styleNonce);
+    expect(page.headers.get('Content-Security-Policy')).toContain(`script-src 'nonce-${scriptNonce}'`);
+    expect(page.headers.get('Content-Security-Policy')).not.toContain('unsafe-inline');
+    const other = await routes.request(`${origin}/${p.operation_id}`);
+    expect(other.headers.get('Content-Security-Policy')).not.toBe(page.headers.get('Content-Security-Policy'));
+  });
+  it('keeps undeclared fees unavailable and uses daylight-saving Paris time', async () => {
+    const f = await fixture(); f.setTime('2027-07-15T12:00:00.000Z');
+    const p = await f.prepare({ ...trade(), fees: undefined, effective_at: '2027-07-15T10:00:00.000Z' });
+    const routes = financialConfirmationRoutes(f.service, async () => approver, origin);
+    const html = await (await routes.request(`${origin}/${p.operation_id}`)).text();
+    expect(html).toContain('Non renseignés'); expect(html).toContain('12:00:00');
+  });
+  it('runs an absolute countdown through warning, danger, expiry and reload without submitting', async () => {
+    const f = await fixture(); const p = await f.prepare();
+    const routes = financialConfirmationRoutes(f.service, async () => approver, origin);
+    const html = await (await routes.request(`${origin}/${p.operation_id}`)).text();
+    const script = /<script nonce="[^"]+">([\s\S]*?)<\/script>/.exec(html)![1]!;
+    const expires = Date.parse(p.proposal.expires_at); let now = expires - 120000;
+    const elements = {
+      expiry: { dataset: { expires: p.proposal.expires_at, prepared: p.proposal.prepared_at, level: '' } },
+      remaining: { textContent: '' }, 'expiry-progress': { value: 0 }, approve: { disabled: false },
+      'expiry-message': { textContent: '' },
+    };
+    let update = () => {}; let cleared = false;
+    const run = () => { const environment = { document: { getElementById: (id: keyof typeof elements) => elements[id] },
+      Date: { parse: Date.parse, now: () => now }, setInterval: (callback: () => void, delay: number) => {
+        expect(delay).toBe(1000); update = callback; return 1;
+      }, clearInterval: () => { cleared = true; } };
+      // Execute only the application's static countdown against a synthetic DOM.
+      new Function(...Object.keys(environment), script)(...Object.values(environment));
+    };
+    run(); expect(elements.remaining.textContent).toBe('02:00'); expect(elements.expiry.dataset.level).toBe('normal');
+    expect(elements['expiry-progress'].value).toBe(40);
+    now = expires - 60000; update(); expect(elements.remaining.textContent).toBe('01:00'); expect(elements.expiry.dataset.level).toBe('warning');
+    now = expires - 30000; update(); expect(elements.expiry.dataset.level).toBe('danger');
+    now = expires - 12000; run(); expect(elements.remaining.textContent).toBe('00:12');
+    now = expires; update(); expect(elements.remaining.textContent).toBe('00:00'); expect(elements.approve.disabled).toBe(true);
+    expect(elements['expiry-message'].textContent).toContain('nouvelle proposition'); expect(cleared).toBe(true);
+    expect(elements['expiry-progress'].value).toBe(0);
+    expect(await f.approvals.get(p.operation_id)).toMatchObject({ status: 'prepared' });
+    f.setTime(p.proposal.expires_at);
+    await expect(f.service.approve(approver, p.operation_id, 'synthetic')).rejects.toMatchObject({ code: 'financial_proposal_expired' });
+    const expired = await routes.request(`${origin}/${p.operation_id}`);
+    expect(expired.status).toBe(409); expect(await expired.text()).toContain('Proposition expirée');
+  });
+  it('styles already-used errors without exposing the proposal or fabricating a receipt', async () => {
+    const f = await fixture(); const p = await f.prepare(); await f.approve(p.operation_id);
+    const routes = financialConfirmationRoutes(f.service, async () => approver, origin);
+    const page = await routes.request(`${origin}/${p.operation_id}`); const html = await page.text();
+    expect(page.status).toBe(409); expect(page.headers.get('Content-Type')).toContain('text/html');
+    expect(html).toContain('Proposition déjà approuvée ou utilisée'); expect(html).toContain('PEA Tracker');
+    expect(html).not.toContain(p.proposal.digest); expect(html).not.toContain('<form');
+    expect((await f.journal.get(portfolioReader, portfolioId)).events).toEqual([]);
+  });
   it.each(['', '?utm_source=chatgpt.com', '?utm_source=chatgpt.com&utm_medium=referral&utm_campaign=confirmation'])('opens navigation %s without granting approval or carrying tracking into POST', async query => {
     const f = await fixture(); const p = await f.prepare();
     const routes = financialConfirmationRoutes(f.service, async () => approver, origin);
@@ -175,6 +242,7 @@ describe('browser-only approval boundary', () => {
     expect((await routes.request(url, { method: 'POST', headers, body: new URLSearchParams({ csrf: crypto.randomUUID() }) })).status).toBe(403);
     const approved = await routes.request(url, { method: 'POST', headers, body });
     expect(approved.status).toBe(200);
+    expect(await approved.text()).toContain("L'enregistrement financier n'est pas encore effectué");
     expect((await f.journal.get(portfolioReader, portfolioId)).events).toEqual([]);
     expect((await f.service.confirm(writer, { operation_id: p.operation_id, digest: p.proposal.digest })).balances.cash.amount).toBe('110');
   });
@@ -182,7 +250,7 @@ describe('browser-only approval boundary', () => {
     const f = await fixture(); const p = await f.prepare();
     const routes = financialConfirmationRoutes(f.service, async () => approver, origin);
     const response = await routes.request(`${origin}/${p.operation_id}${query}`);
-    expect(response.status).toBe(403); expect(await response.text()).toBe('origin_forbidden');
+    expect(response.status).toBe(403); expect(await response.text()).toContain('Code : origin_forbidden');
     expect(await f.approvals.get(p.operation_id)).toMatchObject({ status: 'prepared', csrf: null });
   });
   it('keeps signed browser identity and expiry checks on tracked navigation', async () => {
