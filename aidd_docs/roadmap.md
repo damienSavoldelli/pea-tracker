@@ -6,6 +6,8 @@ Cette roadmap ne vaut ni spécification financière ni autorisation de développ
 
 ## Statuts et preuves
 
+- **V1.1.3 patch, 23 November 2026:** explicit Access reconnection button deployed, with a cross-application logout warning. Recovery aid only; the underlying `invalid_token` cause and real approved-write acceptance remain unverified. See [release](releases/v1.1.3.md).
+
 - **V1.1.2 patch, 23 November 2026:** unified confirmation/status presentation and absolute expiry countdown deployed; server financial controls unchanged. See [release and limits](releases/v1.1.2.md). The hosted authentication issue and real write acceptance are separate from this presentation delivery.
 
 - **V1.1.1 patch, 23 November 2026:** confirmation GET accepts known UTM tracking parameters; responsive form deployed with unchanged financial authorization. Local evidence and minimal production availability checks are recorded in the [release](releases/v1.1.1.md). The owner's real approved MCP write/receipt/replay acceptance remains pending; no V2 development is included.

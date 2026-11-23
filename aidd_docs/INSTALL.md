@@ -2,6 +2,8 @@
 
 Architecture baseline, current implementation and remaining validation requirements.
 
+Latest patch: [v1.1.3](releases/v1.1.3.md), 23 November 2026, provides an explicit Access reconnection link after `invalid_token`. The deployed button facilitates session recovery, not correction of the undiagnosed cause. Cross-application logout is disclosed; no financial authorization, Access policy or data change is introduced.
+
 Latest patch, 23 November 2026: [v1.1.2](releases/v1.1.2.md) updates financial confirmation/status presentation and adds a nonce-protected absolute countdown. Server authorization, expiry, CSRF, UTM handling and accounting remain unchanged. No migration, dependency or Access change; actual owner browser/write acceptance remains pending.
 
 Current patch, 23 November 2026: [v1.1.1](releases/v1.1.1.md) deploys tracking-safe confirmation GET navigation and responsive styling, preserving the V1.1 financial foundation below. Worker `aef16740-0557-4d8d-a080-0bb182e33342`; anonymous MCP 401 and browser authentication redirect 302 verified. No migration or Access/secret change; the first real approved financial write remains unvalidated.

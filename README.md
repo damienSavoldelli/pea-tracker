@@ -6,7 +6,7 @@ The source repository is public; tracked fixtures are synthetic. Production port
 
 ## Project status
 
-Latest release: [v1.1.2](aidd_docs/releases/v1.1.2.md), 23 November 2026. Financial confirmation, success and error pages share a blue responsive design. A nonce-protected absolute countdown supplements server-side expiry; V1.1.1 tracking-safe GET navigation remains intact. The first real owner-approved MCP write/receipt/replay journey remains unvalidated.
+Latest release: [v1.1.3](aidd_docs/releases/v1.1.3.md), 23 November 2026. An explicit Access reconnection button helps recover after `invalid_token`, with a warning that other Access applications may be disconnected. It does not diagnose or fix the underlying authentication cause. V1.1.2 presentation/countdown and V1.1.1 tracking-safe navigation are preserved; the first real owner-approved MCP write/receipt/replay journey remains unvalidated.
 
 V1.1.0 was published on 2026-11-21, after V1.0.0 on 2026-11-19. Financial management, EUR gains, estimated Modified Dietz returns and a partial venue calendar are deployed. Current reads use the separate operational reference at the close of 20 November, preserving historical V1. Journal writes are enabled with independent browser approval; the first real approval/write/receipt/replay journey is still not production-validated.
 

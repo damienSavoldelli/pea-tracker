@@ -2,12 +2,13 @@
 
 ## Current state
 
-- Reconnect-button follow-up, deployed 23 November: seven targeted cases passed, plus typecheck
+- V1.1.3 reconnect-button follow-up, deployed 23 November: seven targeted cases passed, plus typecheck
   and diff check. Official Access logout/return flow is explicit and warns about
   cross-application logout; no session was revoked. Worker
   `c2178996-c949-4c05-b96b-73d80c734abc` deploys source `bbf6d0f`. Browser
   redirect audience matches expectations; authenticated `invalid_token` remains
-  undiagnosed. See the [dated evidence](../tasks/2026_11/2026_11_21_financial-mcp/evidence.md#local-explicit-reconnection-link--23-november-2026).
+  undiagnosed. Publication reused these results without rerunning tests or redeploying.
+  See the [release](../releases/v1.1.3.md) and [dated evidence](../tasks/2026_11/2026_11_21_financial-mcp/evidence.md#local-explicit-reconnection-link--23-november-2026).
 - V1.1.2 presentation, deployed 23 November: 33 targeted financial MCP tests passed with a 15s per-test
   CLI deadline, plus typecheck/diff checks. Covers exact preview display, Paris
   winter/summer time, undeclared fees, nonce CSP, absolute countdown/reload,

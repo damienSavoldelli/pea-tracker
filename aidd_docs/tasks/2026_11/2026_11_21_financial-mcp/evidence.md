@@ -156,3 +156,8 @@ No Access/secret modification, session revocation, financial transaction or D1 w
 The owner's successful reconnection and the cause of `invalid_token` are not claimed.
 Minimal availability checks passed: anonymous MCP HTTP 401, confirmation GET with
 UTM HTTP 302. The logout endpoint was not invoked during validation.
+
+Publication as V1.1.3 was subsequently authorized, reusing this deployment and
+test evidence without a new deployment, test run or financial operation.
+See the [public release notes](../../../releases/v1.1.3.md). Root-cause resolution
+and successful owner-session recovery are not claimed.

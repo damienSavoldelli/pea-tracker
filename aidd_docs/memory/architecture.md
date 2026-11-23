@@ -1,5 +1,14 @@
 # Architecture
 
+## V1.1.3 recovery interface — deployed 2026-11-23
+
+Worker `c2178996-c949-4c05-b96b-73d80c734abc`, source `bbf6d0f879fbfeaae1400d9a04ffc01985150787`.
+The `invalid_token` page offers a user-initiated Access logout/return link only for
+same-origin GET and a UUID proposal path. Its warning covers other Access sessions,
+including possible MCP reconnection. No automatic logout, authentication relaxation
+or financial approval. The root cause and actual recovery remain unverified.
+See [v1.1.3](../releases/v1.1.3.md).
+
 ## V1.1.2 presentation patch — deployed 2026-11-23
 
 Worker `47055795-4856-45d6-91d8-dd6c4a1f7d48`, source `e11e65bc1b9b9b03cbf67481ad99191e12712cce`.
