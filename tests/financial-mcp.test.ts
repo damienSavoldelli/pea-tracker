@@ -148,6 +148,58 @@ describe('immutable financial preparation and single-use approval', () => {
 });
 
 describe('browser-only approval boundary', () => {
+  it.each(['', '?utm_source=chatgpt.com', '?utm_source=chatgpt.com&utm_medium=referral&utm_campaign=confirmation'])('opens navigation %s without granting approval or carrying tracking into POST', async query => {
+    const f = await fixture(); const p = await f.prepare();
+    const routes = financialConfirmationRoutes(f.service, async () => approver, origin);
+    const url = `${origin}/${p.operation_id}`;
+    expect((await routes.request(`https://other.invalid/${p.operation_id}?utm_source=chatgpt.com`)).status).toBe(403);
+    const page = await routes.request(`${url}${query}`);
+    expect(page.status).toBe(200);
+    const html = await page.text();
+    expect(html).toContain(`action="/financial-confirmation/${p.operation_id}"`);
+    expect(html).not.toContain('chatgpt.com');
+    expect(html).toContain('name="viewport"');
+    const styleNonce = /<style nonce="([^"]+)">/.exec(html)![1]!;
+    const policy = page.headers.get('Content-Security-Policy')!;
+    expect(policy).toContain(`style-src 'nonce-${styleNonce}'`);
+    expect(policy).toContain("default-src 'none'");
+    expect(policy).not.toContain('unsafe-inline');
+    expect(await f.approvals.get(p.operation_id)).toMatchObject({ status: 'prepared', approved_at: null });
+    await expect(f.service.confirm(writer, { operation_id: p.operation_id, digest: p.proposal.digest }))
+      .rejects.toMatchObject({ code: 'financial_confirmation_required' });
+    const csrf = /name="csrf" value="([^"]+)"/.exec(html)![1]!;
+    const headers = { Origin: origin, Cookie: page.headers.get('Set-Cookie')!.split(';')[0]!, 'Content-Type': 'application/x-www-form-urlencoded' };
+    const body = new URLSearchParams({ csrf });
+    expect((await routes.request(`${url}?utm_source=chatgpt.com`, { method: 'POST', headers, body })).status).toBe(403);
+    expect((await routes.request(url, { method: 'POST', headers: { ...headers, Origin: 'https://other.invalid' }, body })).status).toBe(403);
+    expect((await routes.request(url, { method: 'POST', headers, body: new URLSearchParams({ csrf: crypto.randomUUID() }) })).status).toBe(403);
+    const approved = await routes.request(url, { method: 'POST', headers, body });
+    expect(approved.status).toBe(200);
+    expect((await f.journal.get(portfolioReader, portfolioId)).events).toEqual([]);
+    expect((await f.service.confirm(writer, { operation_id: p.operation_id, digest: p.proposal.digest })).balances.cash.amount).toBe('110');
+  });
+  it.each(['?redirect=https://other.invalid', '?csrf=synthetic', '?digest=synthetic', '?utm_source=chatgpt.com&portfolio_id=other'])('refuses non-tracking navigation parameters %s', async query => {
+    const f = await fixture(); const p = await f.prepare();
+    const routes = financialConfirmationRoutes(f.service, async () => approver, origin);
+    const response = await routes.request(`${origin}/${p.operation_id}${query}`);
+    expect(response.status).toBe(403); expect(await response.text()).toBe('origin_forbidden');
+    expect(await f.approvals.get(p.operation_id)).toMatchObject({ status: 'prepared', csrf: null });
+  });
+  it('keeps signed browser identity and expiry checks on tracked navigation', async () => {
+    const f = await fixture(); const p = await f.prepare(); const auth = await accessFixture();
+    const config = { ...accessConfig, browserAudience: 'b'.repeat(64), internalSubject: writer.subject, financialWritesEnabled: true };
+    const access = new FinancialAccessAuthenticator(config, { fetch: auth.keys });
+    const routes = financialConfirmationRoutes(f.service, request => access.authenticateBrowser(request), origin);
+    const url = `${origin}/${p.operation_id}?utm_source=chatgpt.com`;
+    expect((await routes.request(url)).status).toBe(401);
+    expect((await routes.request(url, { headers: { 'Cf-Access-Jwt-Assertion': await auth.token() } })).status).toBe(401);
+    expect((await routes.request(url, { headers: { 'Cf-Access-Jwt-Assertion': await auth.token({ aud: [config.browserAudience], sub: 'other' }) } })).status).toBe(403);
+    const headers = { 'Cf-Access-Jwt-Assertion': await auth.token({ aud: [config.browserAudience] }) };
+    expect((await routes.request(url, { headers })).status).toBe(200);
+    f.setTime(p.proposal.expires_at);
+    expect((await routes.request(url, { headers })).status).toBe(409);
+    expect((await f.journal.get(portfolioReader, portfolioId)).events).toEqual([]);
+  });
   it('uses exact owner and distinct signed audiences without accepting bearer claims as permissions', async () => {
     const fixture = await accessFixture();
     const config = { ...accessConfig, browserAudience: 'b'.repeat(64), internalSubject: writer.subject, financialWritesEnabled: true };
@@ -252,7 +304,7 @@ it('official MCP SDK: prepare → signed browser approval → D1 journal append,
   const command = { operation_id: p.operation_id, digest: p.proposal.digest };
   expect((await client.callTool({ name: 'confirm_financial_operation', arguments: command })).isError).toBe(true);
   const browserToken = await auth.token({ aud: [config.browserAudience] });
-  const page = await app.request(p.confirmation_url!, { headers: { 'Cf-Access-Jwt-Assertion': browserToken } });
+  const page = await app.request(`${p.confirmation_url!}?utm_source=chatgpt.com`, { headers: { 'Cf-Access-Jwt-Assertion': browserToken } });
   expect(page.status).toBe(200);
   const csrf = /name="csrf" value="([^"]+)"/.exec(await page.text())![1]!;
   const approved = await app.request(p.confirmation_url!, { method: 'POST', headers: { Origin: origin,

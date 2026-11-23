@@ -4,15 +4,35 @@ import { ApplicationError } from '../../application/errors';
 import type { FinancialMcpService } from '../../application/financial-mcp';
 
 const escape = (value: string) => value.replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]!));
+const navigationParameters = new Set(['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'utm_id']);
+function confirmationDocument(title: string, body: string, styleNonce: string) {
+  return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${escape(title)}</title><style nonce="${styleNonce}">
+    :root { font-family: system-ui, sans-serif; color: #172b3a; background: #f3f6f8; line-height: 1.5; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 24px 16px; }
+    main { max-width: 720px; margin: 0 auto; padding: 28px; background: #fff; border: 1px solid #d5dee5; border-radius: 12px; }
+    h1 { margin-top: 0; font-size: 1.6rem; line-height: 1.25; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px 8px; border-bottom: 1px solid #d5dee5; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+    th { width: 42%; }
+    details { margin: 20px 0; overflow-wrap: anywhere; }
+    summary { cursor: pointer; }
+    button { width: 100%; min-height: 48px; padding: 12px 16px; border: 0; border-radius: 8px; background: #174b43; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+    button:focus-visible, summary:focus-visible { outline: 3px solid #276bba; outline-offset: 4px; }
+    @media (max-width: 520px) { main { padding: 20px 16px; } tr, th, td { display: block; width: 100%; } th { border-bottom: 0; padding-bottom: 0; } td { padding-top: 4px; } }
+  </style></head><body><main>${body}</main></body></html>`;
+}
 /** No scripts, external assets, management UI, or approval endpoint reachable through MCP. */
 export function financialConfirmationRoutes(service: FinancialMcpService,
   authenticateBrowser: (request: Request) => Promise<Principal>, origin: string) {
   if (!origin.startsWith('https://') || new URL(origin).origin !== origin) throw new Error('HTTPS confirmation origin required');
-  const app = new Hono();
+  const app = new Hono<{ Variables: { styleNonce: string } }>();
   app.use('*', async (context, next) => {
+    const styleNonce = crypto.randomUUID();
+    context.set('styleNonce', styleNonce);
     await next();
     context.header('Cache-Control', 'no-store');
-    context.header('Content-Security-Policy', "default-src 'none'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'");
+    context.header('Content-Security-Policy', `default-src 'none'; style-src 'nonce-${styleNonce}'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'`);
     context.header('Referrer-Policy', 'no-referrer');
     context.header('X-Content-Type-Options', 'nosniff');
     context.header('X-Frame-Options', 'DENY');
@@ -20,7 +40,10 @@ export function financialConfirmationRoutes(service: FinancialMcpService,
   app.all('/:id', async context => {
     try {
       const request = context.req.raw;
-      if (new URL(request.url).origin !== origin || new URL(request.url).search) throw new ApplicationError(403, 'origin_forbidden');
+      const url = new URL(request.url);
+      // Tracking is navigation-only, never an operation input or an approval parameter.
+      if (url.origin !== origin || (url.search && (request.method !== 'GET' ||
+        [...url.searchParams.keys()].some(key => !navigationParameters.has(key))))) throw new ApplicationError(403, 'origin_forbidden');
       const principal = await authenticateBrowser(request);
       const id = context.req.param('id');
       const path = `/financial-confirmation/${id}`;
@@ -46,7 +69,7 @@ export function financialConfirmationRoutes(service: FinancialMcpService,
         if (result.summary.quantity_delta !== null) rows.push(['Variation des titres', field(result.summary.quantity_delta)]);
         const summary = rows.map(([label, value]) => `<tr><th scope="row">${escape(label)}</th><td>${escape(value)}</td></tr>`).join('');
         context.header('Set-Cookie', `__Secure-pea-confirm=${csrf}; Path=${path}; Max-Age=300; HttpOnly; Secure; SameSite=Strict`);
-        return context.html(`<!doctype html><html lang="fr"><meta charset="utf-8"><title>Confirmer une opération PEA</title><h1>Autoriser cet enregistrement</h1><p>Il s'agit uniquement de journaliser une opération déjà exécutée. Aucun ordre de bourse ne sera envoyé.</p><table>${summary}</table><p>Expiration UTC : ${escape(result.proposal.expires_at)}</p><details><summary>Référence de validation</summary><p>${escape(id)}<br>${escape(result.proposal.digest)}</p></details><form method="post" action="${path}"><input type="hidden" name="csrf" value="${csrf}"><button type="submit">J'approuve cette opération exacte</button></form></html>`);
+        return context.html(confirmationDocument('Confirmer une opération PEA', `<h1>Autoriser cet enregistrement</h1><p>Il s'agit uniquement de journaliser une opération déjà exécutée. Aucun ordre de bourse ne sera envoyé.</p><table>${summary}</table><p>Expiration UTC : ${escape(result.proposal.expires_at)}</p><details><summary>Référence de validation</summary><p>${escape(id)}<br>${escape(result.proposal.digest)}</p></details><form method="post" action="${path}"><input type="hidden" name="csrf" value="${csrf}"><button type="submit">J'approuve cette opération exacte</button></form>`, context.get('styleNonce')));
       }
       if (request.method !== 'POST') throw new ApplicationError(405, 'method_not_allowed');
       if (request.headers.get('Origin') !== origin || (request.headers.get('Sec-Fetch-Site') ?? 'same-origin') !== 'same-origin') throw new ApplicationError(403, 'origin_forbidden');
@@ -68,7 +91,7 @@ export function financialConfirmationRoutes(service: FinancialMcpService,
       if ([...form.keys()].length !== 1 || !csrf || !/^[a-f0-9-]{36}$/.test(csrf) || cookies.length !== 1 || cookies[0] !== `__Secure-pea-confirm=${csrf}`) throw new ApplicationError(403, 'csrf_rejected');
       await service.approve(principal, id, csrf);
       context.header('Set-Cookie', `__Secure-pea-confirm=; Path=${path}; Max-Age=0; HttpOnly; Secure; SameSite=Strict`);
-      return context.html('<!doctype html><html lang="fr"><meta charset="utf-8"><title>Approbation enregistrée</title><p>Approbation enregistrée. Revenez dans ChatGPT pour enregistrer cette opération avant son expiration.</p></html>');
+      return context.html(confirmationDocument('Approbation enregistrée', '<h1>Approbation enregistrée</h1><p>Revenez dans ChatGPT pour enregistrer cette opération avant son expiration.</p>', context.get('styleNonce')));
     } catch (error) {
       const failure = error instanceof ApplicationError ? error : new ApplicationError(500, 'internal_error');
       return new Response(failure.code, { status: failure.status, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });

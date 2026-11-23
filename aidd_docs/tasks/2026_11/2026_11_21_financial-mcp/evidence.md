@@ -51,3 +51,35 @@ fails closed and needs journal reconciliation/new preparation, not automatic
 rearming. This boundary was exercised explicitly, including interrupted-response
 resolution and a conflicting journal version. It is not an atomic distributed
 transaction claim.
+
+## Local confirmation-navigation fix — 23 November 2026
+
+- Root cause reproduced: the route rejected every nonempty URL query before
+  authentication, including ChatGPT's `utm_source=chatgpt.com` navigation tag.
+- GET navigation now ignores only `utm_source`, `utm_medium`, `utm_campaign`,
+  `utm_term`, `utm_content` and `utm_id`. Other parameter names and all POST
+  queries remain rejected. Tracking values are neither rendered nor passed to
+  financial services; the form retains its query-free action.
+- Access configuration, signed owner/audience checks, CSRF, expiry, exact intent,
+  single consumption and journal/idempotency logic are unchanged. Responsive HTML
+  uses a viewport and a per-response CSP style nonce, without scripts, external
+  assets or `unsafe-inline`.
+- Eight added synthetic cases cover tracked/untracked navigation, denied query
+  inputs, foreign origins, signed browser identity, expiry, CSRF and explicit
+  approval. The existing official-SDK/native-local-D1 journey now opens a tracked
+  confirmation URL before approving and replaying the original operation.
+- Validation: 28 cases passed in the final file run; its native-D1 integration
+  exceeded the existing five-second test deadline, then passed alone with a
+  fifteen-second CLI deadline. This establishes 29 distinct passing cases, not
+  a new full-suite result. TypeScript and `git diff --check` passed.
+
+Commands: `node node_modules/vitest/vitest.mjs run tests/financial-mcp.test.ts
+--exclude '**/.wrangler/**'`; filtered integration rerun with `-t 'official MCP SDK'
+--testTimeout 15000`; `node node_modules/typescript/bin/tsc --noEmit`.
+No deployment, remote operation, secret/authentication configuration change or
+real financial write. Finalization reused these unchanged code/test results.
+Synthetic HTML and its CSP were rendered in isolated headless Chrome at 1280px
+and 390px: screenshots inspected, no horizontal overflow, mobile rows stacked,
+48px approval button and nonce-authorized styling applied. This rendering check
+used no real identity, portfolio or approval; opening from ChatGPT and the hosted
+Access journey remain unverified for this fix. Release evidence above is historical.
