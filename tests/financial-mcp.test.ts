@@ -378,7 +378,11 @@ it('financial Worker logs fixed authentication rejection codes without token or 
   } finally { log.mockRestore(); }
 });
 
-it.each([undefined, 'https://synthetic-approval.example.invalid'])('official MCP SDK: prepare → signed browser approval → D1 journal append, replay and read-only compatibility (confirmation origin: %s)', async separateOrigin => {
+it.each([
+  { separateOrigin: undefined, mixedMcp: false },
+  { separateOrigin: 'https://synthetic-approval.example.invalid', mixedMcp: false },
+  { separateOrigin: 'https://synthetic-approval.example.invalid', mixedMcp: true },
+])('official MCP SDK: prepare → signed browser approval → D1 journal append, replay and read-only compatibility ($separateOrigin, mixed MCP: $mixedMcp)', async ({ separateOrigin, mixedMcp }) => {
   const f = await fixture('d1'); const auth = await accessFixture();
   const config = { ...accessConfig, browserAudience: 'b'.repeat(64), internalSubject: writer.subject, financialWritesEnabled: true };
   const opening = await f.openingService.get(portfolioReader);
@@ -386,6 +390,7 @@ it.each([undefined, 'https://synthetic-approval.example.invalid'])('official MCP
     ACCESS_READ_AUD: config.audience, ACCESS_OWNER_SUB: config.ownerSubject,
     ACCESS_READ_ENABLED: 'true', ACCESS_PORTFOLIO_READ_ENABLED: 'true', FINANCIAL_WRITES_ENABLED: 'true',
     ACCESS_CONFIRMATION_AUD: config.browserAudience, FINANCIAL_ORIGIN: origin,
+    MCP_KNOWN_AUDIENCE_PAIR_ENABLED: mixedMcp ? 'true' : 'false',
     ...(separateOrigin ? { FINANCIAL_CONFIRMATION_ORIGIN: separateOrigin } : {}),
     FINANCIAL_PORTFOLIO_ID: portfolioId, FINANCIAL_OWNER_ID: writer.subject,
     FINANCIAL_OPENING_ID: opening.id, FINANCIAL_OPENING_REVISION: String(opening.revision),
@@ -403,7 +408,7 @@ it.each([undefined, 'https://synthetic-approval.example.invalid'])('official MCP
   const browserRequest = (url: string, init?: RequestInit) => separateOrigin
     ? forwardFinancialApproval(new Request(url, init), separateOrigin, { fetch: async request => app.fetch(new Request(request)) })
     : app.request(url, init);
-  const mcpToken = await auth.token();
+  const mcpToken = await auth.token({ aud: mixedMcp ? [config.audience, config.browserAudience] : [config.audience] });
   const client = new Client({ name: 'synthetic-financial-owner', version: '1' });
   const transport = new StreamableHTTPClientTransport(new URL(`${origin}/mcp`), {
     fetch: async (url, init) => {
@@ -434,9 +439,11 @@ it.each([undefined, 'https://synthetic-approval.example.invalid'])('official MCP
   expect((await client.callTool({ name: 'confirm_financial_operation', arguments: command })).isError).toBe(true);
   const browserToken = await auth.token({ aud: [config.browserAudience] });
   const mixedToken = await auth.token({ aud: [config.audience, config.browserAudience] });
-  expect((await app.request(`${origin}/mcp`, { method: 'POST', headers: { 'Cf-Access-Jwt-Assertion': mixedToken } })).status).toBe(401);
-  for (const token of [mcpToken, mixedToken, 'synthetic.forged.assertion']) {
+  if (!mixedMcp) expect((await app.request(`${origin}/mcp`, { method: 'POST', headers: { 'Cf-Access-Jwt-Assertion': mixedToken } })).status).toBe(401);
+  for (const token of [await auth.token(), mixedToken, 'synthetic.forged.assertion']) {
     expect((await browserRequest(p.confirmation_url!, { headers: { 'Cf-Access-Jwt-Assertion': token } })).status).toBe(401);
+    expect((await browserRequest(p.confirmation_url!, { method: 'POST', headers: { Origin: confirmationOrigin,
+      'Cf-Access-Jwt-Assertion': token, 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'csrf=synthetic' })).status).toBe(401);
   }
   if (separateOrigin) {
     expect((await app.request(`${origin}/financial-confirmation/${p.operation_id}`, { headers: { 'Cf-Access-Jwt-Assertion': browserToken } })).status).toBe(403);

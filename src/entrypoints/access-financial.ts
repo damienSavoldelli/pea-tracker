@@ -19,6 +19,7 @@ import { portfolioIdSchema } from '../domain/transactions';
 import { createFinancialManagementApp } from '../financial-app';
 import { D1OperationalOpeningRepository } from '../adapters/d1/operational-opening';
 import { brokerReferenceSchema } from '../domain/performance';
+import { ApplicationError } from '../application/errors';
 
 const configuration = z.object({
   INSTRUMENTS_DB: z.custom<D1Database>(value => value !== null && typeof value === 'object' && 'prepare' in value && 'batch' in value),
@@ -28,6 +29,8 @@ const configuration = z.object({
   ACCESS_READ_ENABLED: z.enum(['true', 'false']), ACCESS_PORTFOLIO_READ_ENABLED: z.literal('true'),
   FINANCIAL_WRITES_ENABLED: z.enum(['true', 'false']).default('false'),
   MCP_READ_ONLY_MIXED_AUDIENCE_ENABLED: z.enum(['true', 'false']).default('false'),
+  MCP_KNOWN_AUDIENCE_PAIR_ENABLED: z.enum(['true', 'false']).default('false'),
+  FINANCIAL_APPROVAL_DIAGNOSTICS_ENABLED: z.enum(['true', 'false']).default('false'),
   ACCESS_CONFIRMATION_AUD: accessConfiguration.shape.audience,
   FINANCIAL_ORIGIN: z.string().url(), FINANCIAL_PORTFOLIO_ID: portfolioIdSchema,
   FINANCIAL_CONFIRMATION_ORIGIN: z.string().url().refine(value =>
@@ -50,7 +53,8 @@ export function createAccessFinancialWorker(environment: D1LocalEnv & Record<str
   const access = new FinancialAccessAuthenticator({ issuer: config.ACCESS_TEAM_DOMAIN, audience: config.ACCESS_READ_AUD,
     browserAudience: config.ACCESS_CONFIRMATION_AUD, ownerSubject: config.ACCESS_OWNER_SUB, internalSubject: config.FINANCIAL_OWNER_ID,
     financialWritesEnabled: config.FINANCIAL_WRITES_ENABLED === 'true',
-    readOnlyMixedAudienceEnabled: config.MCP_READ_ONLY_MIXED_AUDIENCE_ENABLED === 'true' }, {
+    readOnlyMixedAudienceEnabled: config.MCP_READ_ONLY_MIXED_AUDIENCE_ENABLED === 'true',
+    mcpKnownAudiencePairEnabled: config.MCP_KNOWN_AUDIENCE_PAIR_ENABLED === 'true' }, {
     ...options,
     // Fixed diagnostic codes only: never tokens, claims, identities or request headers.
     onDiagnostic: options.onDiagnostic ?? (code => console.warn(JSON.stringify({ event: 'financial_auth_rejected', code }))),
@@ -92,6 +96,22 @@ export function createAccessFinancialWorker(environment: D1LocalEnv & Record<str
   const app = new Hono();
   app.use('*', async (context, next) => { await next(); context.header('Cache-Control', 'no-store'); context.header('X-Content-Type-Options', 'nosniff'); });
   if (config.ACCESS_READ_ENABLED !== 'true') return app.all('*', () => unavailable());
+  app.all('/financial-confirmation/auth-check', async context => {
+    context.header('Referrer-Policy', 'no-referrer');
+    context.header('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none'");
+    if (config.FINANCIAL_APPROVAL_DIAGNOSTICS_ENABLED !== 'true' || config.FINANCIAL_WRITES_ENABLED !== 'false')
+      return context.json({ status: 'error', code: 'not_found' }, 404);
+    if (context.req.method !== 'GET') return context.json({ status: 'error', code: 'method_not_allowed' }, 405);
+    const url = new URL(context.req.url);
+    if (url.origin !== confirmationOrigin || url.search) return context.json({ status: 'error', code: 'origin_forbidden' }, 403);
+    try {
+      await access.verifyBrowserIdentity(context.req.raw);
+      return context.json({ status: 'ok', check: 'browser_identity', financial_writes_enabled: false });
+    } catch (error) {
+      const failure = error instanceof ApplicationError ? error : new ApplicationError(503, 'authentication_unavailable');
+      return context.json({ status: 'error', code: failure.code }, failure.status);
+    }
+  });
   const forward = (request: Request) => backend.fetch(request);
   app.all('/mcp', context => forward(context.req.raw));
   app.all('/financial-confirmation/:id', context => forward(context.req.raw));

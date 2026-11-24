@@ -11,9 +11,11 @@ export async function forwardFinancialApproval(request: Request, origin: string,
     if (!origin.startsWith('https://') || new URL(origin).origin !== origin) return reject(503, 'financial_service_unavailable');
   } catch { return reject(503, 'financial_service_unavailable'); }
   if (url.origin !== origin) return reject(403, 'origin_forbidden');
-  if (!/^\/financial-confirmation\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(url.pathname))
+  const diagnostic = url.pathname === '/financial-confirmation/auth-check';
+  if (!diagnostic && !/^\/financial-confirmation\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(url.pathname))
     return reject(404, 'not_found');
-  if (request.method !== 'GET' && request.method !== 'POST') return reject(405, 'method_not_allowed');
+  if ((diagnostic && request.method !== 'GET') || (request.method !== 'GET' && request.method !== 'POST'))
+    return reject(405, 'method_not_allowed');
   if (request.headers.has('Authorization') || request.headers.has('CF-Access-Client-Id') || request.headers.has('CF-Access-Client-Secret'))
     return reject(403, 'browser_confirmation_required');
   if (!request.headers.get('Cf-Access-Jwt-Assertion')) return reject(401, 'invalid_token');

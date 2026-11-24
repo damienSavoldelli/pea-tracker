@@ -172,6 +172,74 @@ This local commit authorizes no push, new tag, merge or additional deployment.
 
 ## Local evidence
 
+### Browser identity qualification — local implementation complete
+
+The owner approved the inline plan to qualify the browser identity without enabling
+financial writes. The implementation stays on `fix/v1.1-mcp-approval`, after the
+read-recovery checkpoint `fc280f6`. No new commit had been performed at that stage.
+After explicit owner approval, the diagnostic deployments completed:
+financial Worker `5004ace9-dce2-405b-8a1f-c0a932e87c41`, relay
+`04c8f314-b275-44a3-8520-28bbab7cb207`. Wrangler reported diagnostic and recovery
+flags true, financial writes false. Browser qualification was pending at deployment;
+its later successful result is recorded below.
+The retained pre-diagnostic rollback versions are recovery Worker
+`805050ee-3965-49de-b1a2-b7f57c584d8f` and relay `19da4504-8743-4312-bab9-44aabc24f067`.
+
+- New GET `/financial-confirmation/auth-check` is disabled by default. It requires
+  `FINANCIAL_APPROVAL_DIAGNOSTICS_ENABLED=true`, reads enabled, writes disabled,
+  the exact confirmation origin and no query parameters. Other methods are refused.
+- It verifies a signed browser-only audience and the exact owner, returning only
+  `{status:"ok",check:"browser_identity",financial_writes_enabled:false}`.
+  Missing/forged/expired/wrong-issuer tokens, foreign owners and mixed/MCP audiences
+  fail closed. Bearer and service credentials remain refused.
+- Identity-only verification grants no financial permission. Existing approval
+  still checks the write-enable flag first, then the same strict identity verifier.
+  The diagnostic never invokes D1, financial services, proposal creation or approval;
+  it issues no cookie or CSRF nonce. Outputs are no-store and contain no identity,
+  token, audience values or financial data. The relay accepts only GET on this path.
+- 40 targeted tests passed across diagnostic, relay and read-only recovery files;
+  three existing owner/browser/official-SDK integration tests passed with 33 skipped.
+  Diagnostic fixtures throw on any attempted D1 operation. TypeScript and both
+  affected Wrangler dry-runs passed. No live authentication test was run in this phase.
+- At that stage the next owner dashboard action was to restore the browser Access app's
+  destination to the approval relay hostname and `/financial-confirmation/*`.
+  Preserve its AUD, owner policy and disabled Managed OAuth. One protected browser
+  GET will determine whether that channel has an independent browser-only assertion.
+  Do not reactivate writes from a successful diagnostic alone.
+
+### Browser result and normal MCP policy — local implementation complete
+
+The owner showed the approval destination restored to the relay hostname and
+supplied the live diagnostic response:
+`{status:"ok",check:"browser_identity",financial_writes_enabled:false}`.
+The deployed backend therefore accepted its strict browser-only audience and exact
+owner identity on that request. No token/identity value, D1 access, proposal or
+financial approval was involved. The complete real approval/write journey is not
+validated by this GET, and the issuer's mixed-MCP assertion origin remains unexplained.
+
+The following correction passed local validation. The owner explicitly authorized
+its local commit and deployment; activation remains pending at this checkpoint:
+
+- Opt-in `MCP_KNOWN_AUDIENCE_PAIR_ENABLED` permits the exact known pair on MCP while
+  keeping browser admission singleton-only. It is independent of the existing
+  read-only recovery guard; defaults and historical single-AUD behavior are preserved.
+- Financial write permission still requires the write-enable flag and exact owner;
+  MCP never receives approval/admin permission. Mixed assertions fail browser GET
+  and POST, including with the MCP write permission enabled.
+- The existing read-only recovery flag cannot coexist with writes. The authorized
+  activation sets writes true, read-only recovery false, known-pair admission
+  true and approval diagnostics false, without changing other variables or bindings.
+  It does not itself authorize any real operation.
+- 42 tests passed across known-pair policy, recovery and browser diagnostic files;
+  five targeted existing owner/diagnostic/SDK tests passed, with 32 skipped. The SDK
+  cases cover legacy origin, separate origin and mixed-MCP/separate-browser flows on
+  native local D1: preparation, refusal before independent approval, signed browser
+  approval, append, receipt/replay, historical reads and unchanged concurrency guards.
+- TypeScript passed. Browser authentication qualification is owner-reported live
+  evidence; write/receipt/replay evidence here is synthetic/local only.
+
+### Previous isolation evidence
+
 - 14 targeted tests passed across `financial-mcp.test.ts` and
   `financial-approval-relay.test.ts`; 32 unrelated tests skipped.
 - Includes the native local D1 and official MCP SDK journey with both historical

@@ -29,6 +29,26 @@ V1.1.0 rollback was temporary. Retained write-disabled rollback Worker:
 `7ed4aa14-d545-4e78-b692-dfd1abf8c9a1`. See the
 [incident chronology, tests and recovery limits](../tasks/2026_11/2026_11_21_financial-mcp/authentication-incident-2026-11-24.md).
 
+Next phase is implemented locally after checkpoint `fc280f6`: an opt-in GET
+`/financial-confirmation/auth-check` verifies only strict browser identity, without
+permissions, D1, proposals or approval. It is unavailable when writes are enabled.
+43 targeted tests, TypeScript and two dry-runs passed. After explicit owner approval,
+diagnostic Worker `5004ace9-dce2-405b-8a1f-c0a932e87c41` and relay
+`04c8f314-b275-44a3-8520-28bbab7cb207` were deployed with reads/recovery retained,
+writes false and diagnostics true. Restoring the browser Access destination and live
+browser qualification were initially pending; no financial write or new commit was performed.
+
+The owner then restored that destination and supplied a successful live
+`browser_identity` diagnostic. The backend accepted strict browser-only audience and
+owner identity without D1 access or approval. A normal MCP known-pair policy is now
+prepared locally behind `MCP_KNOWN_AUDIENCE_PAIR_ENABLED` (default false), retaining
+strict browser validation and the existing read-only recovery guard. 47 targeted
+tests passed, including native D1/SDK with mixed MCP and independent browser approval.
+The owner approved the local commit and deployment; activation is pending at this
+checkpoint, with production writes still disabled. The real write journey remains
+unvalidated. See
+the [updated financial contract](../tasks/2026_11/2026_11_21_financial-mcp/contract.md).
+
 ## V1.1.3 recovery interface — deployed 2026-11-23
 
 Worker `c2178996-c949-4c05-b96b-73d80c734abc`, source `bbf6d0f879fbfeaae1400d9a04ffc01985150787`.

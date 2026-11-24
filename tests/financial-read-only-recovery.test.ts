@@ -58,7 +58,7 @@ describe('explicit read-only mixed-audience recovery', () => {
       .rejects.toMatchObject({ status: 401 });
     expect(() => new FinancialAccessAuthenticator({ ...configuration, financialWritesEnabled: true }, { fetch: auth.keys })).toThrow();
     const enabled = new FinancialAccessAuthenticator({ ...configuration, financialWritesEnabled: true,
-      readOnlyMixedAudienceEnabled: false }, { fetch: auth.keys, readOnlyCompanionAudience: browserAudience });
+      readOnlyMixedAudienceEnabled: false }, { fetch: auth.keys, permittedCompanionAudience: browserAudience });
     await expect(enabled.authenticateMcp(mixed)).rejects.toMatchObject({ status: 401 });
     await expect(enabled.authenticateBrowser(mixed)).rejects.toMatchObject({ status: 401 });
   });

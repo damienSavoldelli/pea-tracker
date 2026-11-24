@@ -28,10 +28,10 @@ export interface AccessJwtOptions {
   onDiagnostic?: (code: AccessDiagnosticCode) => void;
   /** Classification only; never an additional accepted audience. */
   diagnosticOtherAudience?: string;
-  /** Trusted server configuration only: permit exactly [expected, companion] for
-   * a read-only principal. Never enable on an approval or write-capable channel.
+  /** Trusted server configuration only: permit exactly [expected, companion].
+   * Channel permissions are assigned separately. Never enable on browser approval.
    */
-  readOnlyCompanionAudience?: string | undefined;
+  permittedCompanionAudience?: string | undefined;
 }
 
 /** A diagnostic sink must never affect an authorization decision. */
@@ -88,10 +88,10 @@ export class AccessJwtVerifier {
     }
     const audiences = typeof payload.aud === 'string' ? [payload.aud] : payload.aud;
     const singleAudience = audiences?.length === 1 && audiences[0] === this.config.audience;
-    const readOnlyPair = this.options.readOnlyCompanionAudience !== undefined && audiences?.length === 2 &&
-      audiences.includes(this.config.audience) && audiences.includes(this.options.readOnlyCompanionAudience) &&
-      this.config.audience !== this.options.readOnlyCompanionAudience;
-    if (!singleAudience && !readOnlyPair) {
+    const knownPair = this.options.permittedCompanionAudience !== undefined && audiences?.length === 2 &&
+      audiences.includes(this.config.audience) && audiences.includes(this.options.permittedCompanionAudience) &&
+      this.config.audience !== this.options.permittedCompanionAudience;
+    if (!singleAudience && !knownPair) {
       this.reportAudience(payload.aud);
       this.reject('audience_rejected');
     }

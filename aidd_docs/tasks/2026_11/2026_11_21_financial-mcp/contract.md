@@ -151,3 +151,37 @@ ChatGPT elicitation or remembered confirmations prove human approval. Migrations
 configuration/import comparisons, historical MCP reads and anonymous denial have
 production evidence; authenticated human approval and actual financial write/replay
 interoperability remain **to validate**, not established by local synthetic checks.
+
+## Post-incident audience policy — locally validated, 24 November 2026
+
+The browser diagnostic succeeded in the owner's live browser with the separate
+approval hostname: strict browser-only audience and owner identity were accepted,
+without D1 or financial permission. This qualifies that authentication check, not
+the real approval/write journey. See the [incident record](authentication-incident-2026-11-24.md).
+
+`MCP_KNOWN_AUDIENCE_PAIR_ENABLED` is a new opt-in server setting, default false.
+When enabled, MCP accepts its single configured read AUD or the exact pair of
+configured read/browser AUDs, in either order. Unknown, missing and duplicate AUDs
+are rejected. Signature, issuer, time and exact owner validation remain mandatory.
+This admission policy grants no permission from JWT audience membership alone:
+the server assigns `portfolio:write` only when financial writes are explicitly enabled.
+MCP never receives `portfolio:approve`; its assertion remains invalid on browser
+GET and POST, even when it contains the browser AUD.
+
+Browser approval remains strict: browser AUD alone, owner identity, no bearer or
+service credentials, protected same-origin form, CSRF, expiry and one-use approval.
+Confirmation still consumes that independent approval and uses unchanged financial
+intent fingerprints, journal guards, concurrency handling and idempotent receipts.
+
+The existing `MCP_READ_ONLY_MIXED_AUDIENCE_ENABLED` recovery mode retains its original
+write-disabled guard. It must be false before enabling financial writes; the new
+MCP known-pair setting controls the normal financial channel separately. Diagnostic
+GETs are disabled when writes are enabled and should be explicitly switched off.
+No REST/MCP input parameter, new tool, operation type or migration is introduced.
+
+The owner explicitly authorized local commit and deployment; production recovery
+remains read-only until that deployment completes.
+The 47 targeted local checks include the official SDK/native D1 journey with mixed
+MCP and browser-only approval, exact replay, old single-AUD compatibility and refusal
+of mixed assertions on browser GET/POST. They do not establish production financial
+approval or authorize preparing/confirming a real operation.
