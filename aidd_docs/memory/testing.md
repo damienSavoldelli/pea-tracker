@@ -2,6 +2,18 @@
 
 ## Current state
 
+- **24 November 2026, owner-reported production milestone:** first real nominal
+  MCP preparation → independent browser approval → explicit MCP confirmation →
+  journal recording → portfolio/journal reread succeeded on corrected Worker
+  `de09bec2-6596-415d-8ffb-c447c3f2b6e5` (source `71bc299`). One event and expected
+  position/cost/cash results were reported; private details are not retained.
+  This is not a replay test, independent receipt-store inspection, or a new formal
+  technical test suite. Production concurrency, expiry/alteration refusals and
+  recovery remain distinct unvalidated cases. See the
+  [acceptance update](../releases/v1.1.0-validation.md#production-acceptance-update--24-november-2026)
+  and [incident evidence](../tasks/2026_11/2026_11_21_financial-mcp/authentication-incident-2026-11-24.md).
+  Earlier pending-write statements below describe their dated checkpoints.
+
 - V1.1.3 reconnect-button follow-up, deployed 23 November: seven targeted cases passed, plus typecheck
   and diff check. Official Access logout/return flow is explicit and warns about
   cross-application logout; no session was revoked. Worker

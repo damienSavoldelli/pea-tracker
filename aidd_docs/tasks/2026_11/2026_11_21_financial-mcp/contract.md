@@ -197,3 +197,11 @@ Installed Chrome reproduced the previous null Origin and verified the correction
 eight targeted financial tests and post-deployment technical ping passed. A fresh
 owner proposal/form is required to validate actual production submission; no real
 financial operation was performed by these checks.
+
+On 24 November the owner subsequently reported the first successful real nominal
+preparation, independent browser approval, explicit MCP confirmation and journal/
+portfolio reread. This qualifies that production journey at owner-reported level,
+not replay/concurrency/negative cases or independent receipt-store inspection.
+The confirmation response is `TransactionOutcome` (`event`, `balances`); the contract
+does not require a separate public receipt ID. See the
+[dated acceptance record](authentication-incident-2026-11-24.md).

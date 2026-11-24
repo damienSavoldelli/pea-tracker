@@ -317,6 +317,40 @@ Sources consulted 24 November 2026:
 - [MDN: Referrer-Policy effect on Origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Referrer-Policy#effect_on_the_origin_header)
 - [Chrome Headless](https://developer.chrome.com/docs/automation-and-testing/headless)
 
+### First real nominal journey — owner-reported production validation
+
+On 24 November 2026, after the native-form correction, the owner supplied the
+successful browser approval page followed by the ChatGPT MCP confirmation result.
+The report describes an actual previously executed trade, not a synthetic test:
+preparation with duplicate checking, independent browser approval, explicit MCP
+confirmation, journal append and rereads through `get_current_portfolio` and
+`get_transaction_journal`. The owner reported exactly one recorded event and the
+expected position, weighted-cost and cash updates. No private instrument, holding,
+operation/event identifier, digest, price, quantity, fee or balance is retained here.
+
+This closes the first real nominal preparation/browser approval/write/re-read gate
+at the owner-reported production evidence level. It is not a new agent-issued
+financial operation or independent database reconciliation. No further tool call,
+transaction or test was made to repeat that operation for documentation.
+
+Receipt wording: the current API returns `TransactionOutcome` (`event`, `balances`),
+not a separate receipt ID. The D1 adapter's idempotence outcome is stored against
+the portfolio/subject/key and joins back to the event. The reported event/result is
+consistent with this contract; internal receipt storage was not separately queried
+in this documentary update. Do not invent another public receipt identifier.
+
+Exactly one journal event on reread is evidence against an observed duplicate,
+not proof of a repeated confirmation returning the same outcome. Production replay,
+concurrent confirmations, expiry/alteration refusals and failure recovery remain
+unqualified by this nominal report. Existing local synthetic/native-D1 proofs remain
+the evidence for those cases. Do not claim the owner's presentation checklist is
+a new formal technical test suite.
+
+The corrected runtime is deployed from `71bc299` as Worker
+`de09bec2-6596-415d-8ffb-c447c3f2b6e5`; the issuer's reason for combining MCP audiences
+remains unresolved. The known-pair MCP and strict browser policy are the deployed
+compatibility correction, not evidence that the issuer changed back to a singleton.
+
 ### Earlier isolation test results
 
 - 14 targeted tests passed across `financial-mcp.test.ts` and

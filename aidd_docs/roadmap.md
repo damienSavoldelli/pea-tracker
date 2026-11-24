@@ -6,6 +6,17 @@ Cette roadmap ne vaut ni spécification financière ni autorisation de développ
 
 ## Statuts et preuves
 
+- **24 November 2026, corrective-branch production acceptance:** the owner reported
+  the first successful real nominal MCP preparation, independent browser approval,
+  explicit confirmation and portfolio/journal reread after the authentication and
+  native-form fixes. This closes the nominal first-write gate at owner-reported
+  evidence level; production replay and negative/failure scenarios remain separate.
+  No real financial values or identifiers are published. The fixes are deployed
+  from `fix/v1.1-mcp-approval`; [v1.1.4](releases/v1.1.4.md) consolidates the
+  corrective delivery and its limits. See the
+  [dated acceptance update](releases/v1.1.0-validation.md#production-acceptance-update--24-november-2026).
+  Earlier release-time pending statements below remain historical.
+
 - **V1.1.3 patch, 23 November 2026:** explicit Access reconnection button deployed, with a cross-application logout warning. Recovery aid only; the underlying `invalid_token` cause and real approved-write acceptance remain unverified. See [release](releases/v1.1.3.md).
 
 - **V1.1.2 patch, 23 November 2026:** unified confirmation/status presentation and absolute expiry countdown deployed; server financial controls unchanged. See [release and limits](releases/v1.1.2.md). The hosted authentication issue and real write acceptance are separate from this presentation delivery.

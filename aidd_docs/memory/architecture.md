@@ -2,6 +2,10 @@
 
 ## Authentication incident — recovery and normal admission, 2026-11-24
 
+The [v1.1.4 release record](../releases/v1.1.4.md) consolidates the corrections
+and owner-reported nominal acceptance below. Earlier checkpoints retain their
+then-pending validation boundaries.
+
 Signed assertions containing both configured financial audiences were rejected by
 the singleton-AUD guard. The issuer/session reason for this pair remains unresolved.
 Rollback, cookie-path enforcement and moving/parking the browser Access destination
@@ -15,8 +19,9 @@ and approval were disabled, and the approval Access destination was parked tempo
 Default validation and the browser audience check remain strict. D1, calculations,
 proposal fingerprints and idempotence formats are unchanged.
 
-The separate browser relay and optional `FINANCIAL_CONFIRMATION_ORIGIN` are deployed
-but independent browser approval is not production-qualified. Local evidence:
+At the recovery checkpoint, the separate browser relay and optional
+`FINANCIAL_CONFIRMATION_ORIGIN` were deployed, but independent browser approval
+was not yet production-qualified. Local evidence:
 14 targeted isolation tests and 13 recovery tests; typecheck and dry-runs passed.
 The owner supplied a successful ChatGPT ping at `2026-11-24T05:55:35.873Z`, then a
 successful direct `get_current_portfolio_valuation` at 06:56:54 Europe/Paris, using
@@ -50,7 +55,8 @@ writes enabled; read-only recovery and browser diagnostics disabled. The relay
 remains `04c8f314-b275-44a3-8520-28bbab7cb207`. A direct connector ping succeeded at
 `2026-11-24T06:33:32.734Z`, with the deployed version observed in the Worker tail.
 No financial operation was prepared, approved or recorded by deployment/checks.
-The real browser/write/receipt/replay journey remains unvalidated. See
+At that deployment checkpoint, the real browser/write journey had not yet been
+validated. See
 the [updated financial contract](../tasks/2026_11/2026_11_21_financial-mcp/contract.md).
 
 Subsequent real preparation/confirmation GET succeeded (owner report), but native
@@ -63,8 +69,16 @@ financial tests passed, plus typecheck. After explicit owner authorization, sour
 `71bc299` was deployed as Worker `de09bec2-6596-415d-8ffb-c447c3f2b6e5`, retaining
 the normal financial flags and unchanged bindings. A technical connector ping
 succeeded at `2026-11-24T06:50:10.988Z`; no financial operation was performed.
-The real approval/write/receipt/replay journey is still unvalidated. An expired
+At that header-deployment checkpoint, real approval/write validation was still pending. An expired
 proposal must be prepared anew, and the owner must load a fresh form after deployment.
+
+The owner subsequently supplied successful real preparation, independent browser
+approval, explicit MCP confirmation and portfolio/journal rereads on 24 November.
+The first real nominal journey is now owner-reported production-validated, with one
+event and expected portfolio/cash/cost updates. No private values/IDs are retained.
+The API result is event/balances, with no separate receipt identifier. Production
+replay/concurrency/negative cases and independent internal receipt inspection are
+not established by this report. Preserve local evidence for those separate gates.
 
 ## V1.1.3 recovery interface — deployed 2026-11-23
 

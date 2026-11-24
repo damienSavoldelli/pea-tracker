@@ -6,9 +6,9 @@ The source repository is public; tracked fixtures are synthetic. Production port
 
 ## Project status
 
-Latest release: [v1.1.3](aidd_docs/releases/v1.1.3.md), 23 November 2026. An explicit Access reconnection button helps recover after `invalid_token`, with a warning that other Access applications may be disconnected. It does not diagnose or fix the underlying authentication cause. V1.1.2 presentation/countdown and V1.1.1 tracking-safe navigation are preserved; the first real owner-approved MCP write/receipt/replay journey remains unvalidated.
+Release update: [v1.1.4](aidd_docs/releases/v1.1.4.md), 24 November 2026. Deployed corrections accept the exact configured MCP audience pair while retaining independent browser authorization, and preserve Origin on native confirmation POSTs. The owner reported the first successful real preparation → browser approval → MCP confirmation → portfolio/journal reread. Production replay, concurrency and failure recovery remain unvalidated.
 
-V1.1.0 was published on 2026-11-21, after V1.0.0 on 2026-11-19. Financial management, EUR gains, estimated Modified Dietz returns and a partial venue calendar are deployed. Current reads use the separate operational reference at the close of 20 November, preserving historical V1. Journal writes are enabled with independent browser approval; the first real approval/write/receipt/replay journey is still not production-validated.
+V1.1.0 was published on 2026-11-21, after V1.0.0 on 2026-11-19. Financial management, EUR gains, estimated Modified Dietz returns and a partial venue calendar are deployed. Current reads use the separate operational reference at the close of 20 November, preserving historical V1. Journal writes are enabled with independent browser approval; the first real nominal journey was reported successful by the owner on 24 November, after the corrective deployments.
 
 | Capability | Status |
 | --- | --- |
@@ -19,12 +19,12 @@ V1.1.0 was published on 2026-11-21, after V1.0.0 on 2026-11-19. Financial manage
 | Automation | Cloudflare Cron and Durable Object receipts → GitHub workflow_dispatch → Python → ingestion |
 | V1 monitoring | Hourly 07:09–20:09 Paris; closing check observed successful on 20 November |
 | V1.1 calendar | 19 XPAR instruments assigned to known full-day closures for 2026–2027; individual continuous/fixing modes unqualified, intraday phases and ALXP remain unknown |
-| V1.1 financial management | EUR trades, cash movements, fees, dividends, reversals, exact weighted PRU and realized/unrealized gains implemented and deployed; real write journey not yet production-validated |
+| V1.1 financial management | EUR trades, cash movements, fees, dividends, reversals, exact weighted PRU and realized/unrealized gains implemented and deployed; first real nominal write and rereads reported successful by the owner on 24 November |
 | Financial MCP commands | 18 tools: 11 reads/diagnostics, six preparations, one confirmation; independent browser approval, separate server permissions, expiry and idempotent receipts |
 | Global performance | Broker closing market-value reference selected for 20 November; economic gain in EUR and estimated, non-annualized Modified Dietz percentage adjusted for dated external flows; explicit unavailable statuses on missing inputs |
 | Diagnostic Workers | Separate historical PoCs, not the production financial read endpoint |
 
-See [V1.1.0 release notes](aidd_docs/releases/v1.1.0.md), [V1.1 validation and RETEX](aidd_docs/releases/v1.1.0-validation.md) and [historical V1 acceptance](aidd_docs/releases/v1.0.0-validation.md).
+See [v1.1.4 corrections](aidd_docs/releases/v1.1.4.md), [V1.1.0 release notes](aidd_docs/releases/v1.1.0.md), [V1.1 validation and RETEX](aidd_docs/releases/v1.1.0-validation.md) and [historical V1 acceptance](aidd_docs/releases/v1.0.0-validation.md).
 
 ## Architecture
 
@@ -111,7 +111,7 @@ The [V1 acceptance record](aidd_docs/releases/v1.0.0-validation.md) preserves th
 The [roadmap](aidd_docs/roadmap.md) separates the delivered financial foundation from remaining work:
 
 - **V1.1.0 delivered:** journal, cash, fees/dividends, exact cost/PRU/gains, protected financial MCP, separate operational opening, broker market-value reference and Modified Dietz. Operational positions/PRU are distinct from the explicitly selected market valuation used for performance. No earlier trades or prices were reconstructed.
-- **V1.1 limits:** first real owner-approved write/replay acceptance, individual continuous/fixing modes, ALXP and unestablished intraday phases remain open. Monitoring depends on GitHub; advanced/independent alerting is not delivered. Returns remain estimates with source/freshness caveats, not reconstructed pre-reference history or exact TWR.
+- **V1.1 limits:** production replay, concurrency and failure recovery, individual continuous/fixing modes, ALXP and unestablished intraday phases remain open. Monitoring depends on GitHub; advanced/independent alerting is not delivered. Returns remain estimates with source/freshness caveats, not reconstructed pre-reference history or exact TWR.
 - **V2.0:** multi-portfolio isolation and shared market data; multi-provider support.
 - **V2.1:** OHLCV, watchlists and deterministic indicators.
 - **V2.2:** Trading Lab decision journal; evaluate TradingView Paper Trading before any optional internal simulation.
