@@ -296,9 +296,22 @@ passed locally. Eight targeted financial tests passed (29 skipped), including
 null/missing/foreign Origin refusals, CSRF, expiry, UTM and the three native-D1/SDK
 flows. TypeScript and diff whitespace checks passed. No global suite was run.
 
-The corrected policy is not deployed or committed yet. Expired proposals must be
-reprepared after deployment; no expired operation is revived and no real operation
-will be approved/confirmed by applying this correction.
+After explicit owner authorization, the correction was committed as
+`71bc29920204d5246e0c9d71e1a7e4ac7ce41d89` on `fix/v1.1-mcp-approval` and deployed
+as Worker `de09bec2-6596-415d-8ffb-c447c3f2b6e5`. The tree was clean before deployment.
+The normal financial configuration was reused unchanged: writes/known-pair MCP
+admission true, recovery/diagnostics false. No relay deployment, Access/secret
+change, migration or financial operation was performed. One connector ping succeeded
+at `2026-11-24T06:50:10.988Z`. No real proposal was prepared, approved or confirmed
+by these deployment checks. The pre-header version
+`3cdf9216-04ee-462e-bbda-6d8697172ef0` and write-disabled recovery
+`805050ee-3965-49de-b1a2-b7f57c584d8f` are retained fallback references.
+
+The first real native browser approval/write/receipt/replay journey remains pending.
+Expired proposals must be prepared anew; old loaded pages retain their previous
+document policy, so the owner must open the fresh form after deployment. No expired
+operation is revived. A second documentation-only local commit was explicitly
+authorized to record these deployment facts; no push, tag or release is authorized.
 
 Sources consulted 24 November 2026:
 - [MDN: Referrer-Policy effect on Origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Referrer-Policy#effect_on_the_origin_header)

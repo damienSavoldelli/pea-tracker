@@ -187,3 +187,13 @@ The 47 targeted local checks include the official SDK/native D1 journey with mix
 MCP and browser-only approval, exact replay, old single-AUD compatibility and refusal
 of mixed assertions on browser GET/POST. They do not establish production financial
 approval or authorize preparing/confirming a real operation.
+
+The subsequent native-form correction uses `Referrer-Policy: strict-origin` on
+confirmation pages, preserving native POST Origin without including proposal
+paths/queries in Referer. Null, absent and foreign Origins remain rejected; Referer
+is not an authorization input. Source `71bc299` was deployed as Worker
+`de09bec2-6596-415d-8ffb-c447c3f2b6e5` with the same normal financial settings.
+Installed Chrome reproduced the previous null Origin and verified the correction;
+eight targeted financial tests and post-deployment technical ping passed. A fresh
+owner proposal/form is required to validate actual production submission; no real
+financial operation was performed by these checks.

@@ -59,8 +59,12 @@ The confirmation page's no-referrer policy caused the browser's null Origin; an
 installed Chrome loopback test reproduced it. A local one-header correction uses
 strict-origin, without accepting null/missing/foreign origins or changing CSRF,
 Access, proposal/financial rules. One actual browser test and eight targeted
-financial tests passed, plus typecheck. This correction is not committed/deployed;
-the real approval/write/receipt/replay journey is still unvalidated.
+financial tests passed, plus typecheck. After explicit owner authorization, source
+`71bc299` was deployed as Worker `de09bec2-6596-415d-8ffb-c447c3f2b6e5`, retaining
+the normal financial flags and unchanged bindings. A technical connector ping
+succeeded at `2026-11-24T06:50:10.988Z`; no financial operation was performed.
+The real approval/write/receipt/replay journey is still unvalidated. An expired
+proposal must be prepared anew, and the owner must load a fresh form after deployment.
 
 ## V1.1.3 recovery interface — deployed 2026-11-23
 
