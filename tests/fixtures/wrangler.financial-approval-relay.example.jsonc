@@ -1,0 +1,15 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "pea-tracker-financial-approval",
+  "main": "../../src/entrypoints/financial-approval-relay.ts",
+  "compatibility_date": "2026-11-24",
+  "workers_dev": false,
+  "preview_urls": false,
+  "services": [{ "binding": "FINANCIAL", "service": "pea-tracker-financial-read" }],
+  "vars": { "FINANCIAL_CONFIRMATION_ORIGIN": "https://synthetic-approval.example.invalid" },
+  "observability": {
+    "enabled": true,
+    "logs": { "enabled": true, "invocation_logs": false },
+    "traces": { "enabled": true, "head_sampling_rate": 1 }
+  }
+}

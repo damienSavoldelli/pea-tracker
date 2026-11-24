@@ -1,13 +1,15 @@
 # Project Brief
 
-## Published delivery — reviewed 2026-11-22
+## Published delivery — reviewed 2026-11-24
 
 V1.1.0 was published on 21 November after V1.0.0. The financial foundation is
 implemented, locally tested and deployed on the existing Worker. Historical V1 reads are preserved;
 current reads use a separately imported operational reference and an initially
 empty journal, without reconstructing omitted trades. Financial MCP commands are
-enabled with exact-owner authorization and independent browser approval. No real
-transaction has validated that complete approval/write/replay journey in production.
+enabled with exact-owner authorization and independent browser approval. After the deployed authentication/native-form fixes, the owner reported the first
+real nominal preparation, independent browser approval, MCP confirmation and
+portfolio/journal rereads on 24 November. Production replay, concurrency and failure
+recovery remain unvalidated. See the [v1.1.4 update](../releases/v1.1.4.md).
 
 Exact cost/PRU, fees, dividends, realized/unrealized gains and dated external flows
 are implemented. Historical fee treatment remains unknown. The separate broker
@@ -57,4 +59,4 @@ New commits and remote changes still require the applicable explicit authorizati
 - Detailed portfolio accounting and performance methodology belong in a PRD before implementation; do not infer rules from the architecture.
 - The [financial backend PRD](../tasks/2026_11/2026_11_08-financial-backend-prd.md) preserves its owner-approved product baseline (2026-11-08) and adds a dated current-scope supplement. Dated opening state initializes existing holdings without fabricated transactions; incomplete source history means unavailable historical performance.
 - The owner approved [Financial Instruments implementation](../tasks/2026_11/2026_11_08_financial-instruments/plan.md), including real loopback HTTP tests with synthetic principals; its [OpenAPI contract](../api/openapi.json) is implemented locally. Catalog delivery does not depend on advanced financial rules. The broader [design proposal](../tasks/2026_11/2026_11_06_financial-backend/design.md) remains context, not blanket approval.
-- Historical synthetic/local approvals were followed by separately authorized V1 operation and the published V1.1.0. Use the [consolidated evidence](../releases/v1.1.0-validation.md) for delivered scope, partial calendar activation and closing monitoring, keeping earlier pending checkpoints historical. The first real owner-approved financial write remains unvalidated; functional reads do not certify all security/recovery gates. Code, new data loads, tests, remote operations, Git staging/publication and security changes still require their applicable authorization; historical permissions are not permanent.
+- Historical synthetic/local approvals were followed by separately authorized V1 operation and the published V1.1.0. Use the [consolidated evidence](../releases/v1.1.0-validation.md) for delivered scope, partial calendar activation and closing monitoring, keeping earlier pending checkpoints historical. The first real nominal financial write and rereads were owner-reported successful on 24 November; this does not certify production replay or all security/recovery gates. Code, new data loads, tests, remote operations, Git staging/publication and security changes still require their applicable authorization; historical permissions are not permanent.
