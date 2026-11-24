@@ -2,6 +2,18 @@
 
 ## Current state
 
+- **V1.1.5 hosted acceptance/closure, owner-reported, 24 November 2026 around
+  20:05 Europe/Paris:** after refreshing the connector catalogue, hosted ChatGPT
+  successfully called `list_portfolios` → `get_current_portfolio` →
+  `get_current_portfolio_valuation` (Yahoo/last_trade/unadjusted) with the discovered
+  ID, without manual input or access denial. All 20 positions were valued; the
+  previously recorded transaction and journal version 1 were taken into account,
+  with freshness/dissemination warnings retained. No preparation or financial write.
+  The owner accepted resolution and closed the discoverability incident. This is
+  not an independent Codex rerun, reconciliation or replay/concurrency/failure
+  acceptance. After tool additions/changes, refresh and verify the client catalogue
+  before testing the autonomous journey. See [closure and RETEX](../releases/v1.1.5.md).
+
 - **V1.1.5 local discovery, 24 November 2026:** TypeScript and **7 targeted
   financial MCP cases passed** (33 filtered out): three new discovery cases,
   separate-approver refusal and three existing signed SDK/native-D1 journeys.
@@ -13,8 +25,9 @@
   `d4acd260-8532-43da-9ead-5320ab006725`. Official version metadata confirms
   unchanged bindings/runtime; connector ping passed, anonymous MCP POST returned
   401 and anonymous browser identity navigation returned 302 to Access.
-  No full suite, financial operation or hosted ChatGPT discovery/valuation
-  acceptance. See [commands, compatibility and RETEX](../releases/v1.1.5.md).
+  No full suite or financial operation was performed in that technical checkpoint;
+  subsequent hosted acceptance is recorded above. See [commands, compatibility and
+  RETEX](../releases/v1.1.5.md).
 
 - **24 November 2026, owner-reported production milestone:** first real nominal
   MCP preparation → independent browser approval → explicit MCP confirmation →

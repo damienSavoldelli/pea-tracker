@@ -7,9 +7,13 @@ portfolio with `id`, `kind`, `status`; no registry metadata is invented. Require
 `portfolio:read` and the existing exact owner binding. Tools requiring
 `portfolio_id` use `list_portfolios.data[].id`, never `opening_state.id`.
 Financial permissions/approval and historical reads are unchanged. This amendment
-is locally tested and deployed with unchanged V1.1.4 bindings/runtime. Hosted
-ChatGPT discovery/current valuation after refresh remain to verify; dated
-production evidence below continues to describe its own checkpoint.
+is locally tested and deployed with unchanged V1.1.4 bindings/runtime. The owner
+confirmed hosted ChatGPT discovery/current state/valuation after catalogue refresh
+on 24 November around 20:05 Europe/Paris and closed this incident. Refresh the
+connector catalogue after adding/modifying tools before hosted acceptance; dated
+production evidence below continues to describe its own checkpoint. Future V2.0B
+integration replaces the singleton listing with the registry, without registering
+`list_portfolios` twice.
 
 Current state, 21 November: journal/approval migrations and the separate operational
 reference are deployed; financial writes are enabled under explicit owner authority.

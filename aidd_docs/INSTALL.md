@@ -7,8 +7,10 @@ adds owner-only MCP `list_portfolios` with the V2.0B query/envelope and minimal
 configured-portfolio metadata. No registry, migration or financial authorization
 change. Source `254c731` is deployed as Worker version
 `d4acd260-8532-43da-9ead-5320ab006725`, with unchanged V1.1.4 bindings and runtime.
-Ping and anonymous MCP/browser security checks passed; hosted ChatGPT discovery
-and current valuation after connector refresh remain unvalidated. The catalogue
+Ping and anonymous MCP/browser security checks passed; the owner confirmed hosted
+ChatGPT discovery/current-state/valuation after connector catalogue refresh on
+24 November around 20:05 Europe/Paris, closing the discoverability incident.
+Refresh the client catalogue after adding or modifying tools. The catalogue
 gains one read tool (19 total). Historical statements below retain their dated evidence.
 
 Current corrective delivery, 24 November 2026: [v1.1.4](releases/v1.1.4.md) records deployed exact-known-pair MCP admission, strict independent browser authorization through a separate relay, and native-form Origin preservation. The owner reported the first successful real preparation → browser approval → explicit MCP confirmation → portfolio/journal reread. Production replay, concurrency, negative cases and failure recovery remain unvalidated. No V2 integration or financial-rule change is included. Earlier patch and foundation statements below describe their dated checkpoints.

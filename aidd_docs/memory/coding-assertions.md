@@ -7,6 +7,10 @@
   without the ID, explain entity versus snapshot/revision identifiers, and retain
   denial tests for wrong IDs. A correct API and secure refusal alone do not prove
   autonomous usability. See the [v1.1.5 incident/RETEX](../releases/v1.1.5.md).
+- After adding or modifying MCP tools, refresh the ChatGPT connector catalogue
+  and verify exposed tool names/descriptions before hosted acceptance. Use a new
+  conversation if the old catalogue persists. Distinguish cached-client discovery
+  from deployed-server behavior; never guess IDs to bypass missing discovery.
 - When application validation is in the authorized scope, `npm run check` runs strict TypeScript and Vitest; `npm run build` creates a Wrangler dry-run bundle without deploying. Their existence is not an instruction to execute them during documentary work.
 - Inspect changed documentation, validate local links and memory references, and check whitespace with `git diff --check` for tracked changes. No lint command is configured.
 

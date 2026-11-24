@@ -10,7 +10,9 @@ Corrective release: [v1.1.5 MCP discovery](aidd_docs/releases/v1.1.5.md), 24 Nov
 adds `list_portfolios` so agents can discover `portfolio_id` without guessing from
 an opening-state ID. V2.0B query/envelope reused with minimal metadata, no registry
 or migration. Deployed with unchanged V1.1.4 bindings and security settings;
-hosted ChatGPT discovery/current-valuation acceptance remains to verify after refresh.
+the owner confirmed hosted ChatGPT discovery → current state → valuation after
+connector catalogue refresh on 24 November around 20:05 Europe/Paris. The
+discoverability incident is closed; no new financial write was needed.
 
 Release update: [v1.1.4](aidd_docs/releases/v1.1.4.md), 24 November 2026. Deployed corrections accept the exact configured MCP audience pair while retaining independent browser authorization, and preserve Origin on native confirmation POSTs. The owner reported the first successful real preparation → browser approval → MCP confirmation → portfolio/journal reread. Production replay, concurrency and failure recovery remain unvalidated.
 

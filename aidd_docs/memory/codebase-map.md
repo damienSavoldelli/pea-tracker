@@ -8,8 +8,10 @@ match V2.0B; entry metadata is deliberately limited to `id`, `kind`, `status`.
 Current/journal/preparation descriptions use `data[].id`, never `opening_state.id`.
 The future V2 registry registration must replace this singleton registration.
 Source `254c731`, Worker version `d4acd260-8532-43da-9ead-5320ab006725`.
-Bindings/runtime match V1.1.4. Hosted ChatGPT discovery after refresh is pending;
-see [release evidence and RETEX](../releases/v1.1.5.md).
+Bindings/runtime match V1.1.4. The owner confirmed hosted discovery → current
+state → valuation on 24 November around 20:05 Europe/Paris after catalogue refresh;
+the discoverability incident is closed. Refresh the connector catalogue after
+tool additions/changes before acceptance. See [evidence and RETEX](../releases/v1.1.5.md).
 
 ## V1.1 foundation and corrections — reviewed 2026-11-24
 

@@ -11,8 +11,12 @@ Cette roadmap ne vaut ni spécification financière ni autorisation de développ
   l'enveloppe V2.0B, métadonnées minimales sans registre ni migration. Descriptions
   MCP explicites sur `portfolio_id` versus `opening_state.id`. Bindings et runtime
   V1.1.4 conservés ; ping et contrôles anonymes MCP/navigateur réussis. Découverte
-  et valorisation depuis ChatGPT hébergé après actualisation du connecteur encore
-  à valider ; voir [contrat, preuves et RETEX](releases/v1.1.5.md).
+  et valorisation depuis ChatGPT hébergé confirmées par le propriétaire vers
+  20 h 05 Europe/Paris, après actualisation du catalogue du connecteur, sans
+  identifiant manuel ni écriture. **Incident de découvrabilité clôturé.** Après
+  ajout/modification d'outils MCP, actualiser le catalogue avant la recette.
+  L'intégration V2.0B devra remplacer le singleton sans double inscription ;
+  voir [contrat, preuves et RETEX](releases/v1.1.5.md).
 
 - **24 November 2026, corrective-branch production acceptance:** the owner reported
   the first successful real nominal MCP preparation, independent browser approval,
