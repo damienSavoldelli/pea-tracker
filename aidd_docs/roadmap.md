@@ -6,6 +6,23 @@ Cette roadmap ne vaut ni spécification financière ni autorisation de développ
 
 ## Statuts et preuves
 
+- **24 November 2026, corrective-branch production acceptance:** the owner reported
+  the first successful real nominal MCP preparation, independent browser approval,
+  explicit confirmation and portfolio/journal reread after the authentication and
+  native-form fixes. This closes the nominal first-write gate at owner-reported
+  evidence level; production replay and negative/failure scenarios remain separate.
+  No real financial values or identifiers are published. The fixes are deployed
+  from `fix/v1.1-mcp-approval`; [v1.1.4](releases/v1.1.4.md) consolidates the
+  corrective delivery and its limits. See the
+  [dated acceptance update](releases/v1.1.0-validation.md#production-acceptance-update--24-november-2026).
+  Earlier release-time pending statements below remain historical.
+
+- **V1.1.3 patch, 23 November 2026:** explicit Access reconnection button deployed, with a cross-application logout warning. Recovery aid only; the underlying `invalid_token` cause and real approved-write acceptance remain unverified. See [release](releases/v1.1.3.md).
+
+- **V1.1.2 patch, 23 November 2026:** unified confirmation/status presentation and absolute expiry countdown deployed; server financial controls unchanged. See [release and limits](releases/v1.1.2.md). The hosted authentication issue and real write acceptance are separate from this presentation delivery.
+
+- **V1.1.1 patch, 23 November 2026:** confirmation GET accepts known UTM tracking parameters; responsive form deployed with unchanged financial authorization. Local evidence and minimal production availability checks are recorded in the [release](releases/v1.1.1.md). The owner's real approved MCP write/receipt/replay acceptance remains pending; no V2 development is included.
+
 - **Développé** : capacité présente dans le code ; cela ne prouve pas son exploitation.
 - **Testé localement** : preuves antérieures sur fixtures synthétiques, consignées dans les contrats/plans V1 ; aucun test relancé pour ce lot documentaire.
 - **Validé en exploitation** : observations antérieures rapportées dans la reprise utilisateur ; aucune vérification distante effectuée pour ce lot.
@@ -186,6 +203,21 @@ Questions cibles :
 - sélection explicite du portefeuille et visibilité réel/fictif ;
 - interaction avec ChatGPT et outils MCP ;
 - interface utile, sans la rendre obligatoire pour utiliser l’API.
+
+### Approval notification and automatic ChatGPT continuation — V2.3 or V3
+
+Owner decision, 24 November 2026: defer this improvement to V2.3, with V3 as a
+possible fallback; it is outside V2.0. The current V1.1.4 manual return remains valid.
+The desired journey is independent browser approval followed by notification to
+ChatGPT, explicit MCP confirmation and result verification without a second manual
+message. Notification must never replace server-side approval or authorize a write.
+
+MCP Events is a feasibility candidate, not an implemented or qualified integration.
+Before scheduling delivery, verify support in the owner's actual ChatGPT surface,
+subscription/callback lifecycle, authorization, deduplication and compatibility with
+the proposal's five-minute expiry. Late delivery must not extend approval or blindly
+repeat a write. Keep a manual fallback and preserve the separate browser audience.
+See [OpenAI MCP Events documentation](https://developers.openai.com/plugins/build/mcp-events).
 
 ## Axe transversal — Architecture logicielle et ingénierie IA
 
