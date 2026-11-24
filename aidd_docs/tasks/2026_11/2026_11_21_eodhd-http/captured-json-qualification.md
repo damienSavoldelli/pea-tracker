@@ -2,6 +2,8 @@
 
 24 November 2026; branch `feat/v2.0d-multi-provider`. Supplements the
 [external report](external-poc-2026-11-23.md) and [D5 parser](response-parser.md).
+Subsequent local delivery: [D6 observation-only selection and coverage planner](shadow-selection.md).
+It preserves this sample qualification without repeating the supplier tests.
 Only the owner's nine authorized JSON files were inspected, read-only, after a
 non-disclosing secret-pattern scan. No key/credential indicators were detected;
 this is a bounded inspection, not a general secret-detection guarantee. Original
