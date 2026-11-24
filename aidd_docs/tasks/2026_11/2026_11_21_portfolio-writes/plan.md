@@ -130,3 +130,22 @@ An initial test-array type needed annotation; no invariant was relaxed to pass t
   study for hybrid A+B providers, adaptive collection and controlled fallback;
   coverage, freshness, quotas, licences and costs are unassessed here. No provider
   research or collector implementation was started.
+
+## V1.1.4 integration — 24 November 2026
+
+Owner-authorized V2 branch synchronization incorporates the published authentication
+and native-form corrections without deployment or a remote migration. Preserve the
+V2 browser router's narrow service contract and explicit portfolio name/UUID/kind
+in the updated confirmation presentation. Both legacy and registry-backed real
+proposals use the configured independent confirmation origin; MCP admission never
+replaces browser approval.
+
+Local synthetic verification: 91 tests passed across financial MCP, known-pair
+admission, read-only recovery, browser diagnostics, portfolio reads and the signed
+V2 Worker. A subsequent targeted run passed 19 tests across portfolio financial
+services, migration and the Worker. The Worker case now covers both legacy same-origin
+and separate-origin approval with a mixed-audience MCP assertion; both refuse that
+assertion on the browser channel, require independent approval for real portfolios
+and preserve isolated real/simulated circuits. These runs overlap and are not a
+full-suite count. TypeScript and diff checks passed. No provider network call,
+financial production operation, deployment or production qualification occurred.

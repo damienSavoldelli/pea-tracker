@@ -14,10 +14,11 @@ import { portfolioFixture, portfolioAdmin, provenance, firstId } from './helpers
 const cleanups: (() => Promise<void>)[] = [];
 afterEach(async () => { for (const cleanup of cleanups.splice(0).reverse()) await cleanup(); });
 
-it('official SDK and signed Worker keep legacy operations real while enabling isolated V2 browser/MCP circuits', async () => {
+it.each([false, true])('official SDK and signed Worker preserve isolated V2 circuits with separate approval origin=%s', async separateApproval => {
   const f = await portfolioFixture('d1'); cleanups.push(f.dispose);
   const at = '2026-11-21T12:00:00.000Z';
   const origin = 'https://synthetic.example.invalid';
+  const approvalOrigin = separateApproval ? 'https://synthetic-approval.example.invalid' : origin;
   const initial = { effective_at: '2026-11-20T12:00:00.000Z', positions: [{ instrument_id: firstId, quantity: '2', declared_pru: '10', currency: 'EUR', provenance }],
     cash: { currency: 'EUR', amount: '100' }, provenance, correction_reason: null };
   const historical = await new PortfolioService(new D1PortfolioRepository(f.local!.db), f.instruments, () => at)
@@ -35,9 +36,10 @@ it('official SDK and signed Worker keep legacy operations real while enabling is
   const environment = { INSTRUMENTS_DB: f.local!.db, ACCESS_TEAM_DOMAIN: accessConfig.issuer, ACCESS_READ_AUD: accessConfig.audience,
     ACCESS_OWNER_SUB: accessConfig.ownerSubject, ACCESS_READ_ENABLED: 'true', ACCESS_PORTFOLIO_READ_ENABLED: 'true',
     FINANCIAL_WRITES_ENABLED: 'true', ACCESS_CONFIRMATION_AUD: 'b'.repeat(64), FINANCIAL_ORIGIN: origin,
+    ...(separateApproval ? { FINANCIAL_CONFIRMATION_ORIGIN: approvalOrigin, MCP_KNOWN_AUDIENCE_PAIR_ENABLED: 'true' } : {}),
     FINANCIAL_PORTFOLIO_ID: legacyId, FINANCIAL_OWNER_ID: portfolioAdmin.subject, FINANCIAL_OPENING_ID: historical.id, FINANCIAL_OPENING_REVISION: '1' };
   const backend = createAccessFinancialWorker(environment, { fetch: auth.keys });
-  const token = await auth.token(); const browserToken = await auth.token({ aud: [environment.ACCESS_CONFIRMATION_AUD] });
+  const token = await auth.token(separateApproval ? { aud: [accessConfig.audience, environment.ACCESS_CONFIRMATION_AUD] } : {}); const browserToken = await auth.token({ aud: [environment.ACCESS_CONFIRMATION_AUD] });
   const client = new Client({ name: 'synthetic-portfolio-writer', version: '1' }); cleanups.push(() => client.close());
   await client.connect(new StreamableHTTPClientTransport(new URL(`${origin}/mcp`), {
     fetch: async (url, init) => { const request = new Request(url, init); request.headers.set('Cf-Access-Jwt-Assertion', token); return backend.fetch(request); },
@@ -58,17 +60,18 @@ it('official SDK and signed Worker keep legacy operations real while enabling is
     if (row.kind === 'real') {
       expect((await client.callTool({ name: 'confirm_real_portfolio_operation', arguments: command })).isError).toBe(true);
       expect((await backend.request(p.confirmation_url!, { headers: { 'Cf-Access-Jwt-Assertion': token } })).status).toBe(401);
+      expect(new URL(p.confirmation_url!).origin).toBe(approvalOrigin);
       const page = await backend.request(p.confirmation_url!, { headers: { 'Cf-Access-Jwt-Assertion': browserToken } });
       expect(page.status).toBe(200);
       const html = await page.text(); expect(html).toContain(row.id); expect(html).toContain(row.name); expect(html).toContain('Réel');
       const csrf = /name="csrf" value="([^"]+)"/.exec(html)![1]!;
-      const approved = await backend.request(p.confirmation_url!, { method: 'POST', headers: { Origin: origin,
+      const approved = await backend.request(p.confirmation_url!, { method: 'POST', headers: { Origin: approvalOrigin,
         'Cf-Access-Jwt-Assertion': browserToken, Cookie: page.headers.get('Set-Cookie')!.split(';')[0]!,
         'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ csrf }) });
       expect(approved.status).toBe(200);
     } else {
       expect(p.confirmation_url).toBeNull();
-      expect((await backend.request(`${origin}/financial-confirmation/${p.operation_id}`, { headers: { 'Cf-Access-Jwt-Assertion': browserToken } })).status).toBe(403);
+      expect((await backend.request(`${approvalOrigin}/financial-confirmation/${p.operation_id}`, { headers: { 'Cf-Access-Jwt-Assertion': browserToken } })).status).toBe(403);
     }
     const confirmed = await client.callTool({ name: `confirm_${row.kind}_portfolio_operation`, arguments: command });
     expect(confirmed.isError).not.toBe(true);
