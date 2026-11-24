@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { FinancialMcpService } from '../src/application/financial-mcp';
+import { PortfolioService } from '../src/application/portfolio';
 import { TransactionService } from '../src/application/transactions';
 import { MemoryTransactionRepository } from '../src/adapters/memory/transactions';
 import { D1TransactionRepository } from '../src/adapters/d1/transactions';
@@ -51,6 +52,69 @@ async function fixture(kind: 'memory' | 'd1' = 'memory', simulated = false) {
   return { ...f, openingService: f.service, journal, service, approvals, transactions, binding: financialBinding, prepare, approve, record, clock,
     setTime(value: string) { now = value; } };
 }
+
+describe('configured portfolio discovery', () => {
+  it('lists only the authorized portfolio with V2.0B pagination and no financial mutation', async () => {
+    const f = await fixture();
+    const before = await f.journal.get(portfolioReader, portfolioId);
+    const expected = { data: [{ id: portfolioId, kind: 'real', status: 'active' }], page: { next_after: null }, read_only: true };
+    expect(await f.service.listPortfolios(portfolioReader)).toEqual(expected);
+    expect(await f.service.listPortfolios(portfolioReader, { limit: 1 })).toEqual(expected);
+    expect(await f.service.listPortfolios(portfolioReader, { after: '00000000-0000-4000-8000-000000000000' })).toEqual(expected);
+    for (const after of [portfolioId, otherId]) expect(await f.service.listPortfolios(portfolioReader, { after }))
+      .toEqual({ data: [], page: { next_after: null }, read_only: true });
+    // Returned objects cannot change the configured identity.
+    (await f.service.listPortfolios(portfolioReader)).data[0]!.id = otherId;
+    expect(await f.service.listPortfolios(portfolioReader)).toEqual(expected);
+    expect(await f.journal.get(portfolioReader, portfolioId)).toEqual(before);
+  });
+  it('preserves owner, permission, query and real-portfolio guards', async () => {
+    const f = await fixture();
+    for (const principal of [null, { ...portfolioReader, subject: 'another-owner' },
+      { subject: writer.subject, permissions: ['instruments:read'] } as Principal]) {
+      await expect(f.service.listPortfolios(principal)).rejects.toMatchObject({ status: principal ? 403 : 401 });
+    }
+    for (const query of [{ limit: 0 }, { limit: 101 }, { limit: 1.5 }, { after: 'invalid' }, { portfolio_id: otherId }, { owner_subject: writer.subject }])
+      await expect(f.service.listPortfolios(portfolioReader, query)).rejects.toMatchObject({ code: 'invalid_query' });
+    const simulated = await fixture('memory', true);
+    await expect(simulated.service.listPortfolios(portfolioReader)).rejects.toMatchObject({ code: 'real_portfolio_required' });
+  });
+  it('official MCP SDK discovers portfolio_id before current reads and keeps opening IDs denied', async () => {
+    const f = await fixture();
+    const portfolio = new PortfolioService(f.repository, f.instruments, f.clock, undefined, f.journal);
+    let principal = portfolioReader;
+    const app = createApp({ mcp: { service: f.instrumentService, portfolio: f.openingService,
+      currentPortfolio: portfolio, financialOperations: f.service,
+      authenticate: async () => principal, challenge: () => 'Bearer', oauthScopes: [] } });
+    const client = new Client({ name: 'synthetic-discovery', version: '1' });
+    await client.connect(new StreamableHTTPClientTransport(new URL(`${origin}/mcp`), {
+      fetch: async (url, init) => app.fetch(new Request(url, init)),
+    }));
+    cleanups.push(() => client.close());
+    const tools = (await client.listTools()).tools;
+    expect(tools.filter(tool => tool.name === 'list_portfolios')).toHaveLength(1);
+    expect(tools.find(tool => tool.name === 'list_portfolios')?.annotations?.readOnlyHint).toBe(true);
+    expect(tools.find(tool => tool.name === 'get_current_portfolio')?.description).toContain('never use opening_state.id');
+    const discovered = await client.callTool({ name: 'list_portfolios', arguments: {} });
+    expect(discovered.isError).not.toBe(true);
+    const result = discovered.structuredContent as { data: { id: string }[] };
+    const selected = result.data[0]!.id;
+    const opening = await f.openingService.get(portfolioReader);
+    expect(selected).not.toBe(opening.id);
+    expect((await client.callTool({ name: 'get_current_portfolio', arguments: { portfolio_id: selected } })).structuredContent)
+      .toMatchObject({ portfolio_id: selected, journal: { version: 0 } });
+    for (const id of [opening.id, otherId]) expect(await client.callTool({ name: 'get_current_portfolio', arguments: { portfolio_id: id } }))
+      .toMatchObject({ isError: true, content: [{ type: 'text', text: 'portfolio_access_denied' }] });
+    expect((await client.callTool({ name: 'get_transaction_journal', arguments: { portfolio_id: selected } })).isError).not.toBe(true);
+    expect((await client.callTool({ name: 'get_positions', arguments: {} })).structuredContent).toEqual(await f.openingService.positions(portfolioReader, {}));
+    principal = { ...portfolioReader, subject: 'another-owner' };
+    expect(await client.callTool({ name: 'list_portfolios', arguments: {} })).toMatchObject({ isError: true,
+      content: [{ type: 'text', text: 'portfolio_access_denied' }] });
+    principal = { subject: writer.subject, permissions: ['instruments:read'] };
+    expect((await client.listTools()).tools.map(tool => tool.name)).not.toContain('list_portfolios');
+    expect((await client.callTool({ name: 'list_portfolios', arguments: {} })).isError).toBe(true);
+  });
+});
 
 describe('immutable financial preparation and single-use approval', () => {
   it.each([
@@ -425,9 +489,14 @@ it.each([
   });
   await client.connect(transport); cleanups.push(() => client.close());
   const tools = (await client.listTools()).tools;
+  expect(tools).toHaveLength(19);
   expect(tools.map(tool => tool.name)).toContain('confirm_financial_operation');
   expect(tools.map(tool => tool.name)).not.toContain('approve_financial_operation');
   expect(tools.find(tool => tool.name === 'confirm_financial_operation')?.annotations?.readOnlyHint).toBe(false);
+  const discovered = await client.callTool({ name: 'list_portfolios', arguments: {} });
+  expect(discovered.isError).not.toBe(true);
+  expect(discovered.structuredContent).toEqual({ data: [{ id: portfolioId, kind: 'real', status: 'active' }],
+    page: { next_after: null }, read_only: true });
   expect((await client.callTool({ name: 'get_positions', arguments: {} })).isError).not.toBe(true);
   const oldPositions = await app.request(`${origin}/api/v1/portfolio/positions`, { headers: { 'Cf-Access-Jwt-Assertion': mcpToken } });
   expect(oldPositions.status).toBe(200);

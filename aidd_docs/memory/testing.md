@@ -2,6 +2,16 @@
 
 ## Current state
 
+- **V1.1.5 local discovery, 24 November 2026:** TypeScript and **7 targeted
+  financial MCP cases passed** (33 filtered out): three new discovery cases,
+  separate-approver refusal and three existing signed SDK/native-D1 journeys.
+  Covers discovery without a pre-known portfolio UUID, owner/read authorization,
+  pagination/query bounds, no journal mutation, wrong-opening-ID refusal,
+  historical positions and preserved independent browser approval/append/replay.
+  The local fully enabled catalogue has 19 tools; production remains V1.1.4.
+  No full suite or hosted ChatGPT acceptance. See [commands, compatibility and
+  RETEX](../releases/v1.1.5.md).
+
 - **24 November 2026, owner-reported production milestone:** first real nominal
   MCP preparation → independent browser approval → explicit MCP confirmation →
   journal recording → portfolio/journal reread succeeded on corrected Worker

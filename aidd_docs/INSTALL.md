@@ -2,6 +2,13 @@
 
 Architecture baseline, current implementation and remaining validation requirements.
 
+Local corrective preparation, 24 November 2026: [v1.1.5](releases/v1.1.5.md)
+adds owner-only MCP `list_portfolios` with the V2.0B query/envelope and minimal
+configured-portfolio metadata. No registry, migration or financial authorization
+change. The local catalogue gains one read tool; production remains V1.1.4 until
+separately approved publication/deployment. Historical statements below retain
+their dated evidence.
+
 Current corrective delivery, 24 November 2026: [v1.1.4](releases/v1.1.4.md) records deployed exact-known-pair MCP admission, strict independent browser authorization through a separate relay, and native-form Origin preservation. The owner reported the first successful real preparation → browser approval → explicit MCP confirmation → portfolio/journal reread. Production replay, concurrency, negative cases and failure recovery remain unvalidated. No V2 integration or financial-rule change is included. Earlier patch and foundation statements below describe their dated checkpoints.
 
 Historical patch: [v1.1.3](releases/v1.1.3.md), 23 November 2026, provides an explicit Access reconnection link after `invalid_token`. The deployed button facilitates session recovery, not correction of the undiagnosed cause. Cross-application logout is disclosed; no financial authorization, Access policy or data change is introduced.

@@ -93,19 +93,19 @@ export async function handleMcp(request: Request, financial?: FinancialContext):
     }
     if (financial.currentPortfolio && financial.principal.permissions.includes('portfolio:read')) {
       const portfolio = financial.currentPortfolio;
-      server.registerTool('get_current_portfolio', { description: 'V1.1 projected holdings/cash, opening cash, exact costs/PRU, dividends, realized gains and dated external cash flows at one journal version. Flow corrections included; trades/dividends are not external contributions. Historic cost fees remain unknown. No global percentage return. V1 stays historical.',
+      server.registerTool('get_current_portfolio', { description: 'V1.1 projected holdings/cash, opening cash, exact costs/PRU, dividends, realized gains and dated external cash flows at one journal version. Flow corrections included; trades/dividends are not external contributions. Historic cost fees remain unknown. No global percentage return. V1 stays historical. Discover portfolio_id with list_portfolios and use data[].id; never use opening_state.id as portfolio_id.',
         inputSchema: z.object({ portfolio_id: portfolioIdSchema }).strict(), annotations, _meta: { securitySchemes } },
       input => guarded(() => portfolio.current(financial.principal, input.portfolio_id)));
     }
     if (financial.currentValuation && financial.principal.permissions.includes('portfolio:read') && financial.principal.permissions.includes('quotes:read')) {
       const valuation = financial.currentValuation;
-      server.registerTool('get_current_portfolio_valuation', { description: 'V1.1 valuation/gains, monetary economic gain and estimated Modified Dietz percentage return after dated external flows. Requires a server-selected market snapshot or owner-confirmed broker closing reference; missing/incompatible reference means unavailable performance, never PRU substitution. Return is not annualized or an exact historical TWR. Fees/dividends already inside cash/value. Source, period, precision and quote warnings retained. V1 remains historical.',
+      server.registerTool('get_current_portfolio_valuation', { description: 'V1.1 valuation/gains, monetary economic gain and estimated Modified Dietz percentage return after dated external flows. Requires a server-selected market snapshot or owner-confirmed broker closing reference; missing/incompatible reference means unavailable performance, never PRU substitution. Return is not annualized or an exact historical TWR. Fees/dividends already inside cash/value. Source, period, precision and quote warnings retained. V1 remains historical. Discover portfolio_id with list_portfolios and use data[].id; never use opening_state.id as portfolio_id.',
         inputSchema: valuationQuerySchema.omit({ revision: true }).extend({ portfolio_id: portfolioIdSchema }).strict(),
         annotations, _meta: { securitySchemes } }, ({ portfolio_id, ...selection }) => guarded(() => valuation.current(financial.principal, portfolio_id, selection)));
     }
     if (financial.portfolio && financial.principal.permissions.includes('portfolio:read')) {
       const portfolio = financial.portfolio;
-      server.registerTool('get_opening_state', { description: 'Read a declared opening-state revision. Corrections are not trades.',
+      server.registerTool('get_opening_state', { description: 'Read a declared opening-state revision. Corrections are not trades. Its id identifies an opening revision, never portfolio_id; discover portfolio_id with list_portfolios and use data[].id.',
         inputSchema: z.object({ revision: z.number().int().positive().max(Number.MAX_SAFE_INTEGER).optional() }).strict(),
         annotations, _meta: { securitySchemes } }, input => guarded(() => portfolio.get(financial.principal, input.revision)));
       server.registerTool('get_positions', { description: 'Read opening positions and declared PRU; no reconstructed historical cost or performance.',

@@ -2,6 +2,11 @@
 
 ## Current checks
 
+- MCP agent usability: every required parameter must have an authorized discovery
+  path without manual IDs or guessing. Verify discovery → dependent read starting
+  without the ID, explain entity versus snapshot/revision identifiers, and retain
+  denial tests for wrong IDs. A correct API and secure refusal alone do not prove
+  autonomous usability. See the [v1.1.5 incident/RETEX](../releases/v1.1.5.md).
 - When application validation is in the authorized scope, `npm run check` runs strict TypeScript and Vitest; `npm run build` creates a Wrangler dry-run bundle without deploying. Their existence is not an instruction to execute them during documentary work.
 - Inspect changed documentation, validate local links and memory references, and check whitespace with `git diff --check` for tracked changes. No lint command is configured.
 

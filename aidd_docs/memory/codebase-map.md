@@ -1,5 +1,14 @@
 # Codebase Map
 
+## V1.1.5 discovery — local corrective preparation, 24 November 2026
+
+`FinancialMcpService.listPortfolios` and `registerFinancialTools` expose one
+owner-authorized `list_portfolios` without a registry or migration. Query/envelope
+match V2.0B; entry metadata is deliberately limited to `id`, `kind`, `status`.
+Current/journal/preparation descriptions use `data[].id`, never `opening_state.id`.
+The future V2 registry registration must replace this singleton registration.
+See [release preparation and RETEX](../releases/v1.1.5.md). Not deployed/published.
+
 ## V1.1 foundation and corrections — reviewed 2026-11-24
 
 [Release](../releases/v1.1.0.md) and [validation/RETEX](../releases/v1.1.0-validation.md)

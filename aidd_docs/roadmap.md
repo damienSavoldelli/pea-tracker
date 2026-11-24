@@ -6,6 +6,12 @@ Cette roadmap ne vaut ni spécification financière ni autorisation de développ
 
 ## Statuts et preuves
 
+- **V1.1.5, préparation corrective locale, 24 novembre 2026 :** découverte du seul
+  portefeuille autorisé avec `list_portfolios`, compatible avec la requête et
+  l'enveloppe V2.0B, métadonnées minimales sans registre ni migration. Descriptions
+  MCP explicites sur `portfolio_id` versus `opening_state.id`. Non publié et non
+  déployé ; voir [contrat, validation et RETEX](releases/v1.1.5.md).
+
 - **24 November 2026, corrective-branch production acceptance:** the owner reported
   the first successful real nominal MCP preparation, independent browser approval,
   explicit confirmation and portfolio/journal reread after the authentication and
