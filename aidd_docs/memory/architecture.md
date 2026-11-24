@@ -1,5 +1,34 @@
 # Architecture
 
+## Authentication incident — read-only recovery, 2026-11-24
+
+Signed assertions containing both configured financial audiences were rejected by
+the singleton-AUD guard. The issuer/session reason for this pair remains unresolved.
+Rollback, cookie-path enforcement and moving/parking the browser Access destination
+did not establish recovery in the observed attempts. Do not infer a Worker collision.
+
+After explicit owner authorization, recovery Worker
+`805050ee-3965-49de-b1a2-b7f57c584d8f` accepts only that exact audience pair on the
+owner MCP read channel, still requiring signature, issuer, expiry and owner checks.
+The opt-in recovery flag cannot coexist with financial writes. Writes and browser
+approval remain disabled; the approval Access destination is parked temporarily.
+Default validation and the browser audience check remain strict. D1, calculations,
+proposal fingerprints and idempotence formats are unchanged.
+
+The separate browser relay and optional `FINANCIAL_CONFIRMATION_ORIGIN` are deployed
+but independent browser approval is not production-qualified. Local evidence:
+14 targeted isolation tests and 13 recovery tests; typecheck and dry-runs passed.
+The owner supplied a successful ChatGPT ping at `2026-11-24T05:55:35.873Z`, then a
+successful direct `get_current_portfolio_valuation` at 06:56:54 Europe/Paris, using
+Yahoo unadjusted last-trade data and all 20 expected positions. This supports those
+production read calls, not all-tool acceptance or independent calculation reconciliation.
+No private IDs/values are retained and no real write was performed.
+
+Git baseline: V1.1.3 (`22e3bba`), corrective branch `fix/v1.1-mcp-approval`; the
+V1.1.0 rollback was temporary. Retained write-disabled rollback Worker:
+`7ed4aa14-d545-4e78-b692-dfd1abf8c9a1`. See the
+[incident chronology, tests and recovery limits](../tasks/2026_11/2026_11_21_financial-mcp/authentication-incident-2026-11-24.md).
+
 ## V1.1.3 recovery interface — deployed 2026-11-23
 
 Worker `c2178996-c949-4c05-b96b-73d80c734abc`, source `bbf6d0f879fbfeaae1400d9a04ffc01985150787`.

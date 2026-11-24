@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { FinancialMcpService } from '../src/application/financial-mcp';
@@ -10,6 +10,7 @@ import { D1FinancialApprovalRepository } from '../src/adapters/d1/financial-appr
 import { FinancialAccessAuthenticator } from '../src/adapters/auth/financial-access';
 import { financialConfirmationRoutes } from '../src/adapters/rest/financial-confirmation';
 import { createAccessFinancialWorker } from '../src/entrypoints/access-financial';
+import { forwardFinancialApproval } from '../src/entrypoints/financial-approval-relay';
 import { createApp } from '../src/app';
 import type { Principal } from '../src/application/authorization';
 import type { TransactionInput } from '../src/domain/transactions';
@@ -349,7 +350,35 @@ describe('browser-only approval boundary', () => {
   });
 });
 
-it('official MCP SDK: prepare → signed browser approval → D1 journal append, replay and read-only compatibility', async () => {
+it('financial Worker logs fixed authentication rejection codes without token or identity data', async () => {
+  const f = await fixture('d1'); const auth = await accessFixture();
+  const opening = await f.openingService.get(portfolioReader);
+  const environment = { INSTRUMENTS_DB: f.local!.db, ACCESS_TEAM_DOMAIN: accessConfig.issuer,
+    ACCESS_READ_AUD: accessConfig.audience, ACCESS_OWNER_SUB: accessConfig.ownerSubject,
+    ACCESS_READ_ENABLED: 'true', ACCESS_PORTFOLIO_READ_ENABLED: 'true', FINANCIAL_WRITES_ENABLED: 'true',
+    ACCESS_CONFIRMATION_AUD: 'b'.repeat(64), FINANCIAL_ORIGIN: origin,
+    FINANCIAL_PORTFOLIO_ID: portfolioId, FINANCIAL_OWNER_ID: writer.subject,
+    FINANCIAL_OPENING_ID: opening.id, FINANCIAL_OPENING_REVISION: String(opening.revision) };
+  const log = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  try {
+    const app = createAccessFinancialWorker(environment, { fetch: auth.keys });
+    expect((await app.request(`${origin}/mcp`, { method: 'POST' })).status).toBe(401);
+    expect((await app.request(`${origin}/mcp`, { method: 'POST', headers: {
+      'Cf-Access-Jwt-Assertion': await auth.token({ aud: ['b'.repeat(64)] }),
+    } })).status).toBe(401);
+    expect(log.mock.calls.map(([message]) => JSON.parse(message as string))).toEqual([
+      { event: 'financial_auth_rejected', code: 'assertion_missing_or_malformed' },
+      { event: 'financial_auth_rejected', code: 'audience_other_financial_channel' },
+      { event: 'financial_auth_rejected', code: 'audience_rejected' },
+    ]);
+    const codes: string[] = [];
+    const injected = createAccessFinancialWorker(environment, { fetch: auth.keys, onDiagnostic: code => codes.push(code) });
+    expect((await injected.request(`${origin}/mcp`, { method: 'POST' })).status).toBe(401);
+    expect(codes).toEqual(['assertion_missing_or_malformed']); expect(log).toHaveBeenCalledTimes(3);
+  } finally { log.mockRestore(); }
+});
+
+it.each([undefined, 'https://synthetic-approval.example.invalid'])('official MCP SDK: prepare → signed browser approval → D1 journal append, replay and read-only compatibility (confirmation origin: %s)', async separateOrigin => {
   const f = await fixture('d1'); const auth = await accessFixture();
   const config = { ...accessConfig, browserAudience: 'b'.repeat(64), internalSubject: writer.subject, financialWritesEnabled: true };
   const opening = await f.openingService.get(portfolioReader);
@@ -357,6 +386,7 @@ it('official MCP SDK: prepare → signed browser approval → D1 journal append,
     ACCESS_READ_AUD: config.audience, ACCESS_OWNER_SUB: config.ownerSubject,
     ACCESS_READ_ENABLED: 'true', ACCESS_PORTFOLIO_READ_ENABLED: 'true', FINANCIAL_WRITES_ENABLED: 'true',
     ACCESS_CONFIRMATION_AUD: config.browserAudience, FINANCIAL_ORIGIN: origin,
+    ...(separateOrigin ? { FINANCIAL_CONFIRMATION_ORIGIN: separateOrigin } : {}),
     FINANCIAL_PORTFOLIO_ID: portfolioId, FINANCIAL_OWNER_ID: writer.subject,
     FINANCIAL_OPENING_ID: opening.id, FINANCIAL_OPENING_REVISION: String(opening.revision),
     FINANCIAL_MARKET_REFERENCE: JSON.stringify({ source_type: 'broker_statement', portfolio_id: portfolioId,
@@ -369,6 +399,10 @@ it('official MCP SDK: prepare → signed browser approval → D1 journal append,
     .toThrow('financial_reference_binding_mismatch');
   expect(() => createAccessFinancialWorker({ ...environment, FINANCIAL_MARKET_REFERENCE: '{}' }, { fetch: auth.keys })).toThrow();
   const app = createAccessFinancialWorker(environment, { fetch: auth.keys });
+  const confirmationOrigin = separateOrigin ?? origin;
+  const browserRequest = (url: string, init?: RequestInit) => separateOrigin
+    ? forwardFinancialApproval(new Request(url, init), separateOrigin, { fetch: async request => app.fetch(new Request(request)) })
+    : app.request(url, init);
   const mcpToken = await auth.token();
   const client = new Client({ name: 'synthetic-financial-owner', version: '1' });
   const transport = new StreamableHTTPClientTransport(new URL(`${origin}/mcp`), {
@@ -395,13 +429,25 @@ it('official MCP SDK: prepare → signed browser approval → D1 journal append,
   const prepared = await client.callTool({ name: 'prepare_recorded_buy', arguments: { portfolio_id: portfolioId, ...Object.fromEntries(Object.entries(trade()).filter(([key]) => key !== 'type')) } });
   expect(prepared.isError).not.toBe(true);
   const p = prepared.structuredContent as unknown as Awaited<ReturnType<typeof f.prepare>>;
+  expect(p.confirmation_url).toBe(`${confirmationOrigin}/financial-confirmation/${p.operation_id}`);
   const command = { operation_id: p.operation_id, digest: p.proposal.digest };
   expect((await client.callTool({ name: 'confirm_financial_operation', arguments: command })).isError).toBe(true);
   const browserToken = await auth.token({ aud: [config.browserAudience] });
-  const page = await app.request(`${p.confirmation_url!}?utm_source=chatgpt.com`, { headers: { 'Cf-Access-Jwt-Assertion': browserToken } });
+  const mixedToken = await auth.token({ aud: [config.audience, config.browserAudience] });
+  expect((await app.request(`${origin}/mcp`, { method: 'POST', headers: { 'Cf-Access-Jwt-Assertion': mixedToken } })).status).toBe(401);
+  for (const token of [mcpToken, mixedToken, 'synthetic.forged.assertion']) {
+    expect((await browserRequest(p.confirmation_url!, { headers: { 'Cf-Access-Jwt-Assertion': token } })).status).toBe(401);
+  }
+  if (separateOrigin) {
+    expect((await app.request(`${origin}/financial-confirmation/${p.operation_id}`, { headers: { 'Cf-Access-Jwt-Assertion': browserToken } })).status).toBe(403);
+    expect((await browserRequest(p.confirmation_url!, { method: 'POST', headers: { Origin: origin,
+      'Cf-Access-Jwt-Assertion': browserToken } })).status).toBe(403);
+    expect(() => createAccessFinancialWorker({ ...environment, FINANCIAL_CONFIRMATION_ORIGIN: `${separateOrigin}/path` }, { fetch: auth.keys })).toThrow();
+  }
+  const page = await browserRequest(`${p.confirmation_url!}?utm_source=chatgpt.com`, { headers: { 'Cf-Access-Jwt-Assertion': browserToken } });
   expect(page.status).toBe(200);
   const csrf = /name="csrf" value="([^"]+)"/.exec(await page.text())![1]!;
-  const approved = await app.request(p.confirmation_url!, { method: 'POST', headers: { Origin: origin,
+  const approved = await browserRequest(p.confirmation_url!, { method: 'POST', headers: { Origin: confirmationOrigin,
     Cookie: page.headers.get('Set-Cookie')!.split(';')[0]!, 'Content-Type': 'application/x-www-form-urlencoded', 'Cf-Access-Jwt-Assertion': browserToken }, body: new URLSearchParams({ csrf }) });
   expect(approved.status).toBe(200);
   const result = await client.callTool({ name: 'confirm_financial_operation', arguments: command });

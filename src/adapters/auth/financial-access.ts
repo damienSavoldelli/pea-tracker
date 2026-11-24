@@ -7,7 +7,10 @@ const configSchema = accessJwtConfiguration.extend({
   browserAudience: accessJwtConfiguration.shape.audience,
   ownerSubject: z.string().min(1).max(256), internalSubject: z.string().min(1).max(128),
   financialWritesEnabled: z.boolean(),
-}).strict().refine(value => value.audience !== value.browserAudience, 'Browser approval must have a distinct Access audience');
+  readOnlyMixedAudienceEnabled: z.boolean().default(false),
+}).strict().refine(value => value.audience !== value.browserAudience, 'Browser approval must have a distinct Access audience')
+  .refine(value => !value.financialWritesEnabled || !value.readOnlyMixedAudienceEnabled,
+    'Read-only audience recovery requires financial writes to be disabled');
 
 /** Opt-in financial permissions. Existing read authenticator/ingestion grants are untouched. */
 export class FinancialAccessAuthenticator {
@@ -16,8 +19,11 @@ export class FinancialAccessAuthenticator {
   private readonly browser: AccessJwtVerifier;
   constructor(config: unknown, options: AccessJwtOptions = {}) {
     this.config = configSchema.parse(config);
-    this.mcp = new AccessJwtVerifier({ issuer: this.config.issuer, audience: this.config.audience }, options);
-    this.browser = new AccessJwtVerifier({ issuer: this.config.issuer, audience: this.config.browserAudience }, options);
+    this.mcp = new AccessJwtVerifier({ issuer: this.config.issuer, audience: this.config.audience },
+      { ...options, diagnosticOtherAudience: this.config.browserAudience,
+        readOnlyCompanionAudience: this.config.readOnlyMixedAudienceEnabled ? this.config.browserAudience : undefined });
+    this.browser = new AccessJwtVerifier({ issuer: this.config.issuer, audience: this.config.browserAudience },
+      { ...options, diagnosticOtherAudience: this.config.audience, readOnlyCompanionAudience: undefined });
   }
   private owner(subject: string | undefined, permissions: readonly Permission[]): Principal {
     if (subject !== this.config.ownerSubject) throw new ApplicationError(403, 'access_denied');

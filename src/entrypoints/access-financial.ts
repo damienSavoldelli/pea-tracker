@@ -27,8 +27,11 @@ const configuration = z.object({
   ACCESS_OWNER_SUB: accessConfiguration.shape.ownerSubject,
   ACCESS_READ_ENABLED: z.enum(['true', 'false']), ACCESS_PORTFOLIO_READ_ENABLED: z.literal('true'),
   FINANCIAL_WRITES_ENABLED: z.enum(['true', 'false']).default('false'),
+  MCP_READ_ONLY_MIXED_AUDIENCE_ENABLED: z.enum(['true', 'false']).default('false'),
   ACCESS_CONFIRMATION_AUD: accessConfiguration.shape.audience,
   FINANCIAL_ORIGIN: z.string().url(), FINANCIAL_PORTFOLIO_ID: portfolioIdSchema,
+  FINANCIAL_CONFIRMATION_ORIGIN: z.string().url().refine(value =>
+    value.startsWith('https://') && new URL(value).origin === value, 'HTTPS confirmation origin required').optional(),
   FINANCIAL_OWNER_ID: z.string().min(1).max(128).default('owner:financial-read'),
   FINANCIAL_OPENING_ID: z.string().uuid(), FINANCIAL_OPENING_REVISION: z.coerce.number().int().positive(),
   FINANCIAL_OPERATIONAL_OPENING_ID: z.string().uuid().optional(),
@@ -42,10 +45,16 @@ const unavailable = () => new Response('financial_service_unavailable', { status
 export function createAccessFinancialWorker(environment: D1LocalEnv & Record<string, unknown>, options: AccessJwtOptions = {}) {
   const { MARKET_CALENDAR_ASSIGNMENTS, ...values } = environment;
   const config = configuration.parse(values);
+  const confirmationOrigin = config.FINANCIAL_CONFIRMATION_ORIGIN ?? config.FINANCIAL_ORIGIN;
   const clock = () => new Date(options.clock?.() ?? Date.now()).toISOString();
   const access = new FinancialAccessAuthenticator({ issuer: config.ACCESS_TEAM_DOMAIN, audience: config.ACCESS_READ_AUD,
     browserAudience: config.ACCESS_CONFIRMATION_AUD, ownerSubject: config.ACCESS_OWNER_SUB, internalSubject: config.FINANCIAL_OWNER_ID,
-    financialWritesEnabled: config.FINANCIAL_WRITES_ENABLED === 'true' }, options);
+    financialWritesEnabled: config.FINANCIAL_WRITES_ENABLED === 'true',
+    readOnlyMixedAudienceEnabled: config.MCP_READ_ONLY_MIXED_AUDIENCE_ENABLED === 'true' }, {
+    ...options,
+    // Fixed diagnostic codes only: never tokens, claims, identities or request headers.
+    onDiagnostic: options.onDiagnostic ?? (code => console.warn(JSON.stringify({ event: 'financial_auth_rejected', code }))),
+  });
   const instruments = new D1InstrumentRepository(config.INSTRUMENTS_DB);
   const openings = new D1PortfolioRepository(config.INSTRUMENTS_DB);
   const operational = config.FINANCIAL_OPERATIONAL_OPENING_ID ? new D1OperationalOpeningRepository(config.INSTRUMENTS_DB, {
@@ -62,7 +71,7 @@ export function createAccessFinancialWorker(environment: D1LocalEnv & Record<str
     opening_revision: operational ? 1 : config.FINANCIAL_OPENING_REVISION };
   const journal = new TransactionService(new D1TransactionRepository(config.INSTRUMENTS_DB), journalOpenings, instruments, binding, clock);
   const financial = new FinancialMcpService(journal, { portfolio_id: binding.portfolio_id, owner_subject: binding.owner_subject },
-    new D1FinancialApprovalRepository(config.INSTRUMENTS_DB), clock, config.FINANCIAL_ORIGIN);
+    new D1FinancialApprovalRepository(config.INSTRUMENTS_DB), clock, confirmationOrigin);
   const portfolio = new PortfolioService(openings, instruments, clock, undefined, journal, operational);
   const market = createMarketCalendar(MARKET_CALENDAR_ASSIGNMENTS);
   const quotations = new QuotationService(new D1QuotationRepository(config.INSTRUMENTS_DB), instruments, [], clock,
@@ -74,7 +83,7 @@ export function createAccessFinancialWorker(environment: D1LocalEnv & Record<str
   const valuation = new ValuationService(portfolio, quotations, reference);
   const service = new InstrumentService(instruments, clock);
   const authenticate = (request: Request) => access.authenticateMcp(request);
-  const backend = createFinancialManagementApp({ financial, access, origin: config.FINANCIAL_ORIGIN,
+  const backend = createFinancialManagementApp({ financial, access, origin: confirmationOrigin,
     rest: { instruments: { service, authenticate }, quotations: { service: quotations, authenticate },
       portfolio: { service: portfolio, authenticate }, valuation: { service: valuation, authenticate },
       currentPortfolio: { portfolio, valuation, authenticate } },
