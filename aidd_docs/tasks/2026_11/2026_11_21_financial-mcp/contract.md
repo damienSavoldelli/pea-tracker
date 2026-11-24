@@ -152,7 +152,7 @@ configuration/import comparisons, historical MCP reads and anonymous denial have
 production evidence; authenticated human approval and actual financial write/replay
 interoperability remain **to validate**, not established by local synthetic checks.
 
-## Post-incident audience policy — locally validated, 24 November 2026
+## Post-incident audience policy — deployed, 24 November 2026
 
 The browser diagnostic succeeded in the owner's live browser with the separate
 approval hostname: strict browser-only audience and owner identity were accepted,
@@ -179,8 +179,10 @@ MCP known-pair setting controls the normal financial channel separately. Diagnos
 GETs are disabled when writes are enabled and should be explicitly switched off.
 No REST/MCP input parameter, new tool, operation type or migration is introduced.
 
-The owner explicitly authorized local commit and deployment; production recovery
-remains read-only until that deployment completes.
+After explicit owner approval, commit `caeb627` was deployed as Worker
+`3cdf9216-04ee-462e-bbda-6d8697172ef0`: normal known-pair MCP admission and financial
+writes enabled; recovery mode and browser diagnostics disabled. One connector ping
+succeeded after activation. No real operation was prepared, approved or confirmed.
 The 47 targeted local checks include the official SDK/native D1 journey with mixed
 MCP and browser-only approval, exact replay, old single-AUD compatibility and refusal
 of mixed assertions on browser GET/POST. They do not establish production financial

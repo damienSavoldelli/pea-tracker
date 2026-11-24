@@ -1,6 +1,6 @@
 # Architecture
 
-## Authentication incident — read-only recovery, 2026-11-24
+## Authentication incident — recovery and normal admission, 2026-11-24
 
 Signed assertions containing both configured financial audiences were rejected by
 the singleton-AUD guard. The issuer/session reason for this pair remains unresolved.
@@ -8,10 +8,10 @@ Rollback, cookie-path enforcement and moving/parking the browser Access destinat
 did not establish recovery in the observed attempts. Do not infer a Worker collision.
 
 After explicit owner authorization, recovery Worker
-`805050ee-3965-49de-b1a2-b7f57c584d8f` accepts only that exact audience pair on the
+`805050ee-3965-49de-b1a2-b7f57c584d8f` accepted only that exact audience pair on the
 owner MCP read channel, still requiring signature, issuer, expiry and owner checks.
-The opt-in recovery flag cannot coexist with financial writes. Writes and browser
-approval remain disabled; the approval Access destination is parked temporarily.
+The opt-in recovery flag cannot coexist with financial writes. At that stage writes
+and approval were disabled, and the approval Access destination was parked temporarily.
 Default validation and the browser audience check remain strict. D1, calculations,
 proposal fingerprints and idempotence formats are unchanged.
 
@@ -40,14 +40,27 @@ browser qualification were initially pending; no financial write or new commit w
 
 The owner then restored that destination and supplied a successful live
 `browser_identity` diagnostic. The backend accepted strict browser-only audience and
-owner identity without D1 access or approval. A normal MCP known-pair policy is now
-prepared locally behind `MCP_KNOWN_AUDIENCE_PAIR_ENABLED` (default false), retaining
+owner identity without D1 access or approval. A normal MCP known-pair policy was
+prepared behind `MCP_KNOWN_AUDIENCE_PAIR_ENABLED` (default false), retaining
 strict browser validation and the existing read-only recovery guard. 47 targeted
 tests passed, including native D1/SDK with mixed MCP and independent browser approval.
-The owner approved the local commit and deployment; activation is pending at this
-checkpoint, with production writes still disabled. The real write journey remains
-unvalidated. See
+After explicit owner approval, source commit `caeb627` was deployed as Worker
+`3cdf9216-04ee-462e-bbda-6d8697172ef0`: normal known-pair MCP admission and financial
+writes enabled; read-only recovery and browser diagnostics disabled. The relay
+remains `04c8f314-b275-44a3-8520-28bbab7cb207`. A direct connector ping succeeded at
+`2026-11-24T06:33:32.734Z`, with the deployed version observed in the Worker tail.
+No financial operation was prepared, approved or recorded by deployment/checks.
+The real browser/write/receipt/replay journey remains unvalidated. See
 the [updated financial contract](../tasks/2026_11/2026_11_21_financial-mcp/contract.md).
+
+Subsequent real preparation/confirmation GET succeeded (owner report), but native
+POST failed. The Worker trace showed Origin null with same-origin Fetch Metadata.
+The confirmation page's no-referrer policy caused the browser's null Origin; an
+installed Chrome loopback test reproduced it. A local one-header correction uses
+strict-origin, without accepting null/missing/foreign origins or changing CSRF,
+Access, proposal/financial rules. One actual browser test and eight targeted
+financial tests passed, plus typecheck. This correction is not committed/deployed;
+the real approval/write/receipt/replay journey is still unvalidated.
 
 ## V1.1.3 recovery interface — deployed 2026-11-23
 

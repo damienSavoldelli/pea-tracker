@@ -249,6 +249,7 @@ describe('browser-only approval boundary', () => {
     expect((await routes.request(`https://other.invalid/${p.operation_id}?utm_source=chatgpt.com`)).status).toBe(403);
     const page = await routes.request(`${url}${query}`);
     expect(page.status).toBe(200);
+    expect(page.headers.get('Referrer-Policy')).toBe('strict-origin');
     const html = await page.text();
     expect(html).toContain(`action="/financial-confirmation/${p.operation_id}"`);
     expect(html).not.toContain('chatgpt.com');
@@ -327,6 +328,12 @@ describe('browser-only approval boundary', () => {
     const post = (overrides: Record<string, string> = {}, token = csrf) => routes.request(url, { method: 'POST',
       headers: { Origin: origin, Cookie: cookie, 'Content-Type': 'application/x-www-form-urlencoded', ...overrides }, body: new URLSearchParams({ csrf: token }) });
     expect((await post({ Origin: 'https://other.invalid' })).status).toBe(403);
+    expect((await post({ Origin: 'null' })).status).toBe(403);
+    expect((await post({ Origin: '' })).status).toBe(403);
+    const missingOrigin = await routes.request(url, { method: 'POST', headers: {
+      Cookie: cookie, 'Content-Type': 'application/x-www-form-urlencoded', 'Sec-Fetch-Site': 'same-origin',
+    }, body: new URLSearchParams({ csrf }) });
+    expect(missingOrigin.status).toBe(403);
     expect((await post({ 'Sec-Fetch-Site': 'cross-site' })).status).toBe(403);
     expect((await post({ Cookie: '' })).status).toBe(403);
     expect((await post({}, crypto.randomUUID())).status).toBe(403);

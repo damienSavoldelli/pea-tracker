@@ -238,7 +238,73 @@ its local commit and deployment; activation remains pending at this checkpoint:
 - TypeScript passed. Browser authentication qualification is owner-reported live
   evidence; write/receipt/replay evidence here is synthetic/local only.
 
-### Previous isolation evidence
+### Authorized activation and minimal availability check
+
+The owner explicitly authorized the correction's local commit and production
+activation. Commit `caeb62724417238f87ae15fc98a93b8a42fc879d` was created on
+`fix/v1.1-mcp-approval`; the tree was clean before deployment. Published `main`,
+tags and V2 branches were not changed. No push or release was performed.
+
+Worker `3cdf9216-04ee-462e-bbda-6d8697172ef0` was deployed successfully with:
+
+- `FINANCIAL_WRITES_ENABLED=true`
+- `MCP_KNOWN_AUDIENCE_PAIR_ENABLED=true`
+- `MCP_READ_ONLY_MIXED_AUDIENCE_ENABLED=false`
+- `FINANCIAL_APPROVAL_DIAGNOSTICS_ENABLED=false`
+
+Only these four feature settings differ from the diagnostic configuration; other
+variables, origins, audience values, D1 bindings and secrets were preserved. The
+relay already deployed as `04c8f314-b275-44a3-8520-28bbab7cb207` needed no additional
+deployment. No migration, D1 operation or Access/secret modification was performed.
+
+Exactly one connector `ping({})` was called after activation and returned `status=ok`
+at `2026-11-24T06:33:32.734Z`. The new Worker version was observed in the tail.
+No portfolio read, proposal preparation, browser approval or financial confirmation
+was called. Independent browser identity was qualified earlier; the first complete
+real approval/write/receipt/replay journey remains unvalidated. Feature activation
+does not itself approve any operation. The retained read-only recovery version
+`805050ee-3965-49de-b1a2-b7f57c584d8f` remains the production fallback if required.
+
+### Subsequent native-form POST incident — verified cause, local correction
+
+The owner reported that real MCP preparation and the protected confirmation GET
+succeeded, but submitting the native browser form returned `origin_forbidden`.
+No financial approval or journal write is established by this failed submission.
+Actual operation details, identifiers, prices, quantities and balances are omitted.
+
+The private Worker tail for deployed version `3cdf9216-04ee-462e-bbda-6d8697172ef0`
+showed the failing POST had `Origin: null`, `Sec-Fetch-Site: same-origin`, no query
+and HTTP 403. The page's `Referrer-Policy: no-referrer` causes browsers to send a
+null Origin on native form POST. The server's strict origin check then rejects it.
+This is a separate verified browser-policy defect, not a new OAuth/AUD failure.
+Earlier HTTP/SDK tests supplied Origin explicitly and did not exercise this browser
+behavior; successful identity-only GETs could not prove native POST behavior.
+
+The LOCAL correction changes only the confirmation page's response policy to
+`strict-origin`: native form POST preserves its origin and Referer contains no
+proposal path/query. Origin comparison, null/missing/foreign origin rejection,
+Access/owner/audience checks, CSRF/cookies, CSP, UTM handling, expiry, one-use approval
+and financial logic are unchanged. No null-origin exception or Referer-based
+authorization was added. The read-only diagnostic retains its separate no-referrer
+policy and remains disabled in normal operation.
+
+Evidence: an isolated installed Chrome headless check on loopback reproduced the
+old null Origin and verified the corrected real Origin plus origin-only Referer.
+It uses a temporary unsigned-in profile, no financial service or database, and no
+new dependency. It is optional when no browser binary exists; it actually ran and
+passed locally. Eight targeted financial tests passed (29 skipped), including
+null/missing/foreign Origin refusals, CSRF, expiry, UTM and the three native-D1/SDK
+flows. TypeScript and diff whitespace checks passed. No global suite was run.
+
+The corrected policy is not deployed or committed yet. Expired proposals must be
+reprepared after deployment; no expired operation is revived and no real operation
+will be approved/confirmed by applying this correction.
+
+Sources consulted 24 November 2026:
+- [MDN: Referrer-Policy effect on Origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Referrer-Policy#effect_on_the_origin_header)
+- [Chrome Headless](https://developer.chrome.com/docs/automation-and-testing/headless)
+
+### Earlier isolation test results
 
 - 14 targeted tests passed across `financial-mcp.test.ts` and
   `financial-approval-relay.test.ts`; 32 unrelated tests skipped.
