@@ -16,7 +16,8 @@ export function financialConfirmationRoutes(service: FinancialMcpService,
     await next();
     context.header('Cache-Control', 'no-store');
     context.header('Content-Security-Policy', `default-src 'none'; style-src 'nonce-${styleNonce}'; script-src 'nonce-${styleNonce}'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'`);
-    context.header('Referrer-Policy', 'no-referrer');
+    // Native form POST needs its real Origin; never include proposal paths in Referer.
+    context.header('Referrer-Policy', 'strict-origin');
     context.header('X-Content-Type-Options', 'nosniff');
     context.header('X-Frame-Options', 'DENY');
   });
