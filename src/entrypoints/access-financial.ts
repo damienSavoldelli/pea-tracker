@@ -23,6 +23,7 @@ import { D1PortfolioRegistryRepository } from '../adapters/d1/portfolio-registry
 import { PortfolioReadService } from '../application/portfolio-reads';
 import { PortfolioContextService } from '../application/portfolio-context';
 import { PortfolioFinancialService } from '../application/portfolio-financial';
+import { ApplicationError } from '../application/errors';
 
 const configuration = z.object({
   INSTRUMENTS_DB: z.custom<D1Database>(value => value !== null && typeof value === 'object' && 'prepare' in value && 'batch' in value),
@@ -31,8 +32,13 @@ const configuration = z.object({
   ACCESS_OWNER_SUB: accessConfiguration.shape.ownerSubject,
   ACCESS_READ_ENABLED: z.enum(['true', 'false']), ACCESS_PORTFOLIO_READ_ENABLED: z.literal('true'),
   FINANCIAL_WRITES_ENABLED: z.enum(['true', 'false']).default('false'),
+  MCP_READ_ONLY_MIXED_AUDIENCE_ENABLED: z.enum(['true', 'false']).default('false'),
+  MCP_KNOWN_AUDIENCE_PAIR_ENABLED: z.enum(['true', 'false']).default('false'),
+  FINANCIAL_APPROVAL_DIAGNOSTICS_ENABLED: z.enum(['true', 'false']).default('false'),
   ACCESS_CONFIRMATION_AUD: accessConfiguration.shape.audience,
   FINANCIAL_ORIGIN: z.string().url(), FINANCIAL_PORTFOLIO_ID: portfolioIdSchema,
+  FINANCIAL_CONFIRMATION_ORIGIN: z.string().url().refine(value =>
+    value.startsWith('https://') && new URL(value).origin === value, 'HTTPS confirmation origin required').optional(),
   FINANCIAL_OWNER_ID: z.string().min(1).max(128).default('owner:financial-read'),
   FINANCIAL_OPENING_ID: z.string().uuid(), FINANCIAL_OPENING_REVISION: z.coerce.number().int().positive(),
   FINANCIAL_OPERATIONAL_OPENING_ID: z.string().uuid().optional(),
@@ -46,10 +52,17 @@ const unavailable = () => new Response('financial_service_unavailable', { status
 export function createAccessFinancialWorker(environment: D1LocalEnv & Record<string, unknown>, options: AccessJwtOptions = {}) {
   const { MARKET_CALENDAR_ASSIGNMENTS, ...values } = environment;
   const config = configuration.parse(values);
+  const confirmationOrigin = config.FINANCIAL_CONFIRMATION_ORIGIN ?? config.FINANCIAL_ORIGIN;
   const clock = () => new Date(options.clock?.() ?? Date.now()).toISOString();
   const access = new FinancialAccessAuthenticator({ issuer: config.ACCESS_TEAM_DOMAIN, audience: config.ACCESS_READ_AUD,
     browserAudience: config.ACCESS_CONFIRMATION_AUD, ownerSubject: config.ACCESS_OWNER_SUB, internalSubject: config.FINANCIAL_OWNER_ID,
-    financialWritesEnabled: config.FINANCIAL_WRITES_ENABLED === 'true' }, options);
+    financialWritesEnabled: config.FINANCIAL_WRITES_ENABLED === 'true',
+    readOnlyMixedAudienceEnabled: config.MCP_READ_ONLY_MIXED_AUDIENCE_ENABLED === 'true',
+    mcpKnownAudiencePairEnabled: config.MCP_KNOWN_AUDIENCE_PAIR_ENABLED === 'true' }, {
+    ...options,
+    // Fixed diagnostic codes only: never tokens, claims, identities or request headers.
+    onDiagnostic: options.onDiagnostic ?? (code => console.warn(JSON.stringify({ event: 'financial_auth_rejected', code }))),
+  });
   const instruments = new D1InstrumentRepository(config.INSTRUMENTS_DB);
   const openings = new D1PortfolioRepository(config.INSTRUMENTS_DB);
   const operational = config.FINANCIAL_OPERATIONAL_OPENING_ID ? new D1OperationalOpeningRepository(config.INSTRUMENTS_DB, {
@@ -69,14 +82,14 @@ export function createAccessFinancialWorker(environment: D1LocalEnv & Record<str
   const contexts = new PortfolioContextService(registry, instruments);
   const approvals = new D1FinancialApprovalRepository(config.INSTRUMENTS_DB);
   const financial = new FinancialMcpService(journal, { portfolio_id: binding.portfolio_id, owner_subject: binding.owner_subject },
-    approvals, clock, config.FINANCIAL_ORIGIN, { format: 1, kind: 'real', check: async principal => {
+    approvals, clock, confirmationOrigin, { format: 1, kind: 'real', check: async principal => {
       const context = await contexts.resolve(principal, binding.portfolio_id, principal.permissions.includes('portfolio:write') ? 'write' : 'approve');
       if (context.binding.kind !== binding.kind || context.opening.id !== binding.opening_id || context.opening.revision !== binding.opening_revision)
         throw new Error('legacy_financial_binding_mismatch');
       return { id: context.portfolio.id, name: context.portfolio.name, kind: context.portfolio.kind };
     } });
   const portfolioFinancial = new PortfolioFinancialService({ registry, instruments, transactions: new D1TransactionRepository(config.INSTRUMENTS_DB),
-    approvals, clock, origin: config.FINANCIAL_ORIGIN, legacy: financial });
+    approvals, clock, origin: confirmationOrigin, legacy: financial });
   const portfolio = new PortfolioService(openings, instruments, clock, undefined, journal, operational);
   const market = createMarketCalendar(MARKET_CALENDAR_ASSIGNMENTS);
   const quotations = new QuotationService(new D1QuotationRepository(config.INSTRUMENTS_DB), instruments, [], clock,
@@ -91,7 +104,7 @@ export function createAccessFinancialWorker(environment: D1LocalEnv & Record<str
     references: new Map(reference ? [[binding.portfolio_id, reference]] : []) });
   const service = new InstrumentService(instruments, clock);
   const authenticate = (request: Request) => access.authenticateMcp(request);
-  const backend = createFinancialManagementApp({ financial, access, origin: config.FINANCIAL_ORIGIN,
+  const backend = createFinancialManagementApp({ financial, access, origin: confirmationOrigin,
     rest: { portfolioReads: { service: reads, authenticate }, instruments: { service, authenticate }, quotations: { service: quotations, authenticate },
       portfolio: { service: portfolio, authenticate }, valuation: { service: valuation, authenticate },
       currentPortfolio: { portfolio, valuation, authenticate } },
@@ -100,6 +113,22 @@ export function createAccessFinancialWorker(environment: D1LocalEnv & Record<str
   const app = new Hono();
   app.use('*', async (context, next) => { await next(); context.header('Cache-Control', 'no-store'); context.header('X-Content-Type-Options', 'nosniff'); });
   if (config.ACCESS_READ_ENABLED !== 'true') return app.all('*', () => unavailable());
+  app.all('/financial-confirmation/auth-check', async context => {
+    context.header('Referrer-Policy', 'no-referrer');
+    context.header('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none'");
+    if (config.FINANCIAL_APPROVAL_DIAGNOSTICS_ENABLED !== 'true' || config.FINANCIAL_WRITES_ENABLED !== 'false')
+      return context.json({ status: 'error', code: 'not_found' }, 404);
+    if (context.req.method !== 'GET') return context.json({ status: 'error', code: 'method_not_allowed' }, 405);
+    const url = new URL(context.req.url);
+    if (url.origin !== confirmationOrigin || url.search) return context.json({ status: 'error', code: 'origin_forbidden' }, 403);
+    try {
+      await access.verifyBrowserIdentity(context.req.raw);
+      return context.json({ status: 'ok', check: 'browser_identity', financial_writes_enabled: false });
+    } catch (error) {
+      const failure = error instanceof ApplicationError ? error : new ApplicationError(503, 'authentication_unavailable');
+      return context.json({ status: 'error', code: failure.code }, failure.status);
+    }
+  });
   const forward = (request: Request) => backend.fetch(request);
   app.all('/mcp', context => forward(context.req.raw));
   app.all('/financial-confirmation/:id', context => forward(context.req.raw));
