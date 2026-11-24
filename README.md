@@ -6,6 +6,11 @@ The source repository is public; tracked fixtures are synthetic. Production port
 
 ## Project status
 
+Local corrective preparation: [v1.1.5 MCP discovery](aidd_docs/releases/v1.1.5.md)
+adds `list_portfolios` so agents can discover `portfolio_id` without guessing from
+an opening-state ID. V2.0B query/envelope reused with minimal metadata, no registry
+or migration. Not published or deployed; deployed status below remains V1.1.4.
+
 Release update: [v1.1.4](aidd_docs/releases/v1.1.4.md), 24 November 2026. Deployed corrections accept the exact configured MCP audience pair while retaining independent browser authorization, and preserve Origin on native confirmation POSTs. The owner reported the first successful real preparation → browser approval → MCP confirmation → portfolio/journal reread. Production replay, concurrency and failure recovery remain unvalidated.
 
 V1.1.0 was published on 2026-11-21, after V1.0.0 on 2026-11-19. Financial management, EUR gains, estimated Modified Dietz returns and a partial venue calendar are deployed. Current reads use the separate operational reference at the close of 20 November, preserving historical V1. Journal writes are enabled with independent browser approval; the first real nominal journey was reported successful by the owner on 24 November, after the corrective deployments.

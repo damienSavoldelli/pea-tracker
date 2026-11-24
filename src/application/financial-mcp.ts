@@ -8,6 +8,9 @@ import type { FinancialApprovalRepository } from '../ports/financial-approval';
 
 const lifetimeMs = 5 * 60 * 1000;
 export const financialConfirmationSchema = z.object({ operation_id: z.string().uuid(), digest: z.string().regex(/^[a-f0-9]{64}$/) }).strict();
+// Same query and envelope as V2.0B; V1.1 exposes only configured-portfolio metadata.
+export const portfolioListQuerySchema = z.object({ limit: z.number().int().min(1).max(100).default(50),
+  after: portfolioIdSchema.optional() }).strict();
 
 /** Two-step orchestration; all financial calculations/append invariants remain in TransactionService. */
 export class FinancialMcpService {
@@ -33,6 +36,15 @@ export class FinancialMcpService {
     const state = await this.transactions.get(principal, portfolioId);
     if (state.balances.kind !== 'real') throw new ApplicationError(403, 'real_portfolio_required');
     return state;
+  }
+  async listPortfolios(principal: Principal | null, input: unknown = {}) {
+    this.authorize(principal, this.binding.portfolio_id, false);
+    const query = portfolioListQuerySchema.safeParse(input);
+    if (!query.success) throw new ApplicationError(400, 'invalid_query');
+    const { balances } = await this.journal(principal, this.binding.portfolio_id);
+    const data = query.data.after === undefined || balances.portfolio_id > query.data.after
+      ? [{ id: balances.portfolio_id, kind: balances.kind, status: 'active' as const }] : [];
+    return { data, page: { next_after: null }, read_only: true as const };
   }
   async prepare(principal: Principal | null, portfolioId: string, input: unknown) {
     this.authorize(principal, portfolioId, true);
