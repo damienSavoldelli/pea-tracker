@@ -1,13 +1,15 @@
 # Codebase Map
 
-## V1.1.5 discovery — local corrective preparation, 24 November 2026
+## V1.1.5 discovery — deployed, 24 November 2026
 
 `FinancialMcpService.listPortfolios` and `registerFinancialTools` expose one
 owner-authorized `list_portfolios` without a registry or migration. Query/envelope
 match V2.0B; entry metadata is deliberately limited to `id`, `kind`, `status`.
 Current/journal/preparation descriptions use `data[].id`, never `opening_state.id`.
 The future V2 registry registration must replace this singleton registration.
-See [release preparation and RETEX](../releases/v1.1.5.md). Not deployed/published.
+Source `254c731`, Worker version `d4acd260-8532-43da-9ead-5320ab006725`.
+Bindings/runtime match V1.1.4. Hosted ChatGPT discovery after refresh is pending;
+see [release evidence and RETEX](../releases/v1.1.5.md).
 
 ## V1.1 foundation and corrections — reviewed 2026-11-24
 

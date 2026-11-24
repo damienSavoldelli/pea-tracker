@@ -9,8 +9,8 @@ Structured context the AI assistant reads to work on this project, so it does no
 - `GUIDELINES.md`: how this team operates the AI on this project.
 - `CONTRIBUTING.md`: how to add or change project context.
 - `tasks/`: specs, plans, and run summaries, created as work happens.
-- `releases/`: published scope and consolidated validation. Local unpublished
-  corrective preparation: [v1.1.5 discovery/RETEX](releases/v1.1.5.md). Release update:
+- `releases/`: published scope and consolidated validation. Current corrective
+  release: [v1.1.5 discovery/RETEX](releases/v1.1.5.md). Earlier release update:
   [v1.1.4](releases/v1.1.4.md), [V1.1.0 foundation](releases/v1.1.0.md)
   and [validation/RETEX](releases/v1.1.0-validation.md);
   [V1.0.0](releases/v1.0.0.md) and its [historical validation](releases/v1.0.0-validation.md)

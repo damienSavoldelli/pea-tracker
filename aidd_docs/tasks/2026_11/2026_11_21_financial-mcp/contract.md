@@ -1,14 +1,15 @@
 # Financial MCP contract — V1.1
 
-Local amendment, 24 November 2026: [v1.1.5 discovery](../../../releases/v1.1.5.md)
+Deployed amendment, 24 November 2026: [v1.1.5 discovery](../../../releases/v1.1.5.md)
 adds read-only `list_portfolios` with V2.0B-compatible `limit`/`after` and
 `data`/`page.next_after`/`read_only`. V1.1 returns only the configured owner's
 portfolio with `id`, `kind`, `status`; no registry metadata is invented. Require
 `portfolio:read` and the existing exact owner binding. Tools requiring
 `portfolio_id` use `list_portfolios.data[].id`, never `opening_state.id`.
 Financial permissions/approval and historical reads are unchanged. This amendment
-is locally tested, unpublished and undeployed; dated production evidence below
-continues to describe its own checkpoint.
+is locally tested and deployed with unchanged V1.1.4 bindings/runtime. Hosted
+ChatGPT discovery/current valuation after refresh remain to verify; dated
+production evidence below continues to describe its own checkpoint.
 
 Current state, 21 November: journal/approval migrations and the separate operational
 reference are deployed; financial writes are enabled under explicit owner authority.

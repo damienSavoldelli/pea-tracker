@@ -6,11 +6,13 @@ Cette roadmap ne vaut ni spécification financière ni autorisation de développ
 
 ## Statuts et preuves
 
-- **V1.1.5, préparation corrective locale, 24 novembre 2026 :** découverte du seul
+- **V1.1.5, correctif déployé, 24 novembre 2026 :** découverte du seul
   portefeuille autorisé avec `list_portfolios`, compatible avec la requête et
   l'enveloppe V2.0B, métadonnées minimales sans registre ni migration. Descriptions
-  MCP explicites sur `portfolio_id` versus `opening_state.id`. Non publié et non
-  déployé ; voir [contrat, validation et RETEX](releases/v1.1.5.md).
+  MCP explicites sur `portfolio_id` versus `opening_state.id`. Bindings et runtime
+  V1.1.4 conservés ; ping et contrôles anonymes MCP/navigateur réussis. Découverte
+  et valorisation depuis ChatGPT hébergé après actualisation du connecteur encore
+  à valider ; voir [contrat, preuves et RETEX](releases/v1.1.5.md).
 
 - **24 November 2026, corrective-branch production acceptance:** the owner reported
   the first successful real nominal MCP preparation, independent browser approval,

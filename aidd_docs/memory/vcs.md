@@ -34,6 +34,12 @@
 
 ## Approval boundaries
 
+- V1.1.5 publication on 24 November 2026 was explicitly authorized: corrective
+  commit `1414b5a`, merge/deployed source `254c731`, followed by a documentation
+  commit on `main` and annotated tag `v1.1.5`. The deployed Worker version is
+  `d4acd260-8532-43da-9ead-5320ab006725`; no V2 branch/worktree was changed.
+  See [release evidence](../releases/v1.1.5.md). This scoped authorization grants
+  no future release/deployment or financial operation.
 - Intentional staging, commits and pushes each require explicit user authorization covering that action. Permission to edit, validate or commit does not imply permission to push.
 - Production or non-production deployments, cloud-resource creation, paid-service activation and release publication require explicit approval for the specific action; a commit, push, merge or architecture approval is insufficient.
 - Prior publication/deployment approvals are historical and operation-specific, not standing permission for future remote commands. A local tracking ref is cached evidence, not a fresh remote check; do not fetch/pull/push merely to synchronize documentation. V1.0.0 and [V1.1.0](../releases/v1.1.0.md) are published; `v1.1.0` points to merge `c6e7dee`. Future commits, pushes, tags/releases and deployments each require their applicable explicit authorization. Preserve the [remaining V1.1 acceptance limits](../releases/v1.1.0-validation.md); this documentary update does not authorize retagging or release edits.

@@ -6,10 +6,11 @@ The source repository is public; tracked fixtures are synthetic. Production port
 
 ## Project status
 
-Local corrective preparation: [v1.1.5 MCP discovery](aidd_docs/releases/v1.1.5.md)
+Corrective release: [v1.1.5 MCP discovery](aidd_docs/releases/v1.1.5.md), 24 November 2026,
 adds `list_portfolios` so agents can discover `portfolio_id` without guessing from
 an opening-state ID. V2.0B query/envelope reused with minimal metadata, no registry
-or migration. Not published or deployed; deployed status below remains V1.1.4.
+or migration. Deployed with unchanged V1.1.4 bindings and security settings;
+hosted ChatGPT discovery/current-valuation acceptance remains to verify after refresh.
 
 Release update: [v1.1.4](aidd_docs/releases/v1.1.4.md), 24 November 2026. Deployed corrections accept the exact configured MCP audience pair while retaining independent browser authorization, and preserve Origin on native confirmation POSTs. The owner reported the first successful real preparation → browser approval → MCP confirmation → portfolio/journal reread. Production replay, concurrency and failure recovery remain unvalidated.
 
@@ -25,7 +26,7 @@ V1.1.0 was published on 2026-11-21, after V1.0.0 on 2026-11-19. Financial manage
 | V1 monitoring | Hourly 07:09–20:09 Paris; closing check observed successful on 20 November |
 | V1.1 calendar | 19 XPAR instruments assigned to known full-day closures for 2026–2027; individual continuous/fixing modes unqualified, intraday phases and ALXP remain unknown |
 | V1.1 financial management | EUR trades, cash movements, fees, dividends, reversals, exact weighted PRU and realized/unrealized gains implemented and deployed; first real nominal write and rereads reported successful by the owner on 24 November |
-| Financial MCP commands | 18 tools: 11 reads/diagnostics, six preparations, one confirmation; independent browser approval, separate server permissions, expiry and idempotent receipts |
+| Financial MCP commands | 19 tools: 12 reads/diagnostics including portfolio discovery, six preparations, one confirmation; independent browser approval, separate server permissions, expiry and idempotent receipts |
 | Global performance | Broker closing market-value reference selected for 20 November; economic gain in EUR and estimated, non-annualized Modified Dietz percentage adjusted for dated external flows; explicit unavailable statuses on missing inputs |
 | Diagnostic Workers | Separate historical PoCs, not the production financial read endpoint |
 

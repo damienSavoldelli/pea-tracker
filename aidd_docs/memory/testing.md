@@ -8,9 +8,13 @@
   Covers discovery without a pre-known portfolio UUID, owner/read authorization,
   pagination/query bounds, no journal mutation, wrong-opening-ID refusal,
   historical positions and preserved independent browser approval/append/replay.
-  The local fully enabled catalogue has 19 tools; production remains V1.1.4.
-  No full suite or hosted ChatGPT acceptance. See [commands, compatibility and
-  RETEX](../releases/v1.1.5.md).
+  The fully enabled catalogue has 19 tools. Results were reused for publication;
+  the production-config dry run passed, then source `254c731` was deployed as
+  `d4acd260-8532-43da-9ead-5320ab006725`. Official version metadata confirms
+  unchanged bindings/runtime; connector ping passed, anonymous MCP POST returned
+  401 and anonymous browser identity navigation returned 302 to Access.
+  No full suite, financial operation or hosted ChatGPT discovery/valuation
+  acceptance. See [commands, compatibility and RETEX](../releases/v1.1.5.md).
 
 - **24 November 2026, owner-reported production milestone:** first real nominal
   MCP preparation → independent browser approval → explicit MCP confirmation →
