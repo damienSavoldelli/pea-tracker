@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { FinancialMcpService } from '../src/application/financial-mcp';
@@ -10,6 +10,7 @@ import { D1FinancialApprovalRepository } from '../src/adapters/d1/financial-appr
 import { FinancialAccessAuthenticator } from '../src/adapters/auth/financial-access';
 import { financialConfirmationRoutes } from '../src/adapters/rest/financial-confirmation';
 import { createAccessFinancialWorker } from '../src/entrypoints/access-financial';
+import { forwardFinancialApproval } from '../src/entrypoints/financial-approval-relay';
 import { createApp } from '../src/app';
 import type { Principal } from '../src/application/authorization';
 import type { TransactionInput } from '../src/domain/transactions';
@@ -148,6 +149,153 @@ describe('immutable financial preparation and single-use approval', () => {
 });
 
 describe('browser-only approval boundary', () => {
+  it('offers an explicit Access reconnect link only for a same-origin GET authentication error', async () => {
+    const f = await fixture(); const p = await f.prepare(); const auth = await accessFixture();
+    const access = new FinancialAccessAuthenticator({ ...accessConfig, browserAudience: 'b'.repeat(64),
+      internalSubject: writer.subject, financialWritesEnabled: true }, { fetch: auth.keys });
+    const routes = financialConfirmationRoutes(f.service, request => access.authenticateBrowser(request), origin);
+    const url = `${origin}/${p.operation_id}?utm_source=chatgpt.com`;
+    const response = await routes.request(url); const html = await response.text();
+    expect(response.status).toBe(401);
+    expect(html).toContain('Réinitialiser ma connexion Access');
+    expect(html).toContain('autres applications Access'); expect(html).toContain('connecteur MCP');
+    expect(html).not.toContain('http-equiv="refresh"'); expect(html).not.toContain('<script');
+    const href = /<a class="button" href="([^"]+)">/.exec(html)![1]!;
+    const login = new URL(href);
+    expect(login.origin).toBe(origin); expect(login.pathname).toBe('/cdn-cgi/access/logout');
+    expect(login.searchParams.get('returnTo')).toBe(`${origin}/financial-confirmation/${p.operation_id}`);
+    expect([...login.searchParams.keys()]).toEqual(['returnTo']);
+    expect(html).not.toContain(p.proposal.digest);
+    expect(await f.approvals.get(p.operation_id)).toMatchObject({ status: 'prepared', csrf: null });
+    const post = await routes.request(`${origin}/${p.operation_id}`, { method: 'POST' });
+    expect(post.status).toBe(401); expect(await post.text()).not.toContain('/cdn-cgi/access/logout');
+    const foreign = await routes.request(`https://other.invalid/${p.operation_id}`);
+    expect(foreign.status).toBe(403); expect(await foreign.text()).not.toContain('/cdn-cgi/access/logout');
+    const malformed = await routes.request(`${origin}/not-a-proposal`);
+    expect(malformed.status).toBe(401); expect(await malformed.text()).not.toContain('/cdn-cgi/access/logout');
+    expect((await f.journal.get(portfolioReader, portfolioId)).events).toEqual([]);
+  });
+  it('presents exact preview amounts, instrument identity, Paris execution time and position impacts', async () => {
+    const f = await fixture(); const p = await f.prepare(trade());
+    const routes = financialConfirmationRoutes(f.service, async () => approver, origin);
+    const page = await routes.request(`${origin}/${p.operation_id}`); const html = await page.text();
+    for (const label of ['PEA Tracker', 'Instrument', 'ISIN', 'Ticker fournisseur', '10/11/2026', '11:00:00',
+      'Quantité', 'Prix unitaire calculé', '20 €', 'Montant brut', 'Frais déclarés', '1 €', '21 €',
+      'Impact sur les liquidités', '100 €', '79 €', 'Impact sur les positions',
+      'Informations techniques et références', 'Approuver l\'enregistrement', '<noscript>']) expect(html).toContain(label);
+    expect(html).toContain('<dd>2</dd>'); expect(html).toContain('<dd>3</dd>');
+    expect(html).not.toContain('<table>');
+    const styleNonce = /<style nonce="([^"]+)">/.exec(html)![1]!;
+    const scriptNonce = /<script nonce="([^"]+)">/.exec(html)![1]!;
+    expect(scriptNonce).toBe(styleNonce);
+    expect(page.headers.get('Content-Security-Policy')).toContain(`script-src 'nonce-${scriptNonce}'`);
+    expect(page.headers.get('Content-Security-Policy')).not.toContain('unsafe-inline');
+    const other = await routes.request(`${origin}/${p.operation_id}`);
+    expect(other.headers.get('Content-Security-Policy')).not.toBe(page.headers.get('Content-Security-Policy'));
+  });
+  it('keeps undeclared fees unavailable and uses daylight-saving Paris time', async () => {
+    const f = await fixture(); f.setTime('2027-07-15T12:00:00.000Z');
+    const p = await f.prepare({ ...trade(), fees: undefined, effective_at: '2027-07-15T10:00:00.000Z' });
+    const routes = financialConfirmationRoutes(f.service, async () => approver, origin);
+    const html = await (await routes.request(`${origin}/${p.operation_id}`)).text();
+    expect(html).toContain('Non renseignés'); expect(html).toContain('12:00:00');
+  });
+  it('runs an absolute countdown through warning, danger, expiry and reload without submitting', async () => {
+    const f = await fixture(); const p = await f.prepare();
+    const routes = financialConfirmationRoutes(f.service, async () => approver, origin);
+    const html = await (await routes.request(`${origin}/${p.operation_id}`)).text();
+    const script = /<script nonce="[^"]+">([\s\S]*?)<\/script>/.exec(html)![1]!;
+    const expires = Date.parse(p.proposal.expires_at); let now = expires - 120000;
+    const elements = {
+      expiry: { dataset: { expires: p.proposal.expires_at, prepared: p.proposal.prepared_at, level: '' } },
+      remaining: { textContent: '' }, 'expiry-progress': { value: 0 }, approve: { disabled: false },
+      'expiry-message': { textContent: '' },
+    };
+    let update = () => {}; let cleared = false;
+    const run = () => { const environment = { document: { getElementById: (id: keyof typeof elements) => elements[id] },
+      Date: { parse: Date.parse, now: () => now }, setInterval: (callback: () => void, delay: number) => {
+        expect(delay).toBe(1000); update = callback; return 1;
+      }, clearInterval: () => { cleared = true; } };
+      // Execute only the application's static countdown against a synthetic DOM.
+      new Function(...Object.keys(environment), script)(...Object.values(environment));
+    };
+    run(); expect(elements.remaining.textContent).toBe('02:00'); expect(elements.expiry.dataset.level).toBe('normal');
+    expect(elements['expiry-progress'].value).toBe(40);
+    now = expires - 60000; update(); expect(elements.remaining.textContent).toBe('01:00'); expect(elements.expiry.dataset.level).toBe('warning');
+    now = expires - 30000; update(); expect(elements.expiry.dataset.level).toBe('danger');
+    now = expires - 12000; run(); expect(elements.remaining.textContent).toBe('00:12');
+    now = expires; update(); expect(elements.remaining.textContent).toBe('00:00'); expect(elements.approve.disabled).toBe(true);
+    expect(elements['expiry-message'].textContent).toContain('nouvelle proposition'); expect(cleared).toBe(true);
+    expect(elements['expiry-progress'].value).toBe(0);
+    expect(await f.approvals.get(p.operation_id)).toMatchObject({ status: 'prepared' });
+    f.setTime(p.proposal.expires_at);
+    await expect(f.service.approve(approver, p.operation_id, 'synthetic')).rejects.toMatchObject({ code: 'financial_proposal_expired' });
+    const expired = await routes.request(`${origin}/${p.operation_id}`);
+    expect(expired.status).toBe(409); expect(await expired.text()).toContain('Proposition expirée');
+  });
+  it('styles already-used errors without exposing the proposal or fabricating a receipt', async () => {
+    const f = await fixture(); const p = await f.prepare(); await f.approve(p.operation_id);
+    const routes = financialConfirmationRoutes(f.service, async () => approver, origin);
+    const page = await routes.request(`${origin}/${p.operation_id}`); const html = await page.text();
+    expect(page.status).toBe(409); expect(page.headers.get('Content-Type')).toContain('text/html');
+    expect(html).toContain('Proposition déjà approuvée ou utilisée'); expect(html).toContain('PEA Tracker');
+    expect(html).not.toContain(p.proposal.digest); expect(html).not.toContain('<form');
+    expect((await f.journal.get(portfolioReader, portfolioId)).events).toEqual([]);
+  });
+  it.each(['', '?utm_source=chatgpt.com', '?utm_source=chatgpt.com&utm_medium=referral&utm_campaign=confirmation'])('opens navigation %s without granting approval or carrying tracking into POST', async query => {
+    const f = await fixture(); const p = await f.prepare();
+    const routes = financialConfirmationRoutes(f.service, async () => approver, origin);
+    const url = `${origin}/${p.operation_id}`;
+    expect((await routes.request(`https://other.invalid/${p.operation_id}?utm_source=chatgpt.com`)).status).toBe(403);
+    const page = await routes.request(`${url}${query}`);
+    expect(page.status).toBe(200);
+    expect(page.headers.get('Referrer-Policy')).toBe('strict-origin');
+    const html = await page.text();
+    expect(html).toContain(`action="/financial-confirmation/${p.operation_id}"`);
+    expect(html).not.toContain('chatgpt.com');
+    expect(html).toContain('name="viewport"');
+    const styleNonce = /<style nonce="([^"]+)">/.exec(html)![1]!;
+    const policy = page.headers.get('Content-Security-Policy')!;
+    expect(policy).toContain(`style-src 'nonce-${styleNonce}'`);
+    expect(policy).toContain("default-src 'none'");
+    expect(policy).not.toContain('unsafe-inline');
+    expect(await f.approvals.get(p.operation_id)).toMatchObject({ status: 'prepared', approved_at: null });
+    await expect(f.service.confirm(writer, { operation_id: p.operation_id, digest: p.proposal.digest }))
+      .rejects.toMatchObject({ code: 'financial_confirmation_required' });
+    const csrf = /name="csrf" value="([^"]+)"/.exec(html)![1]!;
+    const headers = { Origin: origin, Cookie: page.headers.get('Set-Cookie')!.split(';')[0]!, 'Content-Type': 'application/x-www-form-urlencoded' };
+    const body = new URLSearchParams({ csrf });
+    expect((await routes.request(`${url}?utm_source=chatgpt.com`, { method: 'POST', headers, body })).status).toBe(403);
+    expect((await routes.request(url, { method: 'POST', headers: { ...headers, Origin: 'https://other.invalid' }, body })).status).toBe(403);
+    expect((await routes.request(url, { method: 'POST', headers, body: new URLSearchParams({ csrf: crypto.randomUUID() }) })).status).toBe(403);
+    const approved = await routes.request(url, { method: 'POST', headers, body });
+    expect(approved.status).toBe(200);
+    expect(await approved.text()).toContain("L'enregistrement financier n'est pas encore effectué");
+    expect((await f.journal.get(portfolioReader, portfolioId)).events).toEqual([]);
+    expect((await f.service.confirm(writer, { operation_id: p.operation_id, digest: p.proposal.digest })).balances.cash.amount).toBe('110');
+  });
+  it.each(['?redirect=https://other.invalid', '?csrf=synthetic', '?digest=synthetic', '?utm_source=chatgpt.com&portfolio_id=other'])('refuses non-tracking navigation parameters %s', async query => {
+    const f = await fixture(); const p = await f.prepare();
+    const routes = financialConfirmationRoutes(f.service, async () => approver, origin);
+    const response = await routes.request(`${origin}/${p.operation_id}${query}`);
+    expect(response.status).toBe(403); expect(await response.text()).toContain('Code : origin_forbidden');
+    expect(await f.approvals.get(p.operation_id)).toMatchObject({ status: 'prepared', csrf: null });
+  });
+  it('keeps signed browser identity and expiry checks on tracked navigation', async () => {
+    const f = await fixture(); const p = await f.prepare(); const auth = await accessFixture();
+    const config = { ...accessConfig, browserAudience: 'b'.repeat(64), internalSubject: writer.subject, financialWritesEnabled: true };
+    const access = new FinancialAccessAuthenticator(config, { fetch: auth.keys });
+    const routes = financialConfirmationRoutes(f.service, request => access.authenticateBrowser(request), origin);
+    const url = `${origin}/${p.operation_id}?utm_source=chatgpt.com`;
+    expect((await routes.request(url)).status).toBe(401);
+    expect((await routes.request(url, { headers: { 'Cf-Access-Jwt-Assertion': await auth.token() } })).status).toBe(401);
+    expect((await routes.request(url, { headers: { 'Cf-Access-Jwt-Assertion': await auth.token({ aud: [config.browserAudience], sub: 'other' }) } })).status).toBe(403);
+    const headers = { 'Cf-Access-Jwt-Assertion': await auth.token({ aud: [config.browserAudience] }) };
+    expect((await routes.request(url, { headers })).status).toBe(200);
+    f.setTime(p.proposal.expires_at);
+    expect((await routes.request(url, { headers })).status).toBe(409);
+    expect((await f.journal.get(portfolioReader, portfolioId)).events).toEqual([]);
+  });
   it('uses exact owner and distinct signed audiences without accepting bearer claims as permissions', async () => {
     const fixture = await accessFixture();
     const config = { ...accessConfig, browserAudience: 'b'.repeat(64), internalSubject: writer.subject, financialWritesEnabled: true };
@@ -180,6 +328,12 @@ describe('browser-only approval boundary', () => {
     const post = (overrides: Record<string, string> = {}, token = csrf) => routes.request(url, { method: 'POST',
       headers: { Origin: origin, Cookie: cookie, 'Content-Type': 'application/x-www-form-urlencoded', ...overrides }, body: new URLSearchParams({ csrf: token }) });
     expect((await post({ Origin: 'https://other.invalid' })).status).toBe(403);
+    expect((await post({ Origin: 'null' })).status).toBe(403);
+    expect((await post({ Origin: '' })).status).toBe(403);
+    const missingOrigin = await routes.request(url, { method: 'POST', headers: {
+      Cookie: cookie, 'Content-Type': 'application/x-www-form-urlencoded', 'Sec-Fetch-Site': 'same-origin',
+    }, body: new URLSearchParams({ csrf }) });
+    expect(missingOrigin.status).toBe(403);
     expect((await post({ 'Sec-Fetch-Site': 'cross-site' })).status).toBe(403);
     expect((await post({ Cookie: '' })).status).toBe(403);
     expect((await post({}, crypto.randomUUID())).status).toBe(403);
@@ -203,7 +357,39 @@ describe('browser-only approval boundary', () => {
   });
 });
 
-it('official MCP SDK: prepare → signed browser approval → D1 journal append, replay and read-only compatibility', async () => {
+it('financial Worker logs fixed authentication rejection codes without token or identity data', async () => {
+  const f = await fixture('d1'); const auth = await accessFixture();
+  const opening = await f.openingService.get(portfolioReader);
+  const environment = { INSTRUMENTS_DB: f.local!.db, ACCESS_TEAM_DOMAIN: accessConfig.issuer,
+    ACCESS_READ_AUD: accessConfig.audience, ACCESS_OWNER_SUB: accessConfig.ownerSubject,
+    ACCESS_READ_ENABLED: 'true', ACCESS_PORTFOLIO_READ_ENABLED: 'true', FINANCIAL_WRITES_ENABLED: 'true',
+    ACCESS_CONFIRMATION_AUD: 'b'.repeat(64), FINANCIAL_ORIGIN: origin,
+    FINANCIAL_PORTFOLIO_ID: portfolioId, FINANCIAL_OWNER_ID: writer.subject,
+    FINANCIAL_OPENING_ID: opening.id, FINANCIAL_OPENING_REVISION: String(opening.revision) };
+  const log = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  try {
+    const app = createAccessFinancialWorker(environment, { fetch: auth.keys });
+    expect((await app.request(`${origin}/mcp`, { method: 'POST' })).status).toBe(401);
+    expect((await app.request(`${origin}/mcp`, { method: 'POST', headers: {
+      'Cf-Access-Jwt-Assertion': await auth.token({ aud: ['b'.repeat(64)] }),
+    } })).status).toBe(401);
+    expect(log.mock.calls.map(([message]) => JSON.parse(message as string))).toEqual([
+      { event: 'financial_auth_rejected', code: 'assertion_missing_or_malformed' },
+      { event: 'financial_auth_rejected', code: 'audience_other_financial_channel' },
+      { event: 'financial_auth_rejected', code: 'audience_rejected' },
+    ]);
+    const codes: string[] = [];
+    const injected = createAccessFinancialWorker(environment, { fetch: auth.keys, onDiagnostic: code => codes.push(code) });
+    expect((await injected.request(`${origin}/mcp`, { method: 'POST' })).status).toBe(401);
+    expect(codes).toEqual(['assertion_missing_or_malformed']); expect(log).toHaveBeenCalledTimes(3);
+  } finally { log.mockRestore(); }
+});
+
+it.each([
+  { separateOrigin: undefined, mixedMcp: false },
+  { separateOrigin: 'https://synthetic-approval.example.invalid', mixedMcp: false },
+  { separateOrigin: 'https://synthetic-approval.example.invalid', mixedMcp: true },
+])('official MCP SDK: prepare → signed browser approval → D1 journal append, replay and read-only compatibility ($separateOrigin, mixed MCP: $mixedMcp)', async ({ separateOrigin, mixedMcp }) => {
   const f = await fixture('d1'); const auth = await accessFixture();
   const config = { ...accessConfig, browserAudience: 'b'.repeat(64), internalSubject: writer.subject, financialWritesEnabled: true };
   const opening = await f.openingService.get(portfolioReader);
@@ -211,6 +397,8 @@ it('official MCP SDK: prepare → signed browser approval → D1 journal append,
     ACCESS_READ_AUD: config.audience, ACCESS_OWNER_SUB: config.ownerSubject,
     ACCESS_READ_ENABLED: 'true', ACCESS_PORTFOLIO_READ_ENABLED: 'true', FINANCIAL_WRITES_ENABLED: 'true',
     ACCESS_CONFIRMATION_AUD: config.browserAudience, FINANCIAL_ORIGIN: origin,
+    MCP_KNOWN_AUDIENCE_PAIR_ENABLED: mixedMcp ? 'true' : 'false',
+    ...(separateOrigin ? { FINANCIAL_CONFIRMATION_ORIGIN: separateOrigin } : {}),
     FINANCIAL_PORTFOLIO_ID: portfolioId, FINANCIAL_OWNER_ID: writer.subject,
     FINANCIAL_OPENING_ID: opening.id, FINANCIAL_OPENING_REVISION: String(opening.revision),
     FINANCIAL_MARKET_REFERENCE: JSON.stringify({ source_type: 'broker_statement', portfolio_id: portfolioId,
@@ -223,7 +411,11 @@ it('official MCP SDK: prepare → signed browser approval → D1 journal append,
     .toThrow('financial_reference_binding_mismatch');
   expect(() => createAccessFinancialWorker({ ...environment, FINANCIAL_MARKET_REFERENCE: '{}' }, { fetch: auth.keys })).toThrow();
   const app = createAccessFinancialWorker(environment, { fetch: auth.keys });
-  const mcpToken = await auth.token();
+  const confirmationOrigin = separateOrigin ?? origin;
+  const browserRequest = (url: string, init?: RequestInit) => separateOrigin
+    ? forwardFinancialApproval(new Request(url, init), separateOrigin, { fetch: async request => app.fetch(new Request(request)) })
+    : app.request(url, init);
+  const mcpToken = await auth.token({ aud: mixedMcp ? [config.audience, config.browserAudience] : [config.audience] });
   const client = new Client({ name: 'synthetic-financial-owner', version: '1' });
   const transport = new StreamableHTTPClientTransport(new URL(`${origin}/mcp`), {
     fetch: async (url, init) => {
@@ -253,13 +445,27 @@ it('official MCP SDK: prepare → signed browser approval → D1 journal append,
   const prepared = await client.callTool({ name: 'prepare_recorded_buy', arguments: { portfolio_id: portfolioId, ...Object.fromEntries(Object.entries(trade()).filter(([key]) => key !== 'type')) } });
   expect(prepared.isError).not.toBe(true);
   const p = prepared.structuredContent as unknown as Awaited<ReturnType<typeof f.prepare>>;
+  expect(p.confirmation_url).toBe(`${confirmationOrigin}/financial-confirmation/${p.operation_id}`);
   const command = { operation_id: p.operation_id, digest: p.proposal.digest };
   expect((await client.callTool({ name: 'confirm_financial_operation', arguments: command })).isError).toBe(true);
   const browserToken = await auth.token({ aud: [config.browserAudience] });
-  const page = await app.request(p.confirmation_url!, { headers: { 'Cf-Access-Jwt-Assertion': browserToken } });
+  const mixedToken = await auth.token({ aud: [config.audience, config.browserAudience] });
+  if (!mixedMcp) expect((await app.request(`${origin}/mcp`, { method: 'POST', headers: { 'Cf-Access-Jwt-Assertion': mixedToken } })).status).toBe(401);
+  for (const token of [await auth.token(), mixedToken, 'synthetic.forged.assertion']) {
+    expect((await browserRequest(p.confirmation_url!, { headers: { 'Cf-Access-Jwt-Assertion': token } })).status).toBe(401);
+    expect((await browserRequest(p.confirmation_url!, { method: 'POST', headers: { Origin: confirmationOrigin,
+      'Cf-Access-Jwt-Assertion': token, 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'csrf=synthetic' })).status).toBe(401);
+  }
+  if (separateOrigin) {
+    expect((await app.request(`${origin}/financial-confirmation/${p.operation_id}`, { headers: { 'Cf-Access-Jwt-Assertion': browserToken } })).status).toBe(403);
+    expect((await browserRequest(p.confirmation_url!, { method: 'POST', headers: { Origin: origin,
+      'Cf-Access-Jwt-Assertion': browserToken } })).status).toBe(403);
+    expect(() => createAccessFinancialWorker({ ...environment, FINANCIAL_CONFIRMATION_ORIGIN: `${separateOrigin}/path` }, { fetch: auth.keys })).toThrow();
+  }
+  const page = await browserRequest(`${p.confirmation_url!}?utm_source=chatgpt.com`, { headers: { 'Cf-Access-Jwt-Assertion': browserToken } });
   expect(page.status).toBe(200);
   const csrf = /name="csrf" value="([^"]+)"/.exec(await page.text())![1]!;
-  const approved = await app.request(p.confirmation_url!, { method: 'POST', headers: { Origin: origin,
+  const approved = await browserRequest(p.confirmation_url!, { method: 'POST', headers: { Origin: confirmationOrigin,
     Cookie: page.headers.get('Set-Cookie')!.split(';')[0]!, 'Content-Type': 'application/x-www-form-urlencoded', 'Cf-Access-Jwt-Assertion': browserToken }, body: new URLSearchParams({ csrf }) });
   expect(approved.status).toBe(200);
   const result = await client.callTool({ name: 'confirm_financial_operation', arguments: command });

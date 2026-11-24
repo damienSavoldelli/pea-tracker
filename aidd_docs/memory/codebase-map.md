@@ -7,11 +7,14 @@
   `portfolio-registry-migration.test.ts` and existing targeted migration/MCP checks.
   [Scope, evidence and remaining integration](../tasks/2026_11/2026_11_21_portfolio-registry/plan.md).
 
-## Published V1.1.0 — reviewed 2026-11-22
+## V1.1 foundation and corrections — reviewed 2026-11-24
 
 [Release](../releases/v1.1.0.md) and [validation/RETEX](../releases/v1.1.0-validation.md)
-define the shipped scope and acceptance limits, including the first real approved
-financial write/receipt/replay still to validate.
+define the foundation and acceptance limits. The [v1.1.4 corrections](../releases/v1.1.4.md)
+add a separate browser relay (`src/entrypoints/financial-approval-relay.ts`), exact
+known-pair MCP admission and native-form Origin preservation. The owner reported
+the first real nominal approved write and rereads; production replay and failure
+recovery remain unvalidated.
 
 - Broker market-value reference, economic gain and estimated Modified Dietz:
   `src/domain/performance.ts`, `src/application/valuation.ts` and the existing

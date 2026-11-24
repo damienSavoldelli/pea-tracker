@@ -10,6 +10,39 @@
   No full suite, remote migration or production validation.
   [Commands, decisions and limits](../tasks/2026_11/2026_11_21_portfolio-registry/plan.md).
 
+- **24 November 2026, owner-reported production milestone:** first real nominal
+  MCP preparation → independent browser approval → explicit MCP confirmation →
+  journal recording → portfolio/journal reread succeeded on corrected Worker
+  `de09bec2-6596-415d-8ffb-c447c3f2b6e5` (source `71bc299`). One event and expected
+  position/cost/cash results were reported; private details are not retained.
+  This is not a replay test, independent receipt-store inspection, or a new formal
+  technical test suite. Production concurrency, expiry/alteration refusals and
+  recovery remain distinct unvalidated cases. See the
+  [acceptance update](../releases/v1.1.0-validation.md#production-acceptance-update--24-november-2026)
+  and [incident evidence](../tasks/2026_11/2026_11_21_financial-mcp/authentication-incident-2026-11-24.md).
+  Earlier pending-write statements below describe their dated checkpoints.
+
+- V1.1.3 reconnect-button follow-up, deployed 23 November: seven targeted cases passed, plus typecheck
+  and diff check. Official Access logout/return flow is explicit and warns about
+  cross-application logout; no session was revoked. Worker
+  `c2178996-c949-4c05-b96b-73d80c734abc` deploys source `bbf6d0f`. Browser
+  redirect audience matches expectations; authenticated `invalid_token` remains
+  undiagnosed. Publication reused these results without rerunning tests or redeploying.
+  See the [release](../releases/v1.1.3.md) and [dated evidence](../tasks/2026_11/2026_11_21_financial-mcp/evidence.md#local-explicit-reconnection-link--23-november-2026).
+- V1.1.2 presentation, deployed 23 November: 33 targeted financial MCP tests passed with a 15s per-test
+  CLI deadline, plus typecheck/diff checks. Covers exact preview display, Paris
+  winter/summer time, undeclared fees, nonce CSP, absolute countdown/reload,
+  warning/expiry/disabled states, styled errors and unchanged approval/UTM rules.
+  Synthetic Chrome confirmation layouts checked at 1280px/390px; success, expired,
+  already-used and generic error templates checked at 390px, with no overflow.
+  No real transaction or hosted browser authentication acceptance.
+- V1.1.1 confirmation navigation fix, deployed 23 November: allowlisted UTM parameters
+  on GET, query-free approval POST and nonce-protected responsive styling;
+  29 distinct financial MCP cases passed (native-D1 case rerun with a 15s CLI
+  deadline after a 5s timeout), plus typecheck and diff check, reused without reruns.
+  Synthetic Chrome rendering checked at 1280px and 390px without horizontal overflow.
+  Production checks: anonymous MCP 401 and browser redirect 302. No real approved
+  write/receipt/replay acceptance. See the [release](../releases/v1.1.1.md) and [dated local evidence](../tasks/2026_11/2026_11_21_financial-mcp/evidence.md#local-confirmation-navigation-fix--23-november-2026).
 - Published V1.1.0 baseline: [consolidated validation](../releases/v1.1.0-validation.md)
   records the final Worker, protected writes, broker reference and 19 XPAR closure
   assignments. Historical reads, private reference/D1 comparisons, anonymous refusal

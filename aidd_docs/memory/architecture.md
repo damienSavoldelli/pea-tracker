@@ -14,6 +14,112 @@ services until future resolution/status enforcement. New journal anchors, financ
 approval routing and multi-provider work remain future slices.
 [Decisions, tests and migration/rollback limits](../tasks/2026_11/2026_11_21_portfolio-registry/plan.md).
 
+## Authentication incident — recovery and normal admission, 2026-11-24
+
+The [v1.1.4 release record](../releases/v1.1.4.md) consolidates the corrections
+and owner-reported nominal acceptance below. Earlier checkpoints retain their
+then-pending validation boundaries.
+
+Signed assertions containing both configured financial audiences were rejected by
+the singleton-AUD guard. The issuer/session reason for this pair remains unresolved.
+Rollback, cookie-path enforcement and moving/parking the browser Access destination
+did not establish recovery in the observed attempts. Do not infer a Worker collision.
+
+After explicit owner authorization, recovery Worker
+`805050ee-3965-49de-b1a2-b7f57c584d8f` accepted only that exact audience pair on the
+owner MCP read channel, still requiring signature, issuer, expiry and owner checks.
+The opt-in recovery flag cannot coexist with financial writes. At that stage writes
+and approval were disabled, and the approval Access destination was parked temporarily.
+Default validation and the browser audience check remain strict. D1, calculations,
+proposal fingerprints and idempotence formats are unchanged.
+
+At the recovery checkpoint, the separate browser relay and optional
+`FINANCIAL_CONFIRMATION_ORIGIN` were deployed, but independent browser approval
+was not yet production-qualified. Local evidence:
+14 targeted isolation tests and 13 recovery tests; typecheck and dry-runs passed.
+The owner supplied a successful ChatGPT ping at `2026-11-24T05:55:35.873Z`, then a
+successful direct `get_current_portfolio_valuation` at 06:56:54 Europe/Paris, using
+Yahoo unadjusted last-trade data and all 20 expected positions. This supports those
+production read calls, not all-tool acceptance or independent calculation reconciliation.
+No private IDs/values are retained and no real write was performed.
+
+Git baseline: V1.1.3 (`22e3bba`), corrective branch `fix/v1.1-mcp-approval`; the
+V1.1.0 rollback was temporary. Retained write-disabled rollback Worker:
+`7ed4aa14-d545-4e78-b692-dfd1abf8c9a1`. See the
+[incident chronology, tests and recovery limits](../tasks/2026_11/2026_11_21_financial-mcp/authentication-incident-2026-11-24.md).
+
+Next phase is implemented locally after checkpoint `fc280f6`: an opt-in GET
+`/financial-confirmation/auth-check` verifies only strict browser identity, without
+permissions, D1, proposals or approval. It is unavailable when writes are enabled.
+43 targeted tests, TypeScript and two dry-runs passed. After explicit owner approval,
+diagnostic Worker `5004ace9-dce2-405b-8a1f-c0a932e87c41` and relay
+`04c8f314-b275-44a3-8520-28bbab7cb207` were deployed with reads/recovery retained,
+writes false and diagnostics true. Restoring the browser Access destination and live
+browser qualification were initially pending; no financial write or new commit was performed.
+
+The owner then restored that destination and supplied a successful live
+`browser_identity` diagnostic. The backend accepted strict browser-only audience and
+owner identity without D1 access or approval. A normal MCP known-pair policy was
+prepared behind `MCP_KNOWN_AUDIENCE_PAIR_ENABLED` (default false), retaining
+strict browser validation and the existing read-only recovery guard. 47 targeted
+tests passed, including native D1/SDK with mixed MCP and independent browser approval.
+After explicit owner approval, source commit `caeb627` was deployed as Worker
+`3cdf9216-04ee-462e-bbda-6d8697172ef0`: normal known-pair MCP admission and financial
+writes enabled; read-only recovery and browser diagnostics disabled. The relay
+remains `04c8f314-b275-44a3-8520-28bbab7cb207`. A direct connector ping succeeded at
+`2026-11-24T06:33:32.734Z`, with the deployed version observed in the Worker tail.
+No financial operation was prepared, approved or recorded by deployment/checks.
+At that deployment checkpoint, the real browser/write journey had not yet been
+validated. See
+the [updated financial contract](../tasks/2026_11/2026_11_21_financial-mcp/contract.md).
+
+Subsequent real preparation/confirmation GET succeeded (owner report), but native
+POST failed. The Worker trace showed Origin null with same-origin Fetch Metadata.
+The confirmation page's no-referrer policy caused the browser's null Origin; an
+installed Chrome loopback test reproduced it. A local one-header correction uses
+strict-origin, without accepting null/missing/foreign origins or changing CSRF,
+Access, proposal/financial rules. One actual browser test and eight targeted
+financial tests passed, plus typecheck. After explicit owner authorization, source
+`71bc299` was deployed as Worker `de09bec2-6596-415d-8ffb-c447c3f2b6e5`, retaining
+the normal financial flags and unchanged bindings. A technical connector ping
+succeeded at `2026-11-24T06:50:10.988Z`; no financial operation was performed.
+At that header-deployment checkpoint, real approval/write validation was still pending. An expired
+proposal must be prepared anew, and the owner must load a fresh form after deployment.
+
+The owner subsequently supplied successful real preparation, independent browser
+approval, explicit MCP confirmation and portfolio/journal rereads on 24 November.
+The first real nominal journey is now owner-reported production-validated, with one
+event and expected portfolio/cash/cost updates. No private values/IDs are retained.
+The API result is event/balances, with no separate receipt identifier. Production
+replay/concurrency/negative cases and independent internal receipt inspection are
+not established by this report. Preserve local evidence for those separate gates.
+
+## V1.1.3 recovery interface — deployed 2026-11-23
+
+Worker `c2178996-c949-4c05-b96b-73d80c734abc`, source `bbf6d0f879fbfeaae1400d9a04ffc01985150787`.
+The `invalid_token` page offers a user-initiated Access logout/return link only for
+same-origin GET and a UUID proposal path. Its warning covers other Access sessions,
+including possible MCP reconnection. No automatic logout, authentication relaxation
+or financial approval. The root cause and actual recovery remain unverified.
+See [v1.1.3](../releases/v1.1.3.md).
+
+## V1.1.2 presentation patch — deployed 2026-11-23
+
+Worker `47055795-4856-45d6-91d8-dd6c4a1f7d48`, source `e11e65bc1b9b9b03cbf67481ad99191e12712cce`.
+The REST confirmation adapter delegates markup to `financial-confirmation-page.ts`.
+Static native JavaScript uses a per-response CSP nonce for an absolute expiry
+countdown; the server remains authoritative. No financial service, identity,
+proposal format, database, dependency or V2 change. See [v1.1.2](../releases/v1.1.2.md).
+
+## V1.1.1 patch — deployed 2026-11-23
+
+Financial Worker `aef16740-0557-4d8d-a080-0bb182e33342` deploys source commit
+`98872bbc3682ca05f8e0d39d719ec310b5d5f4e4`: allowlisted tracking parameters only on
+confirmation GET, query-free POST and responsive nonce-protected styling. D1,
+financial rules, Access/secret configuration and independent approval are unchanged.
+Anonymous availability checks passed; no real financial write was performed.
+See [release and deployment evidence](../releases/v1.1.1.md).
+
 ## Published V1.1.0 baseline — reviewed 2026-11-22
 
 The real PEA remains the priority. One TypeScript/Hono application uses shared

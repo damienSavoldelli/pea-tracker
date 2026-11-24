@@ -18,12 +18,20 @@ export type AccessDiagnosticCode = 'assertion_missing_or_malformed' | 'header_re
   'signature_invalid' | 'key_not_found' | 'jwks_unavailable' | 'issuer_rejected' |
   'audience_rejected' | 'expired' | 'not_before_rejected' | 'issued_at_rejected' |
   'expiration_rejected' | 'subject_rejected' | 'token_type_rejected' |
-  'claims_rejected' | 'jwt_rejected' | 'machine_identity_rejected';
+  'claims_rejected' | 'jwt_rejected' | 'machine_identity_rejected' |
+  'audience_missing' | 'audience_multiple' | 'audience_other_financial_channel' | 'audience_unexpected' |
+  'audience_duplicate_expected' | 'audience_multiple_financial_channels' | 'audience_multiple_with_expected' | 'audience_multiple_without_expected';
 
 export interface AccessJwtOptions {
   keys?: JWTVerifyGetKey; fetch?: typeof fetch; clock?: () => number;
   /** Internal fixed-code sink; never receives tokens, claim values, or exceptions. */
   onDiagnostic?: (code: AccessDiagnosticCode) => void;
+  /** Classification only; never an additional accepted audience. */
+  diagnosticOtherAudience?: string;
+  /** Trusted server configuration only: permit exactly [expected, companion].
+   * Channel permissions are assigned separately. Never enable on browser approval.
+   */
+  permittedCompanionAudience?: string | undefined;
 }
 
 /** A diagnostic sink must never affect an authorization decision. */
@@ -66,6 +74,7 @@ export class AccessJwtVerifier {
       }
       if (error instanceof errors.JWTExpired) this.reject('expired');
       if (error instanceof errors.JWTClaimValidationFailed) {
+        if (error.claim === 'aud') this.reportAudience(error.payload.aud);
         const reason: AccessDiagnosticCode = error.claim === 'iss' ? 'issuer_rejected' :
           error.claim === 'aud' ? 'audience_rejected' : error.claim === 'nbf' ? 'not_before_rejected' :
           error.claim === 'iat' ? 'issued_at_rejected' : error.claim === 'exp' ? 'expiration_rejected' :
@@ -78,7 +87,14 @@ export class AccessJwtVerifier {
       this.reject('jwt_rejected');
     }
     const audiences = typeof payload.aud === 'string' ? [payload.aud] : payload.aud;
-    if (!audiences || audiences.length !== 1 || audiences[0] !== this.config.audience) this.reject('audience_rejected');
+    const singleAudience = audiences?.length === 1 && audiences[0] === this.config.audience;
+    const knownPair = this.options.permittedCompanionAudience !== undefined && audiences?.length === 2 &&
+      audiences.includes(this.config.audience) && audiences.includes(this.options.permittedCompanionAudience) &&
+      this.config.audience !== this.options.permittedCompanionAudience;
+    if (!singleAudience && !knownPair) {
+      this.reportAudience(payload.aud);
+      this.reject('audience_rejected');
+    }
     if (payload.type !== 'app') this.reject('token_type_rejected');
     if (typeof payload.sub !== 'string' || payload.sub.length > 256) this.reject('subject_rejected');
     if (!Number.isSafeInteger(payload.iat) || payload.iat! > now / 1000 + 30) this.reject('issued_at_rejected');
@@ -87,6 +103,19 @@ export class AccessJwtVerifier {
     return payload;
   }
 
+  private reportAudience(value: unknown) {
+    if (!this.options.diagnosticOtherAudience) return;
+    const audiences = typeof value === 'string' ? [value] : Array.isArray(value) ? value : [];
+    const expected = this.config.audience;
+    const multiple: AccessDiagnosticCode = audiences.every(audience => audience === expected) ? 'audience_duplicate_expected'
+      : !audiences.includes(expected) ? 'audience_multiple_without_expected'
+      : audiences.every(audience => audience === expected || audience === this.options.diagnosticOtherAudience)
+        ? 'audience_multiple_financial_channels' : 'audience_multiple_with_expected';
+    const code: AccessDiagnosticCode = !audiences.length ? 'audience_missing' : audiences.length > 1 ? multiple
+      : this.options.diagnosticOtherAudience && audiences[0] === this.options.diagnosticOtherAudience
+        ? 'audience_other_financial_channel' : 'audience_unexpected';
+    reportAccessDiagnostic(this.options, code);
+  }
   private reject(code: AccessDiagnosticCode): never {
     reportAccessDiagnostic(this.options, code);
     throw new ApplicationError(401, 'invalid_token');

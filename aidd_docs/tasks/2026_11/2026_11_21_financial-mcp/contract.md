@@ -151,3 +151,57 @@ ChatGPT elicitation or remembered confirmations prove human approval. Migrations
 configuration/import comparisons, historical MCP reads and anonymous denial have
 production evidence; authenticated human approval and actual financial write/replay
 interoperability remain **to validate**, not established by local synthetic checks.
+
+## Post-incident audience policy — deployed, 24 November 2026
+
+The browser diagnostic succeeded in the owner's live browser with the separate
+approval hostname: strict browser-only audience and owner identity were accepted,
+without D1 or financial permission. This qualifies that authentication check, not
+the real approval/write journey. See the [incident record](authentication-incident-2026-11-24.md).
+
+`MCP_KNOWN_AUDIENCE_PAIR_ENABLED` is a new opt-in server setting, default false.
+When enabled, MCP accepts its single configured read AUD or the exact pair of
+configured read/browser AUDs, in either order. Unknown, missing and duplicate AUDs
+are rejected. Signature, issuer, time and exact owner validation remain mandatory.
+This admission policy grants no permission from JWT audience membership alone:
+the server assigns `portfolio:write` only when financial writes are explicitly enabled.
+MCP never receives `portfolio:approve`; its assertion remains invalid on browser
+GET and POST, even when it contains the browser AUD.
+
+Browser approval remains strict: browser AUD alone, owner identity, no bearer or
+service credentials, protected same-origin form, CSRF, expiry and one-use approval.
+Confirmation still consumes that independent approval and uses unchanged financial
+intent fingerprints, journal guards, concurrency handling and idempotent receipts.
+
+The existing `MCP_READ_ONLY_MIXED_AUDIENCE_ENABLED` recovery mode retains its original
+write-disabled guard. It must be false before enabling financial writes; the new
+MCP known-pair setting controls the normal financial channel separately. Diagnostic
+GETs are disabled when writes are enabled and should be explicitly switched off.
+No REST/MCP input parameter, new tool, operation type or migration is introduced.
+
+After explicit owner approval, commit `caeb627` was deployed as Worker
+`3cdf9216-04ee-462e-bbda-6d8697172ef0`: normal known-pair MCP admission and financial
+writes enabled; recovery mode and browser diagnostics disabled. One connector ping
+succeeded after activation. No real operation was prepared, approved or confirmed.
+The 47 targeted local checks include the official SDK/native D1 journey with mixed
+MCP and browser-only approval, exact replay, old single-AUD compatibility and refusal
+of mixed assertions on browser GET/POST. They do not establish production financial
+approval or authorize preparing/confirming a real operation.
+
+The subsequent native-form correction uses `Referrer-Policy: strict-origin` on
+confirmation pages, preserving native POST Origin without including proposal
+paths/queries in Referer. Null, absent and foreign Origins remain rejected; Referer
+is not an authorization input. Source `71bc299` was deployed as Worker
+`de09bec2-6596-415d-8ffb-c447c3f2b6e5` with the same normal financial settings.
+Installed Chrome reproduced the previous null Origin and verified the correction;
+eight targeted financial tests and post-deployment technical ping passed. A fresh
+owner proposal/form is required to validate actual production submission; no real
+financial operation was performed by these checks.
+
+On 24 November the owner subsequently reported the first successful real nominal
+preparation, independent browser approval, explicit MCP confirmation and journal/
+portfolio reread. This qualifies that production journey at owner-reported level,
+not replay/concurrency/negative cases or independent receipt-store inspection.
+The confirmation response is `TransactionOutcome` (`event`, `balances`); the contract
+does not require a separate public receipt ID. See the
+[dated acceptance record](authentication-incident-2026-11-24.md).
