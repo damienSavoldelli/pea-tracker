@@ -190,6 +190,21 @@ Questions cibles :
 - interaction avec ChatGPT et outils MCP ;
 - interface utile, sans la rendre obligatoire pour utiliser l’API.
 
+### Approval notification and automatic ChatGPT continuation — V2.3 or V3
+
+Owner decision, 24 November 2026: defer this improvement to V2.3, with V3 as a
+possible fallback; it is outside V2.0. The current V1.1.4 manual return remains valid.
+The desired journey is independent browser approval followed by notification to
+ChatGPT, explicit MCP confirmation and result verification without a second manual
+message. Notification must never replace server-side approval or authorize a write.
+
+MCP Events is a feasibility candidate, not an implemented or qualified integration.
+Before scheduling delivery, verify support in the owner's actual ChatGPT surface,
+subscription/callback lifecycle, authorization, deduplication and compatibility with
+the proposal's five-minute expiry. Late delivery must not extend approval or blindly
+repeat a write. Keep a manual fallback and preserve the separate browser audience.
+See [OpenAI MCP Events documentation](https://developers.openai.com/plugins/build/mcp-events).
+
 ## Axe transversal — Architecture logicielle et ingénierie IA
 
 **À examiner à chaque jalon, sans constituer une liste obligatoire de développements.** Proposer proactivement des technologies et approches pertinentes, même non mentionnées par l’utilisateur.
