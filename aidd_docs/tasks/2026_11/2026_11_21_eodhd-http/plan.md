@@ -4,6 +4,19 @@ status: implemented
 
 # V2.0-D4 — Raw EODHD HTTP transport only
 
+Current outcome: [owner-approved observation closure, measured capture and limits](finalization.md).
+The [coverage preparation and recipes](coverage-readiness.md) preserve earlier
+checkpoints; the reference and one bounded capture were subsequently completed.
+
+Later local implementation: [D5 isolated response parser](response-parser.md),
+24 November. It reuses this raw response and D2 normalization without changing
+the transport or activating a provider; actual external-payload qualification remains open.
+
+Later evidence: [owner-reported external PoC of 23 November, recorded 24 November](external-poc-2026-11-23.md).
+This supplements the dated local D4 record below; it does not demonstrate that this
+transport or a live normalized adapter executed the external tests. Yahoo remains
+primary and no fallback is activated.
+
 ## Authority and scope
 
 Owner explicitly approved reduced D4 after the normalization blocker: raw transport

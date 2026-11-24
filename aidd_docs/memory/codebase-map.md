@@ -1,5 +1,17 @@
 # Codebase Map
 
+- V2.0-D local finalization: `provider_observation.py` composes transport/parser/D2/D6;
+  `provider_observe.py` is an offline-only private capture CLI; `provider_quota.py`
+  supplies the quota port and local persistent 18-unit campaign adapter;
+  `eodhd_reference.py` qualifies exact identity plus independent venue evidence.
+  Only offline CLI/tests import the composition; active workflows are unchanged.
+  [Evidence, D/E split and remaining gates](../tasks/2026_11/2026_11_21_eodhd-http/finalization.md).
+
+- Local V2.0-D6: `collector/pea_collector/provider_shadow.py`, pure selection,
+  Free-budget proposals and coverage planning over existing D2 mappings/observations;
+  now reused by the isolated observation composition and tests. No active collector
+  or REST/MCP wiring. [Scope and evidence](../tasks/2026_11/2026_11_21_eodhd-http/shadow-selection.md).
+
 - Local V2.0-C: `src/application/portfolio-context.ts` (shared B/C resolution),
   `portfolio-financial.ts` (V2 routing), `src/adapters/mcp/portfolio-financial.ts`,
   versioned proposal union and existing financial service/approval adapters.

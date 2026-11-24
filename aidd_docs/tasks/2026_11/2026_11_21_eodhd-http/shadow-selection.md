@@ -131,6 +131,10 @@ No full suite or external network was run; all inputs are synthetic.
 
 ## Remaining gates
 
+Follow-up: [private catalogue review, quota/rights evidence and prepared capture](coverage-readiness.md).
+Public candidate presence does not satisfy full provider identity. The prepared
+manual recipe does not activate this planner or establish distributed enforcement.
+
 Supply the private 20-instrument metadata/evidence matrix and confirmed account
 usage snapshots before authorizing missing calls. Persist/reserve shared quota state
 atomically before any future external executor. Review the conservative timestamp-

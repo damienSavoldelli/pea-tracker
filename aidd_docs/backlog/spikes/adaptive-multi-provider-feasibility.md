@@ -177,6 +177,12 @@ limited for actual feed suitability. V1.1 operational evidence remains historica
 
 ## Follow-up
 
+**24 November 2026 — separate external evidence record:** the owner's 23 November
+Mac PoC and its comparison with implemented D1–D4 components are recorded in the
+[external PoC integration report](../../tasks/2026_11/2026_11_21_eodhd-http/external-poc-2026-11-23.md).
+The resolved architecture decision and original research bounds above are preserved;
+sample feasibility advances without admitting any secondary feed to production.
+
 **Later evidence update — 21 November 2026:** the owner subsequently supplied
 supplier-test outcomes and authorized local D1 implementation. See the
 [D1 evidence and implementation record](../../tasks/2026_11/2026_11_21_provider-abstraction/plan.md)

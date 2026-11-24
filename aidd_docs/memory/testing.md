@@ -2,6 +2,54 @@
 
 ## Current state
 
+- **24 November 2026, real D observation checkpoint:** owner executed one authorized
+  16-symbol group; 16/16 returned, actual 16 units, campaign 17 with reference, no
+  bonus/retry. D5/D2 checks passed offline on that new body under explicit assumed
+  stream/adjustment context. Sixteen stored-Yahoo MCP reads succeeded; no supplier
+  Yahoo fetch or financial write. Prior three samples/80 acquired/55 new synthetic
+  tests not repeated. Raw/data-derived price comparisons remain private; no pair
+  was simultaneous, and no rejection threshold or production admission is inferred.
+  [Measured evidence and limits](../tasks/2026_11/2026_11_21_eodhd-http/finalization.md).
+
+- **24 November 2026, D local finalization:** 55 distinct new synthetic cases pass:
+  quota 18, observation composition 20, offline CLI 5, reference identity 12.
+  Includes actual competing processes, process exit after durable claim, real D4
+  client with fake opener and actual offline module subprocess. Prior 80 cases not
+  rerun. No supplier call, D1, financial operation or active runtime change. Review
+  is local self-review, not external feed/production acceptance.
+  [Commands, checkpoints and open gates](../tasks/2026_11/2026_11_21_eodhd-http/finalization.md).
+
+- **24 November 2026, local D6 shadow mode:** 35 new targeted synthetic tests pass
+  for provider selection, stale/time regression/conflicts, close/intraday separation,
+  qualification gates, sanitized diagnostics, Free quotas/reserves/period rollover
+  and deduplicated 20-instrument planning with three EODHD samples reused. Python
+  syntax checks pass. No existing parser or supplier qualification tests repeated;
+  no full suite, external collection, persistence or production activation.
+  [Commands and limits](../tasks/2026_11/2026_11_21_eodhd-http/shadow-selection.md).
+
+- **24 November 2026, captured JSON qualification:** three original EODHD bodies
+  parsed offline unchanged; nine rows normalized in memory under explicit assumed
+  context, not live feed admission. Three new synthetic structure tests passed in
+  0.01s, covering per-symbol times/same-time revisions and rejection of daily-feed
+  envelopes as EODHD. D5's 42 tests reused without rerun. No originals or vendor
+  prices enter fixtures; no provider call, credential or financial/D1 operation.
+  [Evidence and Free limits](../tasks/2026_11/2026_11_21_eodhd-http/captured-json-qualification.md).
+
+- **24 November 2026, local D5 parser:** 42 new synthetic tests passed in 0.03s,
+  plus Python syntax checks. Raw bytes → Decimal parser → D2 covers precision,
+  partial/ambiguous responses, bounded input and sanitized failures. No provider
+  call, operational wiring or supplier qualification; D1–D4 tests were not rerun.
+  [Commands and limits](../tasks/2026_11/2026_11_21_eodhd-http/response-parser.md).
+
+- **24 November 2026, external provider evidence:** owner's 23 November Mac PoC
+  returned HTTP 200 for EODHD/Marketstack/Alpha Vantage. Changing delayed snapshots
+  were reported for three EODHD symbols; historical closes for three Marketstack
+  symbols and one Alpha symbol. This is attributed sample evidence, not execution
+  of repository adapters or production qualification. Approximately 15-minute
+  delay is reported, not independently calculated without receipt times. Existing
+  D1–D4 tests were not rerun; documentary checks only for this update.
+  [Evidence matrix and remaining gates](../tasks/2026_11/2026_11_21_eodhd-http/external-poc-2026-11-23.md).
+
 - Local V2.0-D / D4 raw transport: **39 simulated HTTP tests passed** in 0.06 seconds,
   plus Python syntax and whitespace checks. Single/grouped requests, untouched
   success/error/partial payloads, timeouts/network failures, body bounds, disabled

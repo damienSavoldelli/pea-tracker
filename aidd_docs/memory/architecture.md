@@ -1,5 +1,108 @@
 # Architecture
 
+## Owner-approved D closure — 2026-11-24
+
+D is closed in observation mode with response evidence on 19/20; TNO remains
+excluded for ISIN divergence. Campaign measured 17/20 units, bonus 500 unchanged;
+80 acquired and 55 complementary passing cases retained. Yahoo stays primary,
+EODHD isolated, unadjusted `last_trade` equivalence not demonstrated. Owner authorizes
+three commits and D branch push only; no main merge, deployment or activation.
+E is to be inspected read-only from branch objects, without modifying its branch
+or the independently used main worktree.
+[Accepted closure](../tasks/2026_11/2026_11_21_eodhd-http/finalization.md).
+Earlier same-day sections below retain their original checkpoint boundaries.
+
+## D real observation checkpoint — 2026-11-24
+
+The authorized isolated capture returned 16/16 with measured per-symbol cost,
+campaign within 18 units and no bonus spend. Existing source catalogue metadata
+resolved the 15 MIC links offline; one ISIN conflict stays excluded, giving response
+evidence on 19/20 including acquired samples. Stored Yahoo observations were read
+through MCP without supplier fetch or D1 mutation. Identity/context compatibility
+does not establish vendor latest-delayed-price equivalence to unadjusted last trade:
+quote body omits currency/unit/adjustment semantics. Keep semantic admission closed,
+Yahoo primary, no fallback or production wiring. Local observation finalization is
+complete with documented limits; cloud orchestration/activation remains separate.
+[Current evidence](../tasks/2026_11/2026_11_21_eodhd-http/finalization.md).
+
+## V2.0-D local finalization — 2026-11-24
+
+[Finalization](../tasks/2026_11/2026_11_21_eodhd-http/finalization.md) connects the
+existing provider layers in an isolated observation composition with a `QuotaStore`
+port. Local adapter reuses account-wide private journal locking/atomic fsync writes,
+caps the qualification campaign at 18 recurring units including observed prior use,
+and never refunds uncertain attempts. UTC rollover requires fresh evidence and
+does not erase operation claims. Exact reference ISIN/code/currency still needs
+separate venue proof; no approximate ALXP admission. Offline CLI evaluates freshness
+at capture time and emits sanitized diagnostics only. No active collector/financial
+wiring or deployment. Ephemeral runner storage is not a shared quota authority;
+E owns shared persistence/orchestration/monitor injection via D's ports. Local work
+complete; full qualification remains blocked on real reference, request authority
+and account/semantic evidence. No automatic paid fallback or Marketstack/Alpha gate.
+
+## EODHD coverage capture preparation — 2026-11-24
+
+[Coverage readiness and prepared command](../tasks/2026_11/2026_11_21_eodhd-http/coverage-readiness.md):
+one supervised group costs 17 published symbol units, not one; actual charging
+needs dashboard before/after evidence. Public candidate pages do not establish
+full ISIN/listing identity. Private mapping remains outside Git. Reuse local runner
+lock/atomic-write primitives for one fixed persistent attempt claim, retaining the
+reservation on uncertain failures and forbidding automatic retries. This is a
+prepared recipe, not an installed shared quota service. Current scheduler day/job
+partition and two-day deletion cannot supply monthly account accounting unchanged.
+No active provider/collector change, authenticated vendor call or deployment.
+
+## Local V2.0-D6 shadow selection — 2026-11-24
+
+Pure `collector/pea_collector/provider_shadow.py`, no active runtime import. Reuses
+D2 mappings/normalized observations for Yahoo-first selection, gated delayed EODHD
+and conditional close-only Marketstack/Alpha. Preserves source-time nonregression,
+quarantines equal-time divergent prices, reports stale/unavailable states and emits
+only fixed/allowlisted diagnostic fields. Cached eligibility is independent of new
+fetch quota. Free-budget proposals require trusted current-period counters, never
+infer reset from stale state, and distinguish symbol costs from HTTP request counts.
+Coverage planning deduplicates portfolio needs, skips acquired samples and defers
+unknown metadata/budget. No atomic durable quota executor is implemented or implied.
+No live collector, financial service, authentication, migration or cloud change.
+[D6 decisions, 35 synthetic tests and remaining gates](../tasks/2026_11/2026_11_21_eodhd-http/shadow-selection.md).
+
+## Captured feed qualification / Free-only direction — 2026-11-24
+
+Nine owner-authorized JSON bodies inspected offline, no detected secret pattern,
+no original data copied into public fixtures. D5 accepts all three captured EODHD
+bodies; nine rows pass normalization under explicit assumed context, not qualified
+identity/venue/adjustment. Filename clocks are collection proxies, not exact receipt
+times; per-symbol timestamps and same-time price revisions must be preserved.
+Marketstack/Alpha bodies are historical daily closes, not current intraday data.
+Free limits rule out full-catalogue recurring intraday backup: retain Yahoo primary,
+budget selective EODHD use and occasional Marketstack closes; Alpha EOD coverage and
+retention remain conditional. No paid upgrade, provider activation or runtime edit.
+[Captured evidence, official limits, rights and zero-cost next steps](../tasks/2026_11/2026_11_21_eodhd-http/captured-json-qualification.md).
+
+## Local V2.0-D5 response parser — 2026-11-24
+
+Isolated `collector/pea_collector/eodhd_response.py` connects bounded raw D4 JSON
+to existing D2 normalization using caller-supplied mapping/provenance. Decimal
+decoding preserves price precision; code matching, source time and per-symbol
+failure boundaries are explicit. No invented delay, venue or adjustment. Only
+synthetic tests import it; Yahoo, live CLI, financial services and fixture adapter
+are unchanged. Actual response/context/rights qualification still precedes live use.
+[Scope, 42 new local tests and remaining gates](../tasks/2026_11/2026_11_21_eodhd-http/response-parser.md).
+
+## External multi-provider evidence — recorded 2026-11-24
+
+Owner-reported 23 November tests outside the repository support a three-symbol
+EODHD delayed intraday candidate, three-symbol Marketstack historical closes and
+one-symbol Alpha Vantage historical close. No production admission follows.
+Yahoo stays primary; D4 raw HTTP and D2 neutral normalization are reusable, but
+the fixture adapter is synthetic-only and the live runner remains Yahoo-shaped.
+No active generic router/fallback is implemented. Date-only closes cannot satisfy
+the current timestamped observation contract or replace recent last-trade data.
+Complete catalogue/ISIN/venue, exact semantics, rights, budgets and capacity gates
+before a separate shadow/activation decision. No provider calls or runtime changes
+were made to integrate this evidence; V1.1 authentication is untouched.
+[Evidence, limits and proposed continuation](../tasks/2026_11/2026_11_21_eodhd-http/external-poc-2026-11-23.md).
+
 ## Local V2.0-D / D4 — 2026-11-21
 
 Isolated raw `EodhdHttpClient`, not active: fixed-origin GET with environment token,
