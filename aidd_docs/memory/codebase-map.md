@@ -1,5 +1,15 @@
 # Codebase Map
 
+## V2.0 integration branch — 25 November 2026
+
+Separate `integration/v2.0` combines V1.1.5 and A–E locally. Registry discovery
+replaces singleton registration only when present; legacy discovery and independent
+browser approval remain. TypeScript and 85 distinct targeted synthetic local cases
+passed. Linux qualification through isolated Actions is pending. Yahoo stays primary,
+EODHD observation only, default cadence 30 minutes; no production change.
+[Commands, revisions, validation limits and later rollout gates](../tasks/2026_11/2026_11_25_v2-integration/evidence.md).
+
+
 ## V1.1.5 discovery — deployed, 24 November 2026
 
 `FinancialMcpService.listPortfolios` and `registerFinancialTools` expose one

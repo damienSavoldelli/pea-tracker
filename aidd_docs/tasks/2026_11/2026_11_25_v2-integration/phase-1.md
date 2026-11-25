@@ -1,5 +1,5 @@
 ---
-status: pending
+status: done
 ---
 
 # Instruction: Assemble branches and reconcile V1.1.5 discovery
@@ -79,3 +79,8 @@ status: pending
 | --- | --- |
 | 1 | Integration includes pinned main/A/B/C/D/E ancestry, no main/worktree alteration, no copied implementation fork or unresolved conflict marker. |
 | 2 | SDK initializes both legacy and V2 compositions with exactly one discovery tool; old discovery/financial and current V2 authorization contracts pass targeted checks. |
+
+## Execution evidence
+
+See [integration evidence](./evidence.md) for merged revisions, exact commands,
+local outcomes and retained production gates.

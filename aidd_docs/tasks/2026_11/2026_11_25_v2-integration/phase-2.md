@@ -1,5 +1,5 @@
 ---
-status: pending
+status: done
 ---
 
 # Instruction: Validate integrated API and financial boundaries locally
@@ -64,3 +64,8 @@ dependency is satisfied. No file is created or modified by this plan preparation
 | --- | --- |
 | 1 | Combined local SDK/REST/auth/migration checks pass on synthetic data; prior immutable financial payloads and owner isolation survive; exact validation commands/results recorded. |
 | 2 | No collector/valuation/provider activation; integrated source retains one selector/normalizer and unchanged operational default/freshness/closing semantics. |
+
+## Execution evidence
+
+See [integration evidence](./evidence.md) for merged revisions, exact commands,
+local outcomes and retained production gates.

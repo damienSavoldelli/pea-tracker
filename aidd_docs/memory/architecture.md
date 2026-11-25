@@ -1,5 +1,15 @@
 # Architecture
 
+## V2.0 integrated composition — 25 November 2026
+
+Separate `integration/v2.0` combines V1.1.5 and A–E locally. Registry discovery
+replaces singleton registration only when present; legacy discovery and independent
+browser approval remain. TypeScript and 85 distinct targeted synthetic local cases
+passed. Linux qualification through isolated Actions is pending. Yahoo stays primary,
+EODHD observation only, default cadence 30 minutes; no production change.
+[Commands, revisions, validation limits and later rollout gates](../tasks/2026_11/2026_11_25_v2-integration/evidence.md).
+
+
 ## Owner-approved D closure — 2026-11-24
 
 D is closed in observation mode with response evidence on 19/20; TNO remains

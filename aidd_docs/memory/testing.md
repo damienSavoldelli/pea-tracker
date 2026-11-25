@@ -1,5 +1,15 @@
 # Testing
 
+## V2.0 integration checks — 25 November 2026
+
+Separate `integration/v2.0` combines V1.1.5 and A–E locally. Registry discovery
+replaces singleton registration only when present; legacy discovery and independent
+browser approval remain. TypeScript and 85 distinct targeted synthetic local cases
+passed. Linux qualification through isolated Actions is pending. Yahoo stays primary,
+EODHD observation only, default cadence 30 minutes; no production change.
+[Commands, revisions, validation limits and later rollout gates](../tasks/2026_11/2026_11_25_v2-integration/evidence.md).
+
+
 - V2.0-E closure, 25 November: owner executed the authorized campaign once;
   private integrity-checked receipt shows 12 get_info, 52 HTTP attempts, 12 valid
   observations, no automatic retry/ingestion write. Individual/shared 30/22
