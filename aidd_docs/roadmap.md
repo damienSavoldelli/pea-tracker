@@ -1,5 +1,19 @@
 # PEA Tracker — Roadmap & vision
 
+## Sauvegarde et adoption locales qualifiées — 25 novembre 2026
+
+L'export autorisé du snapshot D1, sa sauvegarde chiffrée et sa restauration locale
+isolée sont qualifiés. Les migrations locales 0008 puis 0009 conservent les données,
+projections financières, approbations et reçus. L'import nécessite de créer toutes
+les tables avant les données, en conservant exactement les instructions d'origine.
+Clé dans le Trousseau macOS ; dumps, base et logs temporaires supprimés. La reprise
+sur un autre appareil, la copie et la clé indépendantes du Mac ainsi que les
+contrôles de bascule restent ouverts. Le dimensionnement à 30 minutes tient dans
+l’enveloppe initiale de 12 mois ; surveillance manuelle et décision avant saturation,
+sans purge automatique ni nouveau développement à ce stade. Le propriétaire
+confirme une protection Access du Worker entier ; contrôles V2 après déploiement
+encore attendus. [Preuves nouvelles et limites](releases/v2.0.0-recovery-validation.md).
+
 ## V2.0.0 — licence et livraison préparées — 25 novembre 2026
 
 Licence PolyForm Noncommercial 1.0.0 appliquée aux nouveaux changements détenus

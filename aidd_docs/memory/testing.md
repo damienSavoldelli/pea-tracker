@@ -1,5 +1,19 @@
 # Testing
 
+## Actual snapshot recovery/adoption — 25 November 2026
+
+Owner-authorized encrypted backup and isolated local restoration of the captured
+D1 snapshot passed. Full row/schema fidelity and sequential 0008/0009 adoption
+preserve financial projections, approvals and receipts. Restore requires whole
+CREATE TABLE statements before data, with original literals retained and checked.
+Key remains in macOS Keychain; qualification plaintext/logs removed. Second-device
+recovery and actual cutover checks remain open. Owner reports whole-Worker Access
+coverage; no Access/OAuth change expected, hosted V2 reads still pending.
+[New proof and limits](../releases/v2.0.0-recovery-validation.md).
+Owner accepted this evidence. Documentary closure repeated no test or migration.
+Off-Mac ciphertext/key escrow remains manual; the 30-minute initial 12-month
+sizing fits, with continuing capacity oversight and no automatic purge.
+
 ## V2.0.0 license/docs-only preparation — 25 November 2026
 
 Official PolyForm text equality, SPDX metadata consistency (npm root/lock and
