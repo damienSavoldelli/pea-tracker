@@ -1,5 +1,58 @@
 # Testing
 
+- V2.0-E closure, 25 November: owner executed the authorized campaign once;
+  private integrity-checked receipt shows 12 get_info, 52 HTTP attempts, 12 valid
+  observations, no automatic retry/ingestion write. Individual/shared 30/22
+  requests (15/11 in each round): 26.7% measured reduction. Five equal-time
+  pairs match; one source time advanced 16s during a 3.016s read gap, explicitly
+  inconclusive. No market-time regression or equal-time price conflict; source
+  ages 903.551–1,036.299s. Whole capture 1,104.811s; rounds about 18m17s apart,
+  not the nominal 15m. No full-catalogue/latency/production guarantee inferred.
+  Existing E1/E2, 23 new harness cases, 35/59 cadence checks, native D1 sizing and
+  typecheck reused without rerun because source/config did not change. Linux
+  remains an explicit global-integration obligation, not an E closure gate.
+  [Final sample acceptance and RETEX](../tasks/2026_11/2026_11_24_collector-finalization/retex.md).
+
+- Historical E external-campaign authorization/preflight, 24 November at 20:19 Paris
+  was outside session, so zero provider attempts and no receipt. Linux qualification
+  is deferred by owner decision to global V2.0 integration on GitHub Actions,
+  without production writes, and no longer blocks E closure. Local Docker work
+  abandoned; no download, Linux test or acquired-test rerun.
+  Commit/push remain conditional on conclusive qualification.
+  [Execution limits and RETEX](../tasks/2026_11/2026_11_24_collector-finalization/retex.md).
+
+- V2.0-E subsequent local qualification, 24 November: 23 new harness cases
+  qualified on Mac, including four native Curl loopback cases, durable global
+  budget, native prerequest reissue, child kill/cleanup, partial results,
+  interruption/no-resume, zero-I/O CLI and D mapping/nonregression seams. One new
+  native local D1 sizing test passed: 520/1,040 observations grow storage by
+  1,576,960/3,158,016 bytes, receipts/indexes included, one replay has no duplicate
+  outcome. Typecheck passed. These are synthetic/local facts; actual Yahoo
+  request reduction/freshness, remote billed writes and production acceptance
+  remain unverified. Linux cleanup is unverified and explicitly deferred to global
+  integration, not an E closure gate. D source blob identity checked against `763d9f9`;
+  unchanged D 80+55 and E1 19/E2 14 tests not rerun. Earlier cadence 35/59 checks
+  reused unchanged. [Protocol and limits](../tasks/2026_11/2026_11_24_collector-finalization/plan.md).
+
+- V2.0-E preparation, 24 November: E1's 19 and E2's 14 acquired tests reused,
+  not rerun. GitHub read-only metadata: repository cadence variable 30, no
+  collector-live override; eight workflow conclusions successful, approximately
+  half-hour creation spacing and 35–54 seconds created-to-updated elapsed time.
+  No job-step, provider latency, market timestamp or whole-catalogue freshness
+  acceptance follows. No provider request or production D1 access. D's 80+55
+  checks remain evidence on its own finalized branch, not executed integration
+  tests on E. [Prepared targeted checks and live protocol](../tasks/2026_11/2026_11_24_collector-finalization/plan.md)
+  specify a future 12-fetch / 80-attempted-HTTP-transfer maximum; the counting
+  harness was not yet implemented at that initial preparation checkpoint;
+  its later local qualification is recorded above. External execution is still
+  awaiting explicit authorization.
+  Subsequent local cadence candidate: 35 selected Python cases passed, 20
+  deselected; 59 TypeScript cases and typecheck passed. Rechecks justified by
+  modifications to cadence/closing/scheduler/config contracts; E1/E2 not rerun.
+  Includes 15-minute slots, preserved 30/60/120 alignment through DST, stale/future
+  rejection, four-slot closing completeness and matching Wrangler/TS crons.
+  Default remains 30; no production deployment or remote configuration changes.
+
 ## Current state
 
 - Local V2.0-E / E2: **14 installed-yfinance offline tests passed** in 8.69 seconds,

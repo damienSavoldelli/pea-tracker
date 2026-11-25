@@ -9,14 +9,14 @@ export interface DispatchLedger {
   claim(key: string, slot: DispatchSlot): Promise<boolean>;
   finish(key: string, result: DispatchResult): Promise<void>;
 }
-export const dispatchCrons = { collector: '17,47 * * * *', monitor: '9 * * * *' } as const;
+export const dispatchCrons = { collector: '2,17,32,47 * * * *', monitor: '9 * * * *' } as const;
 const paris = new Intl.DateTimeFormat('en-GB', {
   timeZone: 'Europe/Paris', weekday: 'short', hour: '2-digit', hourCycle: 'h23',
 });
 
-/** Keep 07:17..19:47 Paris on weekdays through DST, not an exchange calendar. */
+/** Keep Paris weekdays through DST; default 30-minute slots retain :17/:47. */
 export function planSlot(kind: DispatchKind, scheduledTime: number, now: number, interval: number): DispatchSlot | null {
-  if (![30, 60, 120].includes(interval) || !Number.isSafeInteger(scheduledTime) ||
+  if (![15, 30, 60, 120].includes(interval) || !Number.isSafeInteger(scheduledTime) ||
     !Number.isFinite(now) || scheduledTime < 0 || now < scheduledTime || now - scheduledTime > 600_000) return null;
   // Cloudflare cron timestamps can contain seconds and milliseconds. All events
   // in the same scheduled minute must share one canonical idempotency key.
@@ -27,7 +27,7 @@ export function planSlot(kind: DispatchKind, scheduledTime: number, now: number,
   const lastHour = kind === 'monitor' ? 20 : 19;
   if (!['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(parts.weekday!) || Number(parts.hour) < 7 || Number(parts.hour) > lastHour) return null;
   if (kind === 'collector') {
-    if (![17, 47].includes(date.getUTCMinutes()) || Math.floor(scheduledTime / 1_800_000) % (interval / 30)) return null;
+    if (![2, 17, 32, 47].includes(date.getUTCMinutes()) || (Math.floor(minute / 60_000) - 17) % interval) return null;
   } else if (kind !== 'monitor' || date.getUTCMinutes() !== 9) return null;
   return { kind, scheduled_at: date.toISOString() };
 }

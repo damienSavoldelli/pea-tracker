@@ -1,5 +1,59 @@
 # Architecture
 
+## V2.0-E bounded closure — 2026-11-25
+
+The isolated session experiment is live-qualified on three public samples/two
+rounds: native persistent count 52/80 HTTP attempts and 12/12 get_info, all
+observations valid. Shared-session setup reuse measured 15→11 requests per round;
+no active-provider composition or production cadence change. Source age about
+15–17 minutes, delay metadata still null. Five equal-time pairs match; one
+advancing-source-time pair is inconclusive. Actual round spacing about 18m17s
+limits cadence inference. E is closed for this bounded delivery, default 30,
+Linux deferred to global integration on GitHub Actions without production writes.
+Retain the used private campaign journal, never automatically recapture/replenish
+its budget. [RETEX and remaining runtime/activation obligations](../tasks/2026_11/2026_11_24_collector-finalization/retex.md).
+
+## V2.0-E bounded qualification harness — 2026-11-24
+
+Isolated `collector/experiments/yahoo_session_capture.py`, default dry-run; no
+active CLI/workflow import. Parent-owned persistent 12-get_info/80-HTTP-attempt
+campaign budget reuses runner journal/lock/fsync, charges before permission, and
+refuses resume after interruption. Synchronous Curl.perform plus native libcurl
+PREREQFUNCTION bounds internal request reissues; redirects, alternate transports,
+async and proxies are denied, unsupported library versions fail closed. Private
+receipts contain only selected sample observations/timing, never cookie/header
+contents; third-party output suppressed. Shared session lives only within a round.
+Six D modules imported byte-identical from `763d9f9`, without history merge or
+commit; E reuses D mapping/selection and does not implement another EODHD budget.
+Native Mac loopback/synthetic recovery and local D1 sizing were qualified; real
+Yahoo results were still open at this checkpoint. The 25 November campaign was authorized within 12
+get_info/80 cumulative HTTP attempts, without automatic retry or remote D1 writes.
+Owner deferred Linux qualification to global V2.0 integration via GitHub Actions,
+without production writes; it is not an E closure gate. Local Docker qualification
+is abandoned, without image/dependency download or further configuration.
+Yahoo stays primary; EODHD observation only.
+[Current evidence and operator protocol](../tasks/2026_11/2026_11_24_collector-finalization/plan.md).
+
+## V2.0-E finalization preparation — 2026-11-24
+
+At initial preparation, D accepted at `763d9f9` was inspected read-only, not merged.
+Keep D's provider selection/normalization/quota ports authoritative; E owns process
+lifetimes, executor timing and scheduling, without a second router or budget store.
+The D private quota ledger is a bounded local qualification campaign, not shared
+state for independent Actions runners. Yahoo stays primary, EODHD observation only.
+Repository and GitHub repository variable use 30-minute cadence; no collector-live
+override found. Eight workflow metadata entries corroborate half-hour spacing,
+not quotation freshness. Fifteen minutes would double current workload. Retain
+default 30 and backend 45/60-minute successful-fetch freshness thresholds; market
+age/publication delay remain separate. A local candidate now supports 15 minutes,
+with base :02/:17/:32/:47 crons and unchanged 30-minute default/slot identities.
+Python and TS align strict Cloudflare slots; closing monitoring requires four final
+slots at 15 minutes. No deployment or remote setting change; extra base triggers
+at default 30 skip before dispatch. Source changes are locally tested, not active.
+Existing runner journals after whole-cycle collection: child recovery preserves
+parent observations, but parent loss before journaling is not per-symbol durable
+recovery. [Prepared phases, live cap and outstanding gates](../tasks/2026_11/2026_11_24_collector-finalization/plan.md).
+
 ## Local V2.0-E / E2 — 2026-11-21
 
 Installed yfinance 1.8.0/curl_cffi 0.17.0 exercised behind mandatory mocked HTTP

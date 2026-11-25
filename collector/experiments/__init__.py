@@ -1,1 +1,1 @@
-"""Offline experiments, excluded from the installed collector package."""
+"""Isolated experiments, excluded from the installed collector; opt-in I/O only."""

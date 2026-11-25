@@ -30,10 +30,10 @@ describe('isolated Cloudflare dispatch planning', () => {
     expect(planSlot('collector', time, time + 600_001, 30)).toBeNull();
     expect(planSlot('collector', time, time - 1, 30)).toBeNull();
     expect(planSlot('collector', time + 1, time + 1, 30)).toEqual(slot);
-    expect(planSlot('collector', time, time, 15)).toBeNull();
-    for (const [minutes, expected] of [[30, 26], [60, 13], [120, 7]]) {
+    expect(planSlot('collector', time, time, 15)).toEqual(slot);
+    for (const [minutes, expected] of [[15, 52], [30, 26], [60, 13], [120, 7]]) {
       let count = 0;
-      for (let hour = 6; hour <= 18; hour++) for (const minute of [17, 47]) {
+      for (let hour = 6; hour <= 18; hour++) for (const minute of [2, 17, 32, 47]) {
         const value = Date.UTC(2026, 10, 18, hour, minute);
         if (planSlot('collector', value, value, minutes!)) count++;
       }
@@ -43,6 +43,14 @@ describe('isolated Cloudflare dispatch planning', () => {
     expect(planSlot('monitor', monitor, monitor, 30)?.kind).toBe('monitor');
     expect(planSlot('collector', monitor, monitor, 30)).toBeNull();
   });
+  it.each(['2026-01-12T06:02:00Z', '2026-07-13T05:32:00Z'])(
+    'admits extra quarter-hour slots only at 15 minutes: %s', value => {
+      const time = Date.parse(value);
+      expect(planSlot('collector', time, time, 15)?.scheduled_at).toBe(new Date(time).toISOString());
+      for (const interval of [30, 60, 120]) expect(planSlot('collector', time, time, interval)).toBeNull();
+      expect(planSlot('collector', time, time + 600_001, 15)).toBeNull();
+      expect(planSlot('collector', time, time - 1, 15)).toBeNull();
+    });
   it('normalizes observed Cloudflare timestamps to one minute slot without relaxing delay or future bounds', () => {
     const collector = Date.parse('2026-11-18T17:47:40.087Z');
     const monitor = Date.parse('2026-11-18T18:09:21.569Z');
