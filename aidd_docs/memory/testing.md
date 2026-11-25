@@ -1,5 +1,93 @@
 # Testing
 
+## Actual snapshot recovery/adoption — 25 November 2026
+
+Owner-authorized encrypted backup and isolated local restoration of the captured
+D1 snapshot passed. Full row/schema fidelity and sequential 0008/0009 adoption
+preserve financial projections, approvals and receipts. Restore requires whole
+CREATE TABLE statements before data, with original literals retained and checked.
+Key remains in macOS Keychain; qualification plaintext/logs removed. Second-device
+recovery and actual cutover checks remain open. Owner reports whole-Worker Access
+coverage; no Access/OAuth change expected, hosted V2 reads still pending.
+[New proof and limits](../releases/v2.0.0-recovery-validation.md).
+Owner accepted this evidence. Documentary closure repeated no test or migration.
+Off-Mac ciphertext/key escrow remains manual; the 30-minute initial 12-month
+sizing fits, with continuing capacity oversight and no automatic purge.
+
+## V2.0.0 license/docs-only preparation — 25 November 2026
+
+Official PolyForm text equality, SPDX metadata consistency (npm root/lock and
+Python), preserved MIT text hashes, relative links and whitespace checks passed.
+No source/migration/test/workflow changes against validated `630f4aa`; dependency
+versions and resolutions unchanged. No application test, provider campaign,
+installation or production check was rerun. [Scope and remaining gates](../releases/v2.0.0-delivery.md).
+License/metadata documentation commits use GitHub's documented `[skip ci]` marker
+to avoid replaying acquired Linux tests. This does not satisfy any pending required
+check on a future main merge; final branch-protection requirements remain binding.
+
+## V2.0 integration checks — 25 November 2026
+
+Separate `integration/v2.0` combines V1.1.5 and A–E locally. Registry discovery
+replaces singleton registration only when present; legacy discovery and independent
+browser approval remain. TypeScript and 85 distinct targeted synthetic local cases
+passed. Isolated Linux Actions passed 118 TypeScript and 91 Python checks, plus
+TypeScript compilation. Yahoo stays primary,
+EODHD observation only, default cadence 30 minutes; no production change.
+[Commands, revisions, validation limits and later rollout gates](../tasks/2026_11/2026_11_25_v2-integration/evidence.md).
+
+- V2.0-E closure, 25 November: owner executed the authorized campaign once;
+  private integrity-checked receipt shows 12 get_info, 52 HTTP attempts, 12 valid
+  observations, no automatic retry/ingestion write. Individual/shared 30/22
+  requests (15/11 in each round): 26.7% measured reduction. Five equal-time
+  pairs match; one source time advanced 16s during a 3.016s read gap, explicitly
+  inconclusive. No market-time regression or equal-time price conflict; source
+  ages 903.551–1,036.299s. Whole capture 1,104.811s; rounds about 18m17s apart,
+  not the nominal 15m. No full-catalogue/latency/production guarantee inferred.
+  Existing E1/E2, 23 new harness cases, 35/59 cadence checks, native D1 sizing and
+  typecheck reused without rerun because source/config did not change. Linux
+  remains an explicit global-integration obligation, not an E closure gate.
+  [Final sample acceptance and RETEX](../tasks/2026_11/2026_11_24_collector-finalization/retex.md).
+
+- Historical E external-campaign authorization/preflight, 24 November at 20:19 Paris
+  was outside session, so zero provider attempts and no receipt. Linux qualification
+  is deferred by owner decision to global V2.0 integration on GitHub Actions,
+  without production writes, and no longer blocks E closure. Local Docker work
+  abandoned; no download, Linux test or acquired-test rerun.
+  Commit/push remain conditional on conclusive qualification.
+  [Execution limits and RETEX](../tasks/2026_11/2026_11_24_collector-finalization/retex.md).
+
+- V2.0-E subsequent local qualification, 24 November: 23 new harness cases
+  qualified on Mac, including four native Curl loopback cases, durable global
+  budget, native prerequest reissue, child kill/cleanup, partial results,
+  interruption/no-resume, zero-I/O CLI and D mapping/nonregression seams. One new
+  native local D1 sizing test passed: 520/1,040 observations grow storage by
+  1,576,960/3,158,016 bytes, receipts/indexes included, one replay has no duplicate
+  outcome. Typecheck passed. These are synthetic/local facts; actual Yahoo
+  request reduction/freshness, remote billed writes and production acceptance
+  remain unverified. Linux cleanup is unverified and explicitly deferred to global
+  integration, not an E closure gate. D source blob identity checked against `763d9f9`;
+  unchanged D 80+55 and E1 19/E2 14 tests not rerun. Earlier cadence 35/59 checks
+  reused unchanged. [Protocol and limits](../tasks/2026_11/2026_11_24_collector-finalization/plan.md).
+
+- V2.0-E preparation, 24 November: E1's 19 and E2's 14 acquired tests reused,
+  not rerun. GitHub read-only metadata: repository cadence variable 30, no
+  collector-live override; eight workflow conclusions successful, approximately
+  half-hour creation spacing and 35–54 seconds created-to-updated elapsed time.
+  No job-step, provider latency, market timestamp or whole-catalogue freshness
+  acceptance follows. No provider request or production D1 access. D's 80+55
+  checks remain evidence on its own finalized branch, not executed integration
+  tests on E. [Prepared targeted checks and live protocol](../tasks/2026_11/2026_11_24_collector-finalization/plan.md)
+  specify a future 12-fetch / 80-attempted-HTTP-transfer maximum; the counting
+  harness was not yet implemented at that initial preparation checkpoint;
+  its later local qualification is recorded above. External execution is still
+  awaiting explicit authorization.
+  Subsequent local cadence candidate: 35 selected Python cases passed, 20
+  deselected; 59 TypeScript cases and typecheck passed. Rechecks justified by
+  modifications to cadence/closing/scheduler/config contracts; E1/E2 not rerun.
+  Includes 15-minute slots, preserved 30/60/120 alignment through DST, stale/future
+  rejection, four-slot closing completeness and matching Wrangler/TS crons.
+  Default remains 30; no production deployment or remote configuration changes.
+
 ## Current state
 
 - **V1.1.5 hosted acceptance/closure, owner-reported, 24 November 2026 around
@@ -28,6 +116,130 @@
   No full suite or financial operation was performed in that technical checkpoint;
   subsequent hosted acceptance is recorded above. See [commands, compatibility and
   RETEX](../releases/v1.1.5.md).
+
+- **24 November 2026, real D observation checkpoint:** owner executed one authorized
+  16-symbol group; 16/16 returned, actual 16 units, campaign 17 with reference, no
+  bonus/retry. D5/D2 checks passed offline on that new body under explicit assumed
+  stream/adjustment context. Sixteen stored-Yahoo MCP reads succeeded; no supplier
+  Yahoo fetch or financial write. Prior three samples/80 acquired/55 new synthetic
+  tests not repeated. Raw/data-derived price comparisons remain private; no pair
+  was simultaneous, and no rejection threshold or production admission is inferred.
+  [Measured evidence and limits](../tasks/2026_11/2026_11_21_eodhd-http/finalization.md).
+
+- **24 November 2026, D local finalization:** 55 distinct new synthetic cases pass:
+  quota 18, observation composition 20, offline CLI 5, reference identity 12.
+  Includes actual competing processes, process exit after durable claim, real D4
+  client with fake opener and actual offline module subprocess. Prior 80 cases not
+  rerun. No supplier call, D1, financial operation or active runtime change. Review
+  is local self-review, not external feed/production acceptance.
+  [Commands, checkpoints and open gates](../tasks/2026_11/2026_11_21_eodhd-http/finalization.md).
+
+- **24 November 2026, local D6 shadow mode:** 35 new targeted synthetic tests pass
+  for provider selection, stale/time regression/conflicts, close/intraday separation,
+  qualification gates, sanitized diagnostics, Free quotas/reserves/period rollover
+  and deduplicated 20-instrument planning with three EODHD samples reused. Python
+  syntax checks pass. No existing parser or supplier qualification tests repeated;
+  no full suite, external collection, persistence or production activation.
+  [Commands and limits](../tasks/2026_11/2026_11_21_eodhd-http/shadow-selection.md).
+
+- **24 November 2026, captured JSON qualification:** three original EODHD bodies
+  parsed offline unchanged; nine rows normalized in memory under explicit assumed
+  context, not live feed admission. Three new synthetic structure tests passed in
+  0.01s, covering per-symbol times/same-time revisions and rejection of daily-feed
+  envelopes as EODHD. D5's 42 tests reused without rerun. No originals or vendor
+  prices enter fixtures; no provider call, credential or financial/D1 operation.
+  [Evidence and Free limits](../tasks/2026_11/2026_11_21_eodhd-http/captured-json-qualification.md).
+
+- **24 November 2026, local D5 parser:** 42 new synthetic tests passed in 0.03s,
+  plus Python syntax checks. Raw bytes → Decimal parser → D2 covers precision,
+  partial/ambiguous responses, bounded input and sanitized failures. No provider
+  call, operational wiring or supplier qualification; D1–D4 tests were not rerun.
+  [Commands and limits](../tasks/2026_11/2026_11_21_eodhd-http/response-parser.md).
+
+- **24 November 2026, external provider evidence:** owner's 23 November Mac PoC
+  returned HTTP 200 for EODHD/Marketstack/Alpha Vantage. Changing delayed snapshots
+  were reported for three EODHD symbols; historical closes for three Marketstack
+  symbols and one Alpha symbol. This is attributed sample evidence, not execution
+  of repository adapters or production qualification. Approximately 15-minute
+  delay is reported, not independently calculated without receipt times. Existing
+  D1–D4 tests were not rerun; documentary checks only for this update.
+  [Evidence matrix and remaining gates](../tasks/2026_11/2026_11_21_eodhd-http/external-poc-2026-11-23.md).
+
+- Local V2.0-E / E2: **14 installed-yfinance offline tests passed** in 8.69 seconds,
+  plus syntax check. Real get_info behind mocked HTTP preserves normalized fields,
+  original/stale market times and journal replay; missing/error/rate-limited symbols
+  do not erase other successes. Native POSIX wait ignoring SIGTERM was terminated
+  via SIGKILL, reaped, and followed by a fresh worker; no curl-deadlock claim. Explicit
+  network probes are blocked before I/O. Mocked request counts are not real HTTP
+  savings or freshness evidence. [Commands, version pin and live comparison gates](../tasks/2026_11/2026_11_21_yfinance-offline/plan.md).
+
+- Local V2.0-E / E1: **19 targeted synthetic tests passed** in 0.03 seconds, plus
+  syntax checks. 1/3/20-symbol comparisons preserve complete normalized fields,
+  exact prices/subunits, both clocks and identical journals/replay bytes. Partial
+  simulated timeouts/session failures, missing data, rate limits and invalid/bar
+  substitutions covered; successful symbols are not refetched. No network or
+  actual yfinance call; counters describe an assumed protocol, not measured HTTP.
+  Native hang isolation remains unverified. [Commands and E2 gates](../tasks/2026_11/2026_11_21_yahoo-cycle-poc/plan.md).
+
+- Local V2.0-D / D4 raw transport: **39 simulated HTTP tests passed** in 0.06 seconds,
+  plus Python syntax and whitespace checks. Single/grouped requests, untouched
+  success/error/partial payloads, timeouts/network failures, body bounds, disabled
+  redirects/proxies and secret-safe output covered. No real socket, vendor call,
+  normalized quotation, quota use or production activation.
+  [Commands and limitations](../tasks/2026_11/2026_11_21_eodhd-http/plan.md).
+
+- Local multi-provider ingestion grants: **29 selected Worker/service tests passed**
+  (10 new cases); typecheck passed. Three affected assertion cases were rerun and
+  passed, without double-counting. Covers explicit shared-instrument pairs, exact
+  duplicates, forbidden cross products, atomic refusal, deny-all and existing
+  Access/read-isolation rules. Synthetic identities/native local D1 only; no
+  external network, supplier API or production configuration change.
+  [Commands, evidence and scope](../tasks/2026_11/2026_11_21_multi-provider-grants/plan.md).
+
+- Local V2.0-D / D3: **68 targeted tests passed** in 0.28 seconds (25 new fixture
+  adapter, 38 D2 and 5 D1 cases). Offline EODHD-format snapshots cover metadata/time/
+  price refusals, partial failures, copied fixture state and provider separation.
+  Existing Yahoo raw normalization rejects secondary neutral data. No network,
+  supplier qualification, full suite or production validation.
+  [Exact command, consolidation proposal and limits](../tasks/2026_11/2026_11_21_eodhd-fixture-adapter/plan.md).
+
+- Local V2.0-D / D2: **91 targeted Python tests passed** in 2.32 seconds (38 new
+  mapping/normalization cases, 53 existing model/D1/runner cases). Synthetic-only
+  checks cover N providers per UUID, provider symbols, distinct trade/close streams,
+  adjusted/bar rejection, provenance, subunits, clocks, missing/invalid data and
+  unchanged Yahoo/replay/deadline behavior. No provider API, full suite or deployment.
+  [Exact command, prepared contract and remaining gates](../tasks/2026_11/2026_11_21_provider-mappings/plan.md).
+
+- Local V2.0-D / D1: **17 targeted Python tests passed** (5 new boundary cases,
+  12 existing runner/CLI/replay/deadline cases). Yahoo raw fields and sanitized
+  errors, exact normalization, partial failures and byte-identical journal replay
+  preserved. Synthetic data/module stubs only; no supplier calls or full suite.
+  Earlier Yahoo PoC counts are observations, not performance guarantees; other
+  supplier results are owner-reported, not independently revalidated in D1.
+  Not deployed; [commands, supplier evidence and limits](../tasks/2026_11/2026_11_21_provider-abstraction/plan.md).
+
+- Local V2.0-C: **55 targeted tests** passed (16 financial C, 1 signed Worker/SDK
+  real+simulated journey, 1 populated B→C migration/V1 proposal compatibility,
+  21 existing financial/browser, 5 versioned migration, 11 B read cases), plus
+  typecheck. Archive/append races, concurrent consumption/replay, exact cost/PRU,
+  circuit/owner/anchor isolation and preserved old hashes/receipts covered.
+  Synthetic local D1 only; no full suite or production validation.
+  [Commands and failure boundaries](../tasks/2026_11/2026_11_21_portfolio-writes/plan.md).
+
+- Local V2.0-B: **35 distinct targeted tests** passed (11 new native D1/service/
+  REST/OpenAPI/SDK/signed Worker cases, 2 existing financial compatibility/security
+  cases, 22 common Hono/MCP diagnostic cases), plus typecheck. Two synthetic owners,
+  real/simulated/empty/archived portfolios, shared quotes, reference isolation and
+  unchanged legacy approval/write/replay covered. No full suite or production check.
+  [Commands and limits](../tasks/2026_11/2026_11_21_portfolio-reads/plan.md).
+
+- Local V2.0-A registry: **21 targeted tests** passed (11 registry, 3 populated/empty
+  V1.1 adoption scenarios, 5 versioned native D1 migration cases, 2 existing MCP
+  compatibility/security cases), plus typecheck. Synthetic old table snapshots,
+  holdings/cash/PRU, event sequences, receipts and approval digests survive upgrade;
+  no administration tool/endpoint added, simulated MCP writes still refused.
+  No full suite, remote migration or production validation.
+  [Commands, decisions and limits](../tasks/2026_11/2026_11_21_portfolio-registry/plan.md).
 
 - **24 November 2026, owner-reported production milestone:** first real nominal
   MCP preparation → independent browser approval → explicit MCP confirmation →

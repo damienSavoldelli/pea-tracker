@@ -1,5 +1,9 @@
 # PEA Tracker quotation collector
 
+Project license metadata is `PolyForm-Noncommercial-1.0.0` for V2.0.0 onward
+subject to the [preserved MIT grants and third-party exceptions](../LICENSING.md).
+Dependencies retain their own licenses; no wheel/image is published by this preparation.
+
 Independent Python provider adapter and HTTP ingestion client. The repository is
 already **public**. No portfolio positions, database access or financial calculations
 belong here. Backend prices/quantities remain exact decimal strings.
@@ -41,6 +45,56 @@ Those four cross-language tests explicitly skip if this venv is absent; the
 implementation evidence records a host run where all four executed.
 
 ## Provider boundary
+
+### V2.0-D observation utilities (local, inactive)
+
+Real qualification checkpoint: one authorized 16-symbol group returned 16/16 and
+cost 16 measured units; campaign total 17 with the reference, no bonus or retry.
+Together with three acquired samples, response evidence covers 19/20; one identity
+conflict remains excluded. Stored Yahoo values were compared without a new supplier
+fetch. Differing source clocks and undeclared quote-body currency/unit/adjustment
+fields prevent claiming exchange-trade equivalence or production admission.
+
+`provider_observation.capture_shadow` composes the isolated EODHD transport,
+parser, normalization and Yahoo-first shadow selector. Default execution is a plan
+only; explicit execution additionally requires qualified policies, fresh account
+usage and a quota store. It has no ingestion client or financial repository.
+Neither the existing CLI nor the active workflows import this composition.
+
+`PrivateQuotaLedger` reuses the private runner journal and account-wide file lock.
+It reserves before I/O, retains uncertain spend, refuses replay, requires refreshed
+usage at UTC rollover and caps this qualification campaign at 18 base units, with
+two daily units withheld. All account consumers must share its directory or remain
+stopped. An ephemeral Actions checkout is **not** shared persistent storage; E must
+wire the `QuotaStore` port to an approved shared authority before cloud execution.
+The local campaign cap is deliberate, not an always-on collector quota service.
+
+Offline replay requires private mode-0600 files: a JSON array of `FeedPolicy`
+declarations (each includes a complete `ProviderMapping`), raw response bytes, and
+a receipt with `state=response_saved`, `http_status`, `content_type`,
+`body_received_at` and matching `body_sha256`. Existing normalized Yahoo rows and
+previous selections are optional private JSON inputs. Supply previous selections
+when comparing against already selected prices; otherwise this is a first-selection
+experiment, not proof of monotonic selection across historical runs.
+
+```sh
+collector/.venv/bin/python -m pea_collector.provider_observe \
+  --policies "$PRIVATE_POLICIES" --body "$PRIVATE_CAPTURE" \
+  --receipt "$PRIVATE_RECEIPT" --existing "$PRIVATE_YAHOO_ROWS" \
+  --previous "$PRIVATE_PREVIOUS_SELECTIONS"
+```
+
+This command never fetches data. It prints only fixed codes/counts and indexed
+selection diagnostics, evaluated **as of the recorded capture time**. It does not
+claim that an archived quote is fresh now. Private normalized rows remain inside
+the composition; never log its full return value or upload inputs as CI artifacts.
+The reference qualifier compares exact ISIN/ticker/currency and requires separate
+reviewed venue evidence; a `.PA` suffix cannot establish ALXP identity.
+
+See [finalization evidence and integration gates](../aidd_docs/tasks/2026_11/2026_11_21_eodhd-http/finalization.md)
+and [operator-reviewed reference/capture recipes](../aidd_docs/tasks/2026_11/2026_11_21_eodhd-http/coverage-readiness.md).
+
+### Existing active Yahoo boundary
 
 - Explicit instrument UUID ↔ symbol, exchange, instrument type, currency/unit and
   source time-zone mapping; maximum 20 unique mappings. The tracked mapping is
@@ -157,7 +211,14 @@ mapping: automatic masking of structured JSON is not sufficient by itself.
 
 The published schedule is offset from the hour and uses a broad weekday UTC
 collection window, not an exchange calendar. `COLLECTOR_INTERVAL_MINUTES` accepts
-30 (default), 60 or 120. Longer intervals intentionally provide less freshness;
+15, 30 (default), 60 or 120 in the local V2.0-E candidate. Production cadence was
+read as 30 on 24 November; no remote change accompanies this candidate. Fifteen
+minutes requires aligned scheduler and Actions configuration, not just a variable
+change. It doubles current 30-minute cycles and does not remove publication delay.
+Base Cloudflare slots are :02/:17/:32/:47; at default 30 only :17/:47 dispatch.
+The closing monitor requires all final-hour due slots (four at 15 minutes).
+See the [qualification and bounded live protocol](../aidd_docs/tasks/2026_11/2026_11_24_collector-finalization/plan.md).
+Longer intervals intentionally provide less freshness;
 they do not change backend warning/stale thresholds. A separate read-only workflow
 detects missing successful **actual live steps**, excluding synthetic/skipped jobs.
 It adds `actions: read` solely to inspect run/job conclusions; no ingestion secret.
@@ -178,6 +239,24 @@ limitation must be acknowledged in the unattended-activation decision. Public
 schedules can be disabled after 60 days without repository activity.
 
 ### Historical activation checklist and future reactivation
+
+Local V2.0-E qualification is separate from the historical activation below.
+The authorized 25 November sample is completed: 12 get_info / 52 HTTP attempts,
+12 valid observations; shared policy used 22 versus 30 individual requests.
+Five equal-time pairs match, one different-source-time pair is inconclusive;
+actual round spacing was about 18m17s. This qualifies the isolated experiment,
+not active session reuse or a production schedule change. Do not rerun the used
+campaign or delete/reset its receipt. Default production cadence stays 30 minutes.
+Linux validation is deferred to global V2.0 integration via GitHub Actions.
+From `collector/`, `.venv/bin/python -m experiments.yahoo_session_capture` prints a
+zero-I/O plan. Explicit external execution requires a separately approved session
+date and `--execute`; it uses only three public sample symbols, at most 12 get_info
+calls/80 HTTP attempts, and never ingests data. Native prerequest counting includes
+yfinance internal calls/reissues; redirects and unsupported backends fail closed.
+The fixed ignored private campaign receipt refuses automatic resume after failure.
+`--report` compares the captured clocks/fields offline through D's existing
+selector. It does not certify current market freshness or alter valuation.
+See [operator commands, local evidence and qualified sample](../aidd_docs/tasks/2026_11/2026_11_24_collector-finalization/phase-2.md).
 
 The following procedure preserves the original activation order. It is not the
 next operation for the running V1; do not reset gates or close ingestion merely

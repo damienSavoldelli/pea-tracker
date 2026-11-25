@@ -12,5 +12,5 @@
   "durable_objects": { "bindings": [{ "name": "DISPATCH_LEDGER", "class_name": "SchedulerLedger" }] },
   "migrations": [{ "tag": "scheduler-v1", "new_sqlite_classes": ["SchedulerLedger"] }],
   // Authorized scheduling; filtered to Paris weekdays, including DST changes.
-  "triggers": { "crons": ["17,47 * * * *", "9 * * * *"] }
+  "triggers": { "crons": ["2,17,32,47 * * * *", "9 * * * *"] }
 }

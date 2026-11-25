@@ -12,4 +12,5 @@ export interface FinancialApprovalRepository {
   setCsrf(id: string, subject: string, csrf: string, now: string): Promise<boolean>;
   approve(id: string, subject: string, csrf: string, now: string): Promise<boolean>;
   consume(id: string, subject: string, digest: string, now: string): Promise<boolean>;
+  confirmSimulated(id: string, subject: string, digest: string, now: string): Promise<boolean>;
 }

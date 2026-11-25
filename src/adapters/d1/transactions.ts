@@ -53,6 +53,7 @@ export class D1TransactionRepository implements TransactionRepository {
       ]);
     } catch (error) {
       const message = error instanceof Error ? error.message : '';
+      if (message.includes('portfolio_write_denied')) throw new ApplicationError(403, 'portfolio_write_denied');
       if (message.includes('transaction_version_conflict')) throw new ApplicationError(412, 'version_mismatch');
       if (message.includes('opening_anchor_mismatch')) throw new ApplicationError(409, 'opening_anchor_mismatch');
       if (message.includes('transaction_events.id')) throw new ApplicationError(409, 'duplicate_transaction_id');

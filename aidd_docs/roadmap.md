@@ -1,5 +1,40 @@
 # PEA Tracker — Roadmap & vision
 
+## Sauvegarde et adoption locales qualifiées — 25 novembre 2026
+
+L'export autorisé du snapshot D1, sa sauvegarde chiffrée et sa restauration locale
+isolée sont qualifiés. Les migrations locales 0008 puis 0009 conservent les données,
+projections financières, approbations et reçus. L'import nécessite de créer toutes
+les tables avant les données, en conservant exactement les instructions d'origine.
+Clé dans le Trousseau macOS ; dumps, base et logs temporaires supprimés. La reprise
+sur un autre appareil, la copie et la clé indépendantes du Mac ainsi que les
+contrôles de bascule restent ouverts. Le dimensionnement à 30 minutes tient dans
+l’enveloppe initiale de 12 mois ; surveillance manuelle et décision avant saturation,
+sans purge automatique ni nouveau développement à ce stade. Le propriétaire
+confirme une protection Access du Worker entier ; contrôles V2 après déploiement
+encore attendus. [Preuves nouvelles et limites](releases/v2.0.0-recovery-validation.md).
+
+## V2.0.0 — licence et livraison préparées — 25 novembre 2026
+
+Licence PolyForm Noncommercial 1.0.0 appliquée aux nouveaux changements détenus
+par le projet. Les droits MIT antérieurs et les licences tierces restent valables ;
+le dépôt public est source-available. L'intégration est validée, la livraison reste
+à autoriser. Les preuves de sauvegarde/restauration, d'adoption réelle, de protection
+Access V2 et de capacité/rétention sont encore attendues. Yahoo principal, EODHD en
+observation, cadence de 30 minutes et sessions expérimentales non activées.
+[Procédure et critères GO/NO-GO](releases/v2.0.0-delivery.md),
+[notes anglaises préparées](releases/v2.0.0.md), [RETEX](releases/v2.0.0-retex.md).
+
+## Intégration V2.0 — 25 novembre 2026
+
+Separate `integration/v2.0` combines V1.1.5 and A–E locally. Registry discovery
+replaces singleton registration only when present; legacy discovery and independent
+browser approval remain. TypeScript and 85 distinct targeted synthetic local cases
+passed. Isolated Linux Actions passed 118 TypeScript and 91 Python checks, plus
+TypeScript compilation. Yahoo stays primary,
+EODHD observation only, default cadence 30 minutes; no production change.
+[Commands, revisions, validation limits and later rollout gates](tasks/2026_11/2026_11_25_v2-integration/evidence.md).
+
 Référence de périmètre V1.1–V2.3, issue de `02_ROADMAP_VISION_MAJ.md` et intégrant
 les arbitrages utilisateur du lot documentaire 1, le 14 novembre 2026.
 Cette roadmap ne vaut ni spécification financière ni autorisation de développement.
@@ -17,6 +52,36 @@ Cette roadmap ne vaut ni spécification financière ni autorisation de développ
   ajout/modification d'outils MCP, actualiser le catalogue avant la recette.
   L'intégration V2.0B devra remplacer le singleton sans double inscription ;
   voir [contrat, preuves et RETEX](releases/v1.1.5.md).
+
+- **25 November 2026 — V2.0-E closed for bounded local delivery:** configurable
+  15/30/60/120-minute cadence keeps default 30; isolated Yahoo shared-session
+  sample qualified: 12 get_info, 52 HTTP attempts, 12 valid observations. Each
+  round measured 15→11 HTTP attempts (26.7% aggregate reduction); five equal-time
+  pairs match, one advancing-source-time pair is explicitly inconclusive.
+  Observed source age about 15–17 minutes, no time regression/same-time conflict.
+  Actual rounds were about 18m17s apart, not exactly 15 minutes; no deployed
+  cadence benefit or latency SLA is claimed. Linux moves to global integration
+  on GitHub Actions without production writes, by owner decision. Active Yahoo
+  composition, 30-minute production cadence and EODHD observation remain unchanged.
+  [Evidence, RETEX and remaining activation obligations](tasks/2026_11/2026_11_24_collector-finalization/retex.md).
+
+- **24 November 2026 — V2.0-D accepted in observation; E resumed locally:** D's
+  three commits end at `763d9f9`, pushed on its feature branch; 19/20 EODHD identity
+  coverage, TNO excluded, 17/20 measured daily units and 500 bonus untouched.
+  Yahoo remains primary; unadjusted last-trade equivalence remains unproven.
+  E retains its 19+14 acquired offline checks and has a
+  [finalization/cadence plan](tasks/2026_11/2026_11_24_collector-finalization/plan.md).
+  Current GitHub cadence is 30 minutes, not five. Fifteen minutes is supported by
+  a locally tested candidate (35 Python / 59 TypeScript checks, typecheck), default
+  still 30, not activated. The 12-fetch/80-HTTP native counting harness is locally
+  qualified (23 new cases); D modules are reused exactly without history merge.
+  Synthetic native D1 sizing passed; the prepared 25 November Yahoo campaign
+  has explicit execution authorization, but the 24 November evening preflight was
+  outside session and sent no request. Actual freshness/request reduction remain
+  open for E. Owner deferred Linux qualification to global V2.0 integration,
+  directly via GitHub Actions without production writes; it does not block E
+  closure. Local Docker qualification is abandoned. No merge, deployment
+  or production change is included in this preparation.
 
 - **24 November 2026, corrective-branch production acceptance:** the owner reported
   the first successful real nominal MCP preparation, independent browser approval,
@@ -116,6 +181,94 @@ La V1.1 publiée ajoute un calendrier de place partiel : 19 affectations XPAR po
 
 ## V2.0 — Fondations multi-portefeuille et multi-provider
 
+**24 November 2026 — D closure accepted by owner:** observation-only increment
+closed: EODHD response evidence on 19/20, TNO excluded for ISIN divergence, measured
+17/20 base units and bonus 500 intact. Reuse 80 acquired + 55 complementary passing
+tests; Yahoo remains primary, unadjusted `last_trade` equivalence unproven. Three
+commits and branch push authorized; no main merge, tag/release, deployment or fallback.
+E inspection is read-only and introduces no new development.
+[Closure and publication boundary](tasks/2026_11/2026_11_21_eodhd-http/finalization.md).
+
+**24 November 2026 — D authorized real observation:** one 16-symbol group returned
+16/16, measured 16 quota units, campaign 17 including reference, no bonus/retry.
+Three prior samples reused: 19/20 catalogue coverage, one ISIN conflict excluded.
+Compared all 16 with stored Yahoo via read-only MCP; contextual currency/unit matches,
+heterogeneous market ages and asynchronous price differences. No raw quote semantics
+equivalence or production fallback admission. Bounded local observation finalization
+complete; proposed commits await authority. Earlier blocked notes are checkpoints.
+[Evidence, exclusions and remaining activation gates](tasks/2026_11/2026_11_21_eodhd-http/finalization.md).
+
+**24 November 2026 — D local finalization:** isolated transport/parser/normalization/
+shadow composition, exact reference qualifier, persistent local quota port/adapter
+and offline replay CLI implemented with 55 new targeted cases. The prior 80 are
+retained without rerun. Full qualification remains blocked on real reference,
+identity/semantics and explicitly authorized metered capture. No active fallback,
+financial change, merge or deployment. E owns general collector optimization,
+adaptive orchestration and shared cloud persistence/monitor integration, reusing D.
+[Closure preparation and integration criteria](tasks/2026_11/2026_11_21_eodhd-http/finalization.md).
+
+**24 November 2026 — EODHD coverage preparation:** remaining private catalogue
+reviewed without quote calls; 16 public name/ticker candidates, exact provider
+identity still incomplete and one venue unresolved. One-attempt 17-unit capture
+recipe and minimal local persistent-claim study prepared, not executed. Current
+account counters and reviewed identities remain gates; the 80 acquired tests are
+not rerun. [Evidence and collection command](tasks/2026_11/2026_11_21_eodhd-http/coverage-readiness.md).
+
+**24 November 2026 — local D6 shadow mode:** pure Yahoo-first selection with gated
+delayed EODHD and separate conditional closing streams; structured safe diagnostics,
+source-time nonregression and equal-time conflict quarantine. Read-only Free-budget
+and 20-instrument coverage proposals skip the three acquired EODHD samples; no
+automatic calls or durable quota enforcement. 35 new synthetic tests pass. No active
+collection change, deployment or repeat of supplier qualification.
+[Implementation, planning and remaining gates](tasks/2026_11/2026_11_21_eodhd-http/shadow-selection.md).
+
+**24 November 2026 — Free-only provider qualification:** nine captured JSON bodies
+reviewed; D5 accepts the three EODHD bodies unchanged, without production admission.
+Free quotas do not sustain a recurring 20-instrument intraday fallback. Keep Yahoo
+primary; selective EODHD and occasional Marketstack closing checks are candidates,
+with Alpha EOD conditional on full coverage and rights. No paid plan is proposed;
+first design bounded shared quota accounting and shadow selection, preserving stale
+and unavailable states. [Evidence, official limits and next steps](tasks/2026_11/2026_11_21_eodhd-http/captured-json-qualification.md).
+
+**21 November 2026 — local V2.0-C delivered:** isolated EUR journal writes for
+multiple real/simulated portfolios, independent real browser approval and explicit
+simulated MCP confirmation. Active status is rechecked at confirmation and SQL
+append; V1 proposals/hashes/receipts remain compatible. Not deployed; no automatic
+trading or real production event. [Scope and 55 local checks](tasks/2026_11/2026_11_21_portfolio-writes/plan.md).
+V2.0-C finalized locally at `5264794`; successor branch `feat/v2.0d-multi-provider`.
+V2.0-D feasibility study completed: **conditional GO** for adaptive collection and
+N-provider routing; no provider/fallback activation or yfinance replacement qualified.
+Local implementation has started; V2.0-D is not deployed. [Evidence, gates and proposed slices](backlog/spikes/adaptive-multi-provider-feasibility.md).
+
+**24 November 2026 — external PoC evidence integrated:** owner-reported tests of
+23 November support EODHD delayed intraday candidacy on three public samples,
+Marketstack historical closes on three, and Alpha Vantage historical close on one.
+Yahoo remains primary. Full catalogue identity/coverage, entitlement/licensing,
+exact response semantics, capacity and fallback qualification remain open. Reuse
+the existing Python provider boundary, D2 normalization and raw D4 transport;
+no active router exists and no connectivity campaign needs repeating.
+[Evidence, code comparison and minimal next steps](tasks/2026_11/2026_11_21_eodhd-http/external-poc-2026-11-23.md).
+
+**24 November 2026 — local D5 parser implemented:** bounded EODHD JSON-byte decoding
+and D2 normalization bridge, with explicit caller context and 42 new synthetic tests.
+No live adapter wiring or fallback activation. Next gate is review of existing
+redacted responses, qualification of context/coverage/rights and bounded shadow-policy
+design. [Implementation and limits](tasks/2026_11/2026_11_21_eodhd-http/response-parser.md).
+
+**21 November 2026 — local V2.0-B delivered:** owner-scoped server resolution,
+read-only active/archived portfolio consultation through separate REST v2 routes
+and four new MCP reads. Existing V1/V1.1 routes and financial approval/write chain
+preserved. Not deployed; C writes/approvals and D provider work remain unimplemented.
+[Scope and local evidence](tasks/2026_11/2026_11_21_portfolio-reads/plan.md).
+
+**21 November 2026 — local V2.0-A delivered:** owner-scoped registry and independent
+immutable openings, additive migration and synthetic populated-journal preservation
+checks. Not deployed; no multi-portfolio REST/MCP resolution or financial activation.
+See [decisions and local evidence](tasks/2026_11/2026_11_21_portfolio-registry/plan.md).
+Approved next slices: V2.0-B server resolution/authorization/reads; V2.0-C financial
+writes/approvals; V2.0-D hybrid A+B providers, adaptive collection and controlled
+fallback after a separate feasibility study. Those slices are not implemented here.
+
 ### Multi-portefeuille
 
 - PEA réel, Trading Lab fictif et futurs portefeuilles possibles ;
@@ -131,7 +284,7 @@ La V1.1 publiée ajoute un calendrier de place partiel : 19 affectations XPAR po
 - étudier routeur de fournisseurs, principal par instrument/marché, fallback contrôlé ;
 - couverture par instrument, quotas, coûts, licences, provenance, horodatages, fraîcheur, cohérence ;
 - ne pas remplacer une donnée récente par une plus ancienne ;
-- candidats **à tester, non choisis** : EODHD, Marketstack, Alpha Vantage, Twelve Data ;
+- EODHD : candidat intraday différé sur échantillon ; Marketstack et Alpha Vantage : candidats de clôture sur les réponses observées ; Twelve Data : accès aux cotations non qualifié. Aucun secondaire activé ;
 - ne pas confondre faisabilité d’intégration et droit d’utiliser/redistribuer les données.
 
 **Go/no-go** : audit ciblé du schéma actuel et de l’isolation ; test réel d’un échantillon d’actions/ETF Euronext ; quotas, conditions contractuelles et coût acceptables.

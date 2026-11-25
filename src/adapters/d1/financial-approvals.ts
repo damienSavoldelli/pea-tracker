@@ -35,4 +35,10 @@ export class D1FinancialApprovalRepository implements FinancialApprovalRepositor
     return this.update(`UPDATE financial_approvals SET status='consumed',consumed_at=?
       WHERE id=? AND subject=? AND digest=? AND status='approved' AND prepared_at<=? AND expires_at>?`, [now, id, subject, digest, now, now]);
   }
+  async confirmSimulated(id: string, subject: string, digest: string, now: string) {
+    return this.update(`UPDATE financial_approvals SET status='approved',approved_at=?,csrf=NULL
+      WHERE id=? AND subject=? AND digest=? AND status='prepared' AND prepared_at<=? AND expires_at>?
+      AND json_extract(proposal_json,'$.version')=2 AND json_extract(proposal_json,'$.kind')='simulated'`,
+    [now, id, subject, digest, now, now]);
+  }
 }

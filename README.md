@@ -1,5 +1,23 @@
 # PEA Tracker
 
+## License
+
+From the licensing revision prepared for V2.0.0, project-owned additions and changes
+use [PolyForm Noncommercial 1.0.0](LICENSE) (`PolyForm-Noncommercial-1.0.0`).
+This public repository is **source-available**, not OSI open source. Previously
+granted MIT rights remain valid, including published V2 branches. See
+[licensing scope](LICENSING.md) and [third-party notices](THIRD_PARTY_NOTICES.md).
+
+## V2.0 integration branch — not deployed
+
+Separate `integration/v2.0` combines V1.1.5 and A–E locally. Registry discovery
+replaces singleton registration only when present; legacy discovery and independent
+browser approval remain. TypeScript and 85 distinct targeted synthetic local cases
+passed. Isolated Linux Actions passed 118 TypeScript and 91 Python checks, plus
+TypeScript compilation. Yahoo stays primary,
+EODHD observation only, default cadence 30 minutes; no production change.
+[Commands, revisions, validation limits and later rollout gates](aidd_docs/tasks/2026_11/2026_11_25_v2-integration/evidence.md).
+
 PEA Tracker is an API-first portfolio backend for a single French PEA owner. It combines REST/MCP consultation, owner-approved financial journal commands, exact-decimal services, native D1 persistence, and a separate Python market-data collector. The real PEA is the priority; Trading Lab is a complementary, isolated future use. No brokerage orders are placed.
 
 The source repository is public; tracked fixtures are synthetic. Production portfolio data, credentials and journals remain private and outside Git. The diagnostic Worker and historical PoCs remain separate from the financial reader.
@@ -33,6 +51,10 @@ V1.1.0 was published on 2026-11-21, after V1.0.0 on 2026-11-19. Financial manage
 | Diagnostic Workers | Separate historical PoCs, not the production financial read endpoint |
 
 See [v1.1.4 corrections](aidd_docs/releases/v1.1.4.md), [V1.1.0 release notes](aidd_docs/releases/v1.1.0.md), [V1.1 validation and RETEX](aidd_docs/releases/v1.1.0-validation.md) and [historical V1 acceptance](aidd_docs/releases/v1.0.0-validation.md).
+
+[V2.0.0 draft release notes](aidd_docs/releases/v2.0.0.md) and
+[delivery procedure and pending gates](aidd_docs/releases/v2.0.0-delivery.md).
+No production delivery is authorized by these documents.
 
 ## Architecture
 

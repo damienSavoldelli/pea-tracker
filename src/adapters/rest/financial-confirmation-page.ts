@@ -62,6 +62,7 @@ export function confirmationBody(result: Confirmation, id: string, csrf: string)
   const title = { buy: 'Achat exécuté', sell: 'Vente exécutée', deposit: 'Versement', withdrawal: 'Retrait', dividend: 'Dividende encaissé', reversal: 'Contrepassation' }[operation.type];
   const instrument = object(summary.instrument);
   let body = `<h1>${title}</h1><p class="notice">Il s'agit uniquement de journaliser une opération déjà exécutée. Aucun ordre de bourse ne sera envoyé.</p>`;
+  body += `<section><h2>Portefeuille</h2><dl>${item('Portefeuille', escape(result.portfolio.name))}${item('Identifiant du portefeuille', escape(result.portfolio.id))}${item('Nature', result.portfolio.kind === 'real' ? 'Réel' : 'Fictif')}</dl></section>`;
   if (summary.instrument) body += `<section><h2>Instrument</h2><dl>${item('Instrument', escape(field(instrument.name)))}${item('Ticker fournisseur', escape(field(instrument.provider_symbol)))}${item('ISIN', escape(field(instrument.isin)))}</dl></section>`;
   body += `<section><dl>${item('Exécution — heure de Paris', escape(paris(operation.effective_at)))}</dl></section>`;
   if (operation.type === 'buy' || operation.type === 'sell') {

@@ -1,5 +1,9 @@
 # Project Brief
 
+V2.0.0 license decision: PolyForm Noncommercial 1.0.0 for project-owned new changes;
+prior MIT grants (including published V2 branches) and upstream rights remain.
+[Scope](../../LICENSING.md); [delivery gates](../releases/v2.0.0-delivery.md).
+
 ## Published delivery — reviewed 2026-11-24
 
 V1.1.0 was published on 21 November after V1.0.0. The financial foundation is
@@ -29,7 +33,7 @@ New commits and remote changes still require the applicable explicit authorizati
 
 ## What it is
 
-- PEA Tracker is a personal, open-source, API-first portfolio project for one owner with approximately 20 stocks/ETFs in a Bourse Direct PEA.
+- PEA Tracker is a personal, source-available, API-first portfolio project for one owner with approximately 20 stocks/ETFs in a Bourse Direct PEA.
 - V1 provides catalogue, declared opening positions/PRU/cash, stored quotations and exact EUR valuation through shared REST/read-only MCP services on native D1. Prior real ChatGPT reads and hosted ingestion are operational evidence; synthetic tests establish separate local behavior. The diagnostic default Worker remains a distinct composition. See [current V1 evidence](../tasks/2026_11/2026_11_14_live-quotations-read/runbook.md).
 - The owner confirmed REST `/api/v1` with OpenAPI as the reusable product interface and MCP `/mcp` as an AI-facing adapter over shared services. This is one application/codebase; no mandatory portfolio UI or speculative tenancy.
 

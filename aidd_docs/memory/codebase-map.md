@@ -1,5 +1,23 @@
 # Codebase Map
 
+## V2.0.0 delivery artifacts — 25 November 2026
+
+`LICENSE`, `LICENSING.md`, `THIRD_PARTY_NOTICES.md` and `licenses/` define the
+source-available license transition and preserved upstream/MIT rights.
+[Prepared delivery](../releases/v2.0.0-delivery.md),
+[English draft notes](../releases/v2.0.0.md) and [RETEX](../releases/v2.0.0-retex.md)
+record the pending operational gates; none is a deployed change.
+
+## V2.0 integration branch — 25 November 2026
+
+Separate `integration/v2.0` combines V1.1.5 and A–E locally. Registry discovery
+replaces singleton registration only when present; legacy discovery and independent
+browser approval remain. TypeScript and 85 distinct targeted synthetic local cases
+passed. Isolated Linux Actions passed 118 TypeScript and 91 Python checks, plus
+TypeScript compilation. Yahoo stays primary,
+EODHD observation only, default cadence 30 minutes; no production change.
+[Commands, revisions, validation limits and later rollout gates](../tasks/2026_11/2026_11_25_v2-integration/evidence.md).
+
 ## V1.1.5 discovery — deployed, 24 November 2026
 
 `FinancialMcpService.listPortfolios` and `registerFinancialTools` expose one
@@ -12,6 +30,49 @@ Bindings/runtime match V1.1.4. The owner confirmed hosted discovery → current
 state → valuation on 24 November around 20:05 Europe/Paris after catalogue refresh;
 the discoverability incident is closed. Refresh the connector catalogue after
 tool additions/changes before acceptance. See [evidence and RETEX](../releases/v1.1.5.md).
+
+- V2.0-D local finalization: `provider_observation.py` composes transport/parser/D2/D6;
+  `provider_observe.py` is an offline-only private capture CLI; `provider_quota.py`
+  supplies the quota port and local persistent 18-unit campaign adapter;
+  `eodhd_reference.py` qualifies exact identity plus independent venue evidence.
+  Only offline CLI/tests import the composition; active workflows are unchanged.
+  [Evidence, D/E split and remaining gates](../tasks/2026_11/2026_11_21_eodhd-http/finalization.md).
+
+- Local V2.0-D6: `collector/pea_collector/provider_shadow.py`, pure selection,
+  Free-budget proposals and coverage planning over existing D2 mappings/observations;
+  now reused by the isolated observation composition and tests. No active collector
+  or REST/MCP wiring. [Scope and evidence](../tasks/2026_11/2026_11_21_eodhd-http/shadow-selection.md).
+
+- Local V2.0-E: `collector/experiments/yahoo_session_capture.py` (opt-in bounded
+  campaign and offline report, no ingestion), `collector/tests/test_yahoo_session_capture.py`
+  (new qualification cases), `tests/collector-storage-sizing.test.ts` (native
+  local D1 synthetic sizing). Earlier E1/E2 experiments remain offline/unchanged.
+  D's `provider_shadow.py`, `provider_quota.py`, `provider_observation.py`,
+  `provider_observe.py`, `eodhd_response.py`, `eodhd_reference.py` are restored
+  exactly from its accepted commit; no duplicate provider implementation.
+  [Current implementation and bounded closure](../tasks/2026_11/2026_11_24_collector-finalization/plan.md);
+  [25 November live sample and residual obligations](../tasks/2026_11/2026_11_24_collector-finalization/retex.md).
+
+- Local V2.0-C: `src/application/portfolio-context.ts` (shared B/C resolution),
+  `portfolio-financial.ts` (V2 routing), `src/adapters/mcp/portfolio-financial.ts`,
+  versioned proposal union and existing financial service/approval adapters.
+  Browser dispatch/identity: `src/financial-app.ts`, `src/adapters/rest/financial-confirmation.ts`.
+  Migration 0009 extends journal anchors and active-status SQL guards.
+  Tests: `portfolio-financial{,.worker}.test.ts`, `portfolio-writes-migration.test.ts`.
+  [Decisions and evidence](../tasks/2026_11/2026_11_21_portfolio-writes/plan.md).
+
+- Local V2.0-B: `src/application/portfolio-reads.ts`,
+  `src/adapters/{rest,mcp}/portfolio-reads.ts`; optional Hono/MCP wiring and financial
+  entrypoint injection. Contract: `aidd_docs/api/portfolio-reads.openapi.json`.
+  Tests: `tests/portfolio-reads.test.ts` plus targeted existing Worker/financial
+  compatibility checks. [Evidence and boundaries](../tasks/2026_11/2026_11_21_portfolio-reads/plan.md).
+
+- Local V2.0-A: `src/{domain,ports,application,adapters/d1}/portfolio-registry.ts`,
+  additive `migrations/0008_portfolio_registry.sql`. Independent openings are
+  immutable snapshots in registry rows; historical references stay in old tables.
+  No entrypoint imports the new service. Tests: `portfolio-registry.test.ts`,
+  `portfolio-registry-migration.test.ts` and existing targeted migration/MCP checks.
+  [Scope, evidence and remaining integration](../tasks/2026_11/2026_11_21_portfolio-registry/plan.md).
 
 ## V1.1 foundation and corrections — reviewed 2026-11-24
 

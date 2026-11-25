@@ -1,12 +1,42 @@
 """Offline slot validation and monitoring compatibility; no provider access."""
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
 import yaml
+import re
 
 from pea_collector.cloudflare_cadence import accepted
 from pea_collector.monitor import missing
+from pea_collector.cadence import due, interval
+
+
+@pytest.mark.parametrize("day,first_hour", [("2026-01-12", 6), ("2026-07-13", 5),
+                                             ("2026-03-30", 5), ("2026-10-26", 6)])
+@pytest.mark.parametrize("minutes,count", [(15, 52), (30, 26), (60, 13), (120, 7)])
+def test_quarter_hour_slot_counts_preserve_legacy_alignment(day, first_hour, minutes, count):
+    slots = [datetime.fromisoformat(f"{day}T{hour:02}:{minute:02}:00+00:00")
+             for hour in range(first_hour, first_hour + 13) for minute in (2, 17, 32, 47)]
+    admitted = [slot for slot in slots if accepted(slot.isoformat(timespec="milliseconds").replace("+00:00", "Z"), slot, minutes)]
+    assert len(admitted) == (6 if minutes == 120 and first_hour == 5 else count)
+    if minutes != 15:
+        assert all(slot.minute in (17, 47) and int(slot.timestamp() // 1800) % (minutes // 30) == 0
+                   for slot in admitted)
+
+
+def test_quarter_hour_rejects_future_late_weekend_and_unaligned_slots():
+    for value in ["2026-01-12T06:02:00.000Z", "2026-07-13T05:32:00.000Z"]:
+        slot = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        assert accepted(value, slot, interval("15"))
+        assert not any(accepted(value, slot, minutes) for minutes in (30, 60, 120))
+        assert not accepted(value, slot - timedelta(seconds=1), 15)
+        assert not accepted(value, slot + timedelta(seconds=601), 15)
+    for value in ["2026-11-21T08:02:00.000Z", "2026-11-23T05:47:00.000Z",
+                  "2026-11-23T19:02:00.000Z", "2026-11-23T08:03:00.000Z"]:
+        slot = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        assert not accepted(value, slot, 15)
+    assert due(datetime(2026, 11, 23, 8, 2, tzinfo=timezone.utc), 15)
+    assert not due(datetime(2026, 11, 21, 8, 2, tzinfo=timezone.utc), 15)
 
 
 @pytest.mark.parametrize("value,expected", [
@@ -30,7 +60,7 @@ def test_rejects_late_future_malformed_and_off_cadence_slots():
     assert not accepted(value, now.replace(minute=16), 30)
     for invalid in ["", "invalid", "2026-02-30T06:17:00.000Z", "2026-11-18T06:17:00+00:00"]:
         assert not accepted(invalid, now, 30)
-    assert not accepted(value, now, 15)
+    assert accepted(value, now, 15)
     assert accepted(value, now, 60) and accepted(value, now, 120)
     off = "2026-11-18T06:47:00.000Z"
     assert not accepted(off, now.replace(minute=47), 60)
@@ -59,12 +89,12 @@ def test_monitor_paris_grace_and_weekend_do_not_call_github():
 
 
 @pytest.mark.parametrize("day,utc_hour", [("2026-01-12", 18), ("2026-07-13", 17)])
-@pytest.mark.parametrize("minutes", [30, 60, 120])
+@pytest.mark.parametrize("minutes", [15, 30, 60, 120])
 def test_closing_monitor_requires_each_final_due_slot(day, utc_hour, minutes):
     now = datetime.fromisoformat(f"{day}T{utc_hour + 1:02}:09:00+00:00")
     runs = []
     for hour in range(utc_hour, utc_hour - 2, -1):
-        for minute in (17, 47):
+        for minute in (2, 17, 32, 47):
             slot = f"{day}T{hour:02}:{minute:02}:00.000Z"
             time = datetime.fromisoformat(slot.replace("Z", "+00:00"))
             if accepted(slot, time, minutes):
@@ -129,7 +159,11 @@ def test_scheduler_config_is_explicitly_enabled_and_has_no_financial_binding():
     path = Path(__file__).parents[2] / "wrangler.scheduler.jsonc"
     config = json.loads("\n".join(line for line in path.read_text().splitlines() if not line.lstrip().startswith("//")))
     assert config["vars"]["SCHEDULER_ENABLED"] == "true"
-    assert config["triggers"]["crons"] == ["17,47 * * * *", "9 * * * *"]
+    assert config["triggers"]["crons"] == ["2,17,32,47 * * * *", "9 * * * *"]
+    assert config["vars"]["COLLECTOR_INTERVAL_MINUTES"] == "30"
+    source = (Path(__file__).parents[2] / "src/scheduling/github-dispatch.ts").read_text()
+    constants = re.search(r"export const dispatchCrons = \{ collector: '([^']+)', monitor: '([^']+)' \}", source)
+    assert constants and list(constants.groups()) == config["triggers"]["crons"]
     assert config["workers_dev"] is False and config["preview_urls"] is False
     assert "d1_databases" not in config and "services" not in config
     assert config["secrets"]["required"] == ["GITHUB_DISPATCH_TOKEN"]

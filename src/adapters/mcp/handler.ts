@@ -15,8 +15,14 @@ import { valuationQuerySchema } from '../../domain/valuation';
 import { portfolioIdSchema } from '../../domain/transactions';
 import type { FinancialMcpService } from '../../application/financial-mcp';
 import { registerFinancialTools } from './financial-tools';
+import { registerPortfolioReadTools } from './portfolio-reads';
+import type { PortfolioReadService } from '../../application/portfolio-reads';
+import { registerPortfolioFinancialTools } from './portfolio-financial';
+import type { PortfolioFinancialService } from '../../application/portfolio-financial';
 
 export interface ProtectedMcpDependencies {
+  portfolioFinancial?: PortfolioFinancialService;
+  portfolioReads?: PortfolioReadService;
   financialOperations?: FinancialMcpService;
   service: InstrumentService;
   portfolio?: PortfolioService;
@@ -31,6 +37,8 @@ export interface ProtectedMcpDependencies {
   restMetadata?: { resource: string; authorization_servers: string[]; scopes_supported: string[]; bearer_methods_supported: string[] };
 }
 interface FinancialContext {
+  portfolioFinancial?: PortfolioFinancialService;
+  portfolioReads?: PortfolioReadService;
   financialOperations?: FinancialMcpService;
   principal: Principal;
   service: InstrumentService;
@@ -72,7 +80,10 @@ export async function handleMcp(request: Request, financial?: FinancialContext):
           ...(failure.status === 401 || failure.status === 403 ? { _meta: { 'mcp/www_authenticate': [financial.challenge(failure.status)] } } : {}) };
       }
     };
-    if (financial.financialOperations) registerFinancialTools(server, financial.financialOperations, financial.principal, guarded);
+    if (financial.financialOperations) registerFinancialTools(server, financial.financialOperations, financial.principal, guarded,
+      { registerPortfolioDiscovery: !financial.portfolioReads });
+    if (financial.portfolioFinancial) registerPortfolioFinancialTools(server, financial.portfolioFinancial, financial.principal, guarded);
+    if (financial.portfolioReads) registerPortfolioReadTools(server, financial.portfolioReads, financial.principal, guarded);
     server.registerTool('list_instruments', { description: 'List authorized instrument metadata.',
       inputSchema: z.object({ limit: z.number().int().min(1).max(100).optional(), active: z.boolean().optional(), cursor: z.string().max(256).optional() }).strict(),
       outputSchema: z.object({ data: z.array(instrumentSchema), page: z.object({ next_cursor: z.string().nullable() }) }),

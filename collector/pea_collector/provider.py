@@ -4,8 +4,22 @@ import multiprocessing
 import os
 from tempfile import TemporaryDirectory
 from contextlib import redirect_stderr, redirect_stdout
+from typing import Protocol
 
 from .model import ProviderError
+
+
+class QuotationProvider(Protocol):
+    """Supply raw fields for the current Yahoo last-trade normalization boundary.
+
+    Implementations raise ProviderError with a sanitized failure code. Collection,
+    normalization, retries and replay remain the runner's responsibility. This
+    contract adds no provider selection, batching or secondary-feed admission.
+    """
+
+    def fetch(self, symbol: str) -> dict:
+        """Return source metadata and price/time fields, or a bounded failure."""
+        ...
 
 
 def _fetch(symbol: str, connection, cache_directory: str):
@@ -36,7 +50,7 @@ def _fetch(symbol: str, connection, cache_directory: str):
             connection.close()
 
 
-class YFinanceProvider:
+class YFinanceProvider(QuotationProvider):
     """Isolate yfinance retrievals behind a terminable process and private cache."""
 
     def __init__(self, timeout: int = 15, target=_fetch):

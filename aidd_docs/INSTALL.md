@@ -1,5 +1,29 @@
 # INSTALL.md — PEA Tracker
 
+## V2.0.0 delivery preparation — 25 November 2026
+
+PolyForm Noncommercial 1.0.0 applies to project-owned new changes prepared for V2.0.0;
+prior MIT grants and third-party terms remain. Repository stays public/source-available.
+Integration evidence is accepted; delivery is not executed. The authorized captured
+snapshot passed encrypted backup, isolated restore and local adoption qualification.
+Independent backup/key custody and final cutover/hosted V2 checks remain open.
+The acquired 30-minute sizing fits the initial 12-month storage envelope; ongoing
+capacity/retention oversight is required, with no automatic purge.
+See [new recovery proof](releases/v2.0.0-recovery-validation.md).
+No business code or active collection changed; default cadence is 30.
+[Delivery sequence and GO/NO-GO](releases/v2.0.0-delivery.md),
+[draft English notes](releases/v2.0.0.md), [RETEX](releases/v2.0.0-retex.md).
+
+## V2.0 integration checkpoint — 25 November 2026
+
+Separate `integration/v2.0` combines V1.1.5 and A–E locally. Registry discovery
+replaces singleton registration only when present; legacy discovery and independent
+browser approval remain. TypeScript and 85 distinct targeted synthetic local cases
+passed. Isolated Linux Actions passed 118 TypeScript and 91 Python checks, plus
+TypeScript compilation. Yahoo stays primary,
+EODHD observation only, default cadence 30 minutes; no production change.
+[Commands, revisions, validation limits and later rollout gates](tasks/2026_11/2026_11_25_v2-integration/evidence.md).
+
 Architecture baseline, current implementation and remaining validation requirements.
 
 Corrective release, 24 November 2026: [v1.1.5](releases/v1.1.5.md)
