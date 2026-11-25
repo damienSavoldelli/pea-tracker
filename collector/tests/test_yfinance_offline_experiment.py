@@ -20,6 +20,9 @@ def selected(mappings):
                             "symbol": f"SYNTHETIC-{i}.PA"} for i in range(3)])
 
 
+# Successful-call assertions measure session reuse, not cold-spawn/import speed.
+# Use the existing bounded 10s option on hosted runners; the intentional native
+# hang below keeps its separate 0.75s deadline and kill/reap assertions.
 def script_for(selected):
     return {item.symbol: [raw_quote(item)] for item in selected}
 
@@ -37,7 +40,7 @@ def test_installed_library_reuses_one_session_and_crumb_without_changing_quotes(
     """Run real get_info in both policies and compare full normalized results."""
     payloads, counts, sessions, crumbs = [], [], [], []
     for shared in (False, True):
-        with OfflineYFinanceCycle(script_for(selected), shared=shared) as provider:
+        with OfflineYFinanceCycle(script_for(selected), shared=shared, timeout=10) as provider:
             payloads.append(collect(selected, provider, clock=lambda: now, sleep=lambda _: None))
             check_traces(provider)
             events = [event for stats in provider.traces.values() for event in stats["requests"]]
@@ -56,7 +59,7 @@ def test_installed_library_reuses_one_session_and_crumb_without_changing_quotes(
 def test_failures_leave_previous_and_following_observations_independent(selected, now, failure):
     script = script_for(selected)
     script[selected[1].symbol] = [failure, failure]
-    with OfflineYFinanceCycle(script) as provider:
+    with OfflineYFinanceCycle(script, timeout=10) as provider:
         rows = collect(selected, provider, clock=lambda: now, sleep=lambda _: None)["observations"]
         check_traces(provider)
         assert [row["outcome"] for row in rows] == ["success", "unavailable", "success"]
@@ -73,7 +76,7 @@ def test_fresh_ticker_uses_updated_price_without_relabelling_old_market_time(sel
     item = selected[0]
     old = raw_quote(item)
     new = {**old, "regularMarketPrice": "13.0000", "regularMarketTime": int(now.timestamp())}
-    with OfflineYFinanceCycle({item.symbol: [old, old, new]}) as provider:
+    with OfflineYFinanceCycle({item.symbol: [old, old, new]}, timeout=10) as provider:
         first = normalize(item, provider.fetch(item.symbol), now)
         repeated = normalize(item, provider.fetch(item.symbol), now + timedelta(seconds=1))
         second = normalize(item, provider.fetch(item.symbol), now + timedelta(seconds=2))
@@ -93,7 +96,7 @@ def test_fresh_ticker_uses_updated_price_without_relabelling_old_market_time(sel
 ])
 def test_library_cannot_silently_supply_an_alternative_financial_field(selected, now, patch):
     item = selected[0]
-    with OfflineYFinanceCycle({item.symbol: [{**raw_quote(item), **patch}]}) as provider:
+    with OfflineYFinanceCycle({item.symbol: [{**raw_quote(item), **patch}]}, timeout=10) as provider:
         rows = collect([item], provider, clock=lambda: now, sleep=lambda _: None)["observations"]
         check_traces(provider)
         assert rows[0]["price"] is None and rows[0]["market_timestamp"] is None
@@ -105,7 +108,7 @@ def test_total_deadline_kills_a_native_wait_and_preserves_validated_results(sele
     """Actual signal.pause ignores SIGTERM; parent must kill/reap the child."""
     script = script_for(selected)
     script[selected[1].symbol] = ["block_ignore_terminate"]
-    with OfflineYFinanceCycle(script) as provider:
+    with OfflineYFinanceCycle(script, timeout=10) as provider:
         first = normalize(selected[0], provider.fetch(selected[0].symbol), now)
         provider.timeout = 0.75
         started = time.monotonic()
@@ -115,7 +118,7 @@ def test_total_deadline_kills_a_native_wait_and_preserves_validated_results(sele
         assert provider.block_entered and 0.7 <= elapsed < 2
         assert provider.process is None
         assert provider.reaped[-1]["killed"] and provider.reaped[-1]["exitcode"] == -signal.SIGKILL
-        provider.timeout = 3
+        provider.timeout = 10
         third = normalize(selected[2], provider.fetch(selected[2].symbol), now)
         assert third == normalize(selected[2], raw_quote(selected[2]), now)
         assert first == normalize(selected[0], raw_quote(selected[0]), now)
@@ -127,7 +130,7 @@ def test_total_deadline_kills_a_native_wait_and_preserves_validated_results(sele
 
 @pytest.mark.parametrize("probe", ["probe_native", "probe_socket"])
 def test_network_exit_guards_fail_before_io(selected, probe):
-    with OfflineYFinanceCycle({selected[0].symbol: [probe]}) as provider:
+    with OfflineYFinanceCycle({selected[0].symbol: [probe]}, timeout=10) as provider:
         with pytest.raises(CollectorError, match="^offline_network_forbidden$"):
             provider.fetch(selected[0].symbol)
         assert provider.traces[1]["blocked_network_attempts"] == 1
@@ -136,7 +139,7 @@ def test_network_exit_guards_fail_before_io(selected, probe):
 def test_real_library_provider_keeps_journal_replay_offline_and_byte_identical(selected, now, tmp_path):
     snapshots = []
     for shared in (False, True):
-        with OfflineYFinanceCycle(script_for(selected), shared=shared) as provider:
+        with OfflineYFinanceCycle(script_for(selected), shared=shared, timeout=10) as provider:
             calls = []
             client = SimpleNamespace(deliver=lambda *args: calls.append(args))
             state = tmp_path / str(shared)
