@@ -1,5 +1,15 @@
 # Architecture
 
+## V2 production cutover checkpoint — 25 November 2026
+
+Explicit delivery approval and owner-confirmed independent fresh-backup/key custody
+preceded remote 0008 then 0009. Full original-table comparisons and anchor/FK checks
+passed. Paused V2 financial deployment serves registry discovery and unchanged
+legacy financial reads; anonymous V2/MCP requests are refused. Writers/ingestion
+remain paused pending client catalogue refresh, authenticated REST and V2 MCP
+acceptance. No Access/OAuth, primary provider or cadence change; no release yet.
+[Current production evidence](../releases/v2.0.0-production-validation.md).
+
 ## Qualified local restore ordering — 25 November 2026
 
 Owner-authorized encrypted backup and isolated local restoration of the captured

@@ -1,5 +1,15 @@
 # Testing
 
+## V2 production cutover checkpoint — 25 November 2026
+
+New authorized production evidence only: remote 0008 and 0009 sequential full-table
+preservation, exact financial anchors, foreign keys, paused Worker deployment,
+hosted legacy MCP reads and owner registry discovery, anonymous HTTP 401 checks.
+Current-state MCP values match the pre-V2 baseline excluding evaluation time.
+No acquired local test or provider campaign was repeated. Client catalogue refresh,
+authenticated REST and the new V2 MCP reads remain pending; writers remain paused.
+[Exact outcomes and limits](../releases/v2.0.0-production-validation.md).
+
 ## Actual snapshot recovery/adoption — 25 November 2026
 
 Owner-authorized encrypted backup and isolated local restoration of the captured

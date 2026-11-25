@@ -1,5 +1,16 @@
 # PEA Tracker — Roadmap & vision
 
+## V2.0.0 — bascule de production en cours — 25 novembre 2026
+
+Livraison explicitement autorisée ; fusion `5566872` poussée sur main. Copie
+indépendante de la sauvegarde fraîche et de sa clé confirmée par le propriétaire.
+Migrations distantes 0008 puis 0009 appliquées sans altérer les lignes d'origine ;
+V2 déployée avec écritures et collecte suspendues. Lectures MCP historiques et
+découverte du registre conformes, accès anonymes refusés. Restent l'actualisation
+du catalogue client et la validation REST authentifiée, puis les lectures MCP V2,
+le rétablissement nominal et la publication. Aucun tag ni release à ce stade.
+[État de bascule et preuves](releases/v2.0.0-production-validation.md).
+
 ## Sauvegarde et adoption locales qualifiées — 25 novembre 2026
 
 L'export autorisé du snapshot D1, sa sauvegarde chiffrée et sa restauration locale
