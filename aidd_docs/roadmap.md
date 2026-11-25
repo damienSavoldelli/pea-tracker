@@ -1,5 +1,16 @@
 # PEA Tracker — Roadmap & vision
 
+## V2.0.0 — licence et livraison préparées — 25 novembre 2026
+
+Licence PolyForm Noncommercial 1.0.0 appliquée aux nouveaux changements détenus
+par le projet. Les droits MIT antérieurs et les licences tierces restent valables ;
+le dépôt public est source-available. L'intégration est validée, la livraison reste
+à autoriser. Les preuves de sauvegarde/restauration, d'adoption réelle, de protection
+Access V2 et de capacité/rétention sont encore attendues. Yahoo principal, EODHD en
+observation, cadence de 30 minutes et sessions expérimentales non activées.
+[Procédure et critères GO/NO-GO](releases/v2.0.0-delivery.md),
+[notes anglaises préparées](releases/v2.0.0.md), [RETEX](releases/v2.0.0-retex.md).
+
 ## Intégration V2.0 — 25 novembre 2026
 
 Separate `integration/v2.0` combines V1.1.5 and A–E locally. Registry discovery

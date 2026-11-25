@@ -1,5 +1,13 @@
 # Codebase Map
 
+## V2.0.0 delivery artifacts — 25 November 2026
+
+`LICENSE`, `LICENSING.md`, `THIRD_PARTY_NOTICES.md` and `licenses/` define the
+source-available license transition and preserved upstream/MIT rights.
+[Prepared delivery](../releases/v2.0.0-delivery.md),
+[English draft notes](../releases/v2.0.0.md) and [RETEX](../releases/v2.0.0-retex.md)
+record the pending operational gates; none is a deployed change.
+
 ## V2.0 integration branch — 25 November 2026
 
 Separate `integration/v2.0` combines V1.1.5 and A–E locally. Registry discovery

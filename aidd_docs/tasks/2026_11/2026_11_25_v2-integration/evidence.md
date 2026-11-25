@@ -94,3 +94,12 @@ Integration GO for owner review. A–E and V1.1.5 ancestry are assembled; SDK/RE
 authorization, populated local upgrade and Linux checks pass. D/E accepted limits
 are unchanged. Main is still `cc0b54b`; no source branch or independent worktree
 was modified. Final documentation-only commit requires no repeated application CI.
+
+## Subsequent licensing and delivery preparation
+
+Owner authorized license/docs-only changes, commits and push on integration/v2.0.
+[License scope](../../../../LICENSING.md) preserves prior MIT grants;
+[delivery procedure](../../../releases/v2.0.0-delivery.md) and
+[draft notes](../../../releases/v2.0.0.md) prepare the next approval.
+These edits do not rerun or extend the application evidence above, and do not
+authorize main/production operations. See [RETEX](../../../releases/v2.0.0-retex.md).

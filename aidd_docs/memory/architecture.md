@@ -1,5 +1,15 @@
 # Architecture
 
+## V2.0.0 licensing and rollout boundary — 25 November 2026
+
+PolyForm Noncommercial 1.0.0 applies to project-owned new changes prepared for V2.0.0;
+prior MIT grants and third-party terms remain. Repository stays public/source-available.
+Integration evidence is accepted; delivery is not executed. Backup/isolated restore,
+actual anchor adoption, hosted V2 Access/read checks and capacity/retention gates
+remain open. No business code or active collection changed; default cadence is 30.
+[Delivery sequence and GO/NO-GO](../releases/v2.0.0-delivery.md),
+[draft English notes](../releases/v2.0.0.md), [RETEX](../releases/v2.0.0-retex.md).
+
 ## V2.0 integrated composition — 25 November 2026
 
 Separate `integration/v2.0` combines V1.1.5 and A–E locally. Registry discovery

@@ -1,5 +1,9 @@
 # PEA Tracker quotation collector
 
+Project license metadata is `PolyForm-Noncommercial-1.0.0` for V2.0.0 onward
+subject to the [preserved MIT grants and third-party exceptions](../LICENSING.md).
+Dependencies retain their own licenses; no wheel/image is published by this preparation.
+
 Independent Python provider adapter and HTTP ingestion client. The repository is
 already **public**. No portfolio positions, database access or financial calculations
 belong here. Backend prices/quantities remain exact decimal strings.

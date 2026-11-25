@@ -1,5 +1,16 @@
 # Testing
 
+## V2.0.0 license/docs-only preparation — 25 November 2026
+
+Official PolyForm text equality, SPDX metadata consistency (npm root/lock and
+Python), preserved MIT text hashes, relative links and whitespace checks passed.
+No source/migration/test/workflow changes against validated `630f4aa`; dependency
+versions and resolutions unchanged. No application test, provider campaign,
+installation or production check was rerun. [Scope and remaining gates](../releases/v2.0.0-delivery.md).
+License/metadata documentation commits use GitHub's documented `[skip ci]` marker
+to avoid replaying acquired Linux tests. This does not satisfy any pending required
+check on a future main merge; final branch-protection requirements remain binding.
+
 ## V2.0 integration checks — 25 November 2026
 
 Separate `integration/v2.0` combines V1.1.5 and A–E locally. Registry discovery
