@@ -8,21 +8,28 @@ This public repository is **source-available**, not OSI open source. Previously
 granted MIT rights remain valid, including published V2 branches. See
 [licensing scope](LICENSING.md) and [third-party notices](THIRD_PARTY_NOTICES.md).
 
-## V2.0 integration branch — not deployed
+## V2.0.0 — production accepted
 
-Separate `integration/v2.0` combines V1.1.5 and A–E locally. Registry discovery
-replaces singleton registration only when present; legacy discovery and independent
-browser approval remain. TypeScript and 85 distinct targeted synthetic local cases
-passed. Isolated Linux Actions passed 118 TypeScript and 91 Python checks, plus
-TypeScript compilation. Yahoo stays primary,
-EODHD observation only, default cadence 30 minutes; no production change.
-[Commands, revisions, validation limits and later rollout gates](aidd_docs/tasks/2026_11/2026_11_25_v2-integration/evidence.md).
+V2.0 integrates V1.1.5 and A–E: an owner-scoped portfolio registry, versioned REST
+reads, MCP discovery/state/valuation and separate real/simulated journal circuits.
+Existing financial data was preserved through remote migrations 0008 then 0009.
+Authenticated REST and refreshed MCP state were accepted by the owner; nominal
+writes and ingestion are restored. Yahoo stays primary, EODHD observation only,
+and collection stays at 30 minutes. No transaction was created to test delivery.
+
+Linux integration evidence remains 118 TypeScript and 91 Python checks, plus
+TypeScript compilation. The first ordinary collection after resumption awaits its
+next scheduled window. See [release notes](aidd_docs/releases/v2.0.0.md) and
+[production evidence and limits](aidd_docs/releases/v2.0.0-production-validation.md).
 
 PEA Tracker is an API-first portfolio backend for a single French PEA owner. It combines REST/MCP consultation, owner-approved financial journal commands, exact-decimal services, native D1 persistence, and a separate Python market-data collector. The real PEA is the priority; Trading Lab is a complementary, isolated future use. No brokerage orders are placed.
 
 The source repository is public; tracked fixtures are synthetic. Production portfolio data, credentials and journals remain private and outside Git. The diagnostic Worker and historical PoCs remain separate from the financial reader.
 
 ## Project status
+
+Current production acceptance: [V2.0.0](aidd_docs/releases/v2.0.0.md), 25 November
+2026. Earlier corrective release evidence remains historical below.
 
 Corrective release: [v1.1.5 MCP discovery](aidd_docs/releases/v1.1.5.md), 24 November 2026,
 adds `list_portfolios` so agents can discover `portfolio_id` without guessing from
@@ -46,14 +53,14 @@ V1.1.0 was published on 2026-11-21, after V1.0.0 on 2026-11-19. Financial manage
 | V1 monitoring | Hourly 07:09–20:09 Paris; closing check observed successful on 20 November |
 | V1.1 calendar | 19 XPAR instruments assigned to known full-day closures for 2026–2027; individual continuous/fixing modes unqualified, intraday phases and ALXP remain unknown |
 | V1.1 financial management | EUR trades, cash movements, fees, dividends, reversals, exact weighted PRU and realized/unrealized gains implemented and deployed; first real nominal write and rereads reported successful by the owner on 24 November |
-| Financial MCP commands | 19 tools: 12 reads/diagnostics including portfolio discovery, six preparations, one confirmation; independent browser approval, separate server permissions, expiry and idempotent receipts |
+| Financial MCP commands | Expected nominal catalogue: 26 tools, including 15 reads/diagnostics and 11 preparation/confirmation tools; real writes require independent browser approval, separate server permissions, expiry and idempotent receipts |
 | Global performance | Broker closing market-value reference selected for 20 November; economic gain in EUR and estimated, non-annualized Modified Dietz percentage adjusted for dated external flows; explicit unavailable statuses on missing inputs |
 | Diagnostic Workers | Separate historical PoCs, not the production financial read endpoint |
 
 See [v1.1.4 corrections](aidd_docs/releases/v1.1.4.md), [V1.1.0 release notes](aidd_docs/releases/v1.1.0.md), [V1.1 validation and RETEX](aidd_docs/releases/v1.1.0-validation.md) and [historical V1 acceptance](aidd_docs/releases/v1.0.0-validation.md).
 
-[V2.0.0 draft release notes](aidd_docs/releases/v2.0.0.md) and
-[delivery procedure and pending gates](aidd_docs/releases/v2.0.0-delivery.md).
+[V2.0.0 release notes](aidd_docs/releases/v2.0.0.md) and
+[delivery and rollback procedure](aidd_docs/releases/v2.0.0-delivery.md).
 No production delivery is authorized by these documents.
 
 ## Architecture

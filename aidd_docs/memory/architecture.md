@@ -1,14 +1,16 @@
 # Architecture
 
-## V2 production cutover checkpoint — 25 November 2026
+## V2 production accepted — 25 November 2026
 
-Explicit delivery approval and owner-confirmed independent fresh-backup/key custody
-preceded remote 0008 then 0009. Full original-table comparisons and anchor/FK checks
-passed. Paused V2 financial deployment serves registry discovery and unchanged
-legacy financial reads; anonymous V2/MCP requests are refused. Writers/ingestion
-remain paused pending client catalogue refresh, authenticated REST and V2 MCP
-acceptance. No Access/OAuth, primary provider or cadence change; no release yet.
-[Current production evidence](../releases/v2.0.0-production-validation.md).
+Remote 0008 then 0009 preserved all original rows and exact anchors. Owner confirmed
+fresh independent backup/key custody, authenticated REST and refreshed V2 MCP state.
+Nominal Worker 4f34eb21-29b3-4e7f-bf4d-f1e5ec4019f7 matches original bindings/protections;
+writes and original ingestion restored. Expected catalogue 26 tools (15 reads);
+nominal count reuses source/acquired tests, not a fresh hosted enumeration.
+Yahoo primary, EODHD observation only, unchanged scheduler at 30 minutes. No financial
+test write or repeated qualification. First post-resume ordinary cycle awaits its
+next scheduled window. Manual backup/capacity and hosted failure-case limits remain.
+[Production evidence](../releases/v2.0.0-production-validation.md).
 
 ## Qualified local restore ordering — 25 November 2026
 
