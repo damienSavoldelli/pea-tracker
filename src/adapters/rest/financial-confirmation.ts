@@ -6,7 +6,7 @@ import { confirmationBody, confirmationDocument, confirmationError } from './fin
 
 const navigationParameters = new Set(['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'utm_id']);
 /** Browser-only approval; presentation never authorizes a journal write. */
-export function financialConfirmationRoutes(service: FinancialMcpService,
+export function financialConfirmationRoutes(service: Pick<FinancialMcpService, 'confirmationPage' | 'approve'>,
   authenticateBrowser: (request: Request) => Promise<Principal>, origin: string) {
   if (!origin.startsWith('https://') || new URL(origin).origin !== origin) throw new Error('HTTPS confirmation origin required');
   const app = new Hono<{ Variables: { styleNonce: string } }>();

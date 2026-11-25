@@ -8,9 +8,10 @@ type Guard = (action: () => Promise<Record<string, unknown>>) => Promise<{
   content: { type: 'text'; text: string }[]; structuredContent?: Record<string, unknown>; isError?: boolean;
 }>;
 /** Opt-in adapter only. No accounting rules or client-asserted approval here. */
-export function registerFinancialTools(server: McpServer, service: FinancialMcpService, principal: Principal, guarded: Guard) {
+export function registerFinancialTools(server: McpServer, service: FinancialMcpService, principal: Principal, guarded: Guard,
+  options: { registerPortfolioDiscovery?: boolean } = {}) {
   const read = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false };
-  if (principal.permissions.includes('portfolio:read')) server.registerTool('list_portfolios', {
+  if (options.registerPortfolioDiscovery !== false && principal.permissions.includes('portfolio:read')) server.registerTool('list_portfolios', {
     description: 'Discover authorized portfolios before calling tools requiring portfolio_id. Use data[].id as portfolio_id; never use opening_state.id. V1.1 returns only the configured owner portfolio with id, kind and status; read_only describes this listing, not financial write permission.',
     inputSchema: portfolioListQuerySchema,
     outputSchema: z.object({ data: z.array(z.object({ id: portfolioIdSchema, kind: z.enum(['real', 'simulated']),

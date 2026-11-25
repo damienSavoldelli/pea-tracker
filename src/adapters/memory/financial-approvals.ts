@@ -27,4 +27,10 @@ export class MemoryFinancialApprovalRepository implements FinancialApprovalRepos
     if (!row || row.status !== 'approved' || row.proposal.digest !== digest) return false;
     row.status = 'consumed'; row.consumed_at = now; return true;
   }
+  async confirmSimulated(id: string, subject: string, digest: string, now: string) {
+    const row = this.eligible(id, subject, now);
+    if (!row || row.status !== 'prepared' || row.proposal.digest !== digest || !('version' in row.proposal)
+      || row.proposal.version !== 2 || row.proposal.kind !== 'simulated') return false;
+    row.status = 'approved'; row.approved_at = now; row.csrf = null; return true;
+  }
 }

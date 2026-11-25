@@ -13,6 +13,39 @@ state → valuation on 24 November around 20:05 Europe/Paris after catalogue ref
 the discoverability incident is closed. Refresh the connector catalogue after
 tool additions/changes before acceptance. See [evidence and RETEX](../releases/v1.1.5.md).
 
+- V2.0-D local finalization: `provider_observation.py` composes transport/parser/D2/D6;
+  `provider_observe.py` is an offline-only private capture CLI; `provider_quota.py`
+  supplies the quota port and local persistent 18-unit campaign adapter;
+  `eodhd_reference.py` qualifies exact identity plus independent venue evidence.
+  Only offline CLI/tests import the composition; active workflows are unchanged.
+  [Evidence, D/E split and remaining gates](../tasks/2026_11/2026_11_21_eodhd-http/finalization.md).
+
+- Local V2.0-D6: `collector/pea_collector/provider_shadow.py`, pure selection,
+  Free-budget proposals and coverage planning over existing D2 mappings/observations;
+  now reused by the isolated observation composition and tests. No active collector
+  or REST/MCP wiring. [Scope and evidence](../tasks/2026_11/2026_11_21_eodhd-http/shadow-selection.md).
+
+- Local V2.0-C: `src/application/portfolio-context.ts` (shared B/C resolution),
+  `portfolio-financial.ts` (V2 routing), `src/adapters/mcp/portfolio-financial.ts`,
+  versioned proposal union and existing financial service/approval adapters.
+  Browser dispatch/identity: `src/financial-app.ts`, `src/adapters/rest/financial-confirmation.ts`.
+  Migration 0009 extends journal anchors and active-status SQL guards.
+  Tests: `portfolio-financial{,.worker}.test.ts`, `portfolio-writes-migration.test.ts`.
+  [Decisions and evidence](../tasks/2026_11/2026_11_21_portfolio-writes/plan.md).
+
+- Local V2.0-B: `src/application/portfolio-reads.ts`,
+  `src/adapters/{rest,mcp}/portfolio-reads.ts`; optional Hono/MCP wiring and financial
+  entrypoint injection. Contract: `aidd_docs/api/portfolio-reads.openapi.json`.
+  Tests: `tests/portfolio-reads.test.ts` plus targeted existing Worker/financial
+  compatibility checks. [Evidence and boundaries](../tasks/2026_11/2026_11_21_portfolio-reads/plan.md).
+
+- Local V2.0-A: `src/{domain,ports,application,adapters/d1}/portfolio-registry.ts`,
+  additive `migrations/0008_portfolio_registry.sql`. Independent openings are
+  immutable snapshots in registry rows; historical references stay in old tables.
+  No entrypoint imports the new service. Tests: `portfolio-registry.test.ts`,
+  `portfolio-registry-migration.test.ts` and existing targeted migration/MCP checks.
+  [Scope, evidence and remaining integration](../tasks/2026_11/2026_11_21_portfolio-registry/plan.md).
+
 ## V1.1 foundation and corrections — reviewed 2026-11-24
 
 [Release](../releases/v1.1.0.md) and [validation/RETEX](../releases/v1.1.0-validation.md)

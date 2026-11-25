@@ -1,0 +1,559 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "PEA Tracker owner-scoped portfolio reads",
+    "version": "2.0.0-local",
+    "description": "V2.0-B local implementation. No production validation or deployment. Existing V1/V1.1 contracts remain unchanged. Archived holdings use actual stored quotation timestamps, not a frozen archive-date valuation."
+  },
+  "security": [
+    {
+      "portfolioAccess": []
+    }
+  ],
+  "paths": {
+    "/api/v2/portfolios": {
+      "get": {
+        "operationId": "listOwnedPortfolios",
+        "description": "Owner-scoped read. Active and archived portfolios remain read-only. No financial mutation.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Read-only portfolio result.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortfolioList"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "405": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "406": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "500": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v2/portfolios/{portfolioId}": {
+      "parameters": [
+        {
+          "name": "portfolioId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "getOwnedPortfolioDetails",
+        "description": "Owner-scoped read. Active and archived portfolios remain read-only. No financial mutation.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Read-only portfolio result.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortfolioDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "405": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "406": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "500": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v2/portfolios/{portfolioId}/state": {
+      "parameters": [
+        {
+          "name": "portfolioId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "getOwnedPortfolioState",
+        "description": "Owner-scoped read. Active and archived portfolios remain read-only. No financial mutation.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Read-only portfolio result.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortfolioState"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "405": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "406": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "500": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/api/v2/portfolios/{portfolioId}/valuation": {
+      "parameters": [
+        {
+          "name": "portfolioId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "getOwnedPortfolioMarketValue",
+        "description": "Owner-scoped read. Active and archived portfolios remain read-only. No financial mutation.",
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            }
+          },
+          {
+            "name": "price_kind",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "last_trade",
+                "session_close"
+              ]
+            },
+            "required": true
+          },
+          {
+            "name": "adjustment",
+            "in": "query",
+            "schema": {
+              "const": "unadjusted"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Read-only portfolio result.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortfolioValuation"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "405": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "406": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "500": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "portfolioAccess": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Verified Cloudflare Access owner identity; server portfolio ownership and permissions are enforced independently."
+      }
+    },
+    "schemas": {
+      "RegisteredPortfolio": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "owner_subject": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "kind": {
+            "enum": [
+              "real",
+              "simulated"
+            ]
+          },
+          "status": {
+            "enum": [
+              "active",
+              "archived"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "opening": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "source": {
+                "enum": [
+                  "independent",
+                  "historical",
+                  "operational"
+                ]
+              },
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": [
+              "source",
+              "id",
+              "revision"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "owner_subject",
+          "name",
+          "kind",
+          "status",
+          "version",
+          "opening",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "PortfolioList": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RegisteredPortfolio"
+            },
+            "maxItems": 100
+          },
+          "page": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "next_after": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "next_after"
+            ]
+          },
+          "read_only": {
+            "const": true
+          }
+        },
+        "required": [
+          "data",
+          "page",
+          "read_only"
+        ]
+      },
+      "PortfolioDetails": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "portfolio": {
+            "$ref": "#/components/schemas/RegisteredPortfolio"
+          },
+          "read_only": {
+            "const": true
+          },
+          "opening": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "effective_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "provenance": {
+                "$ref": "transactions.openapi.json#/components/schemas/Provenance"
+              }
+            },
+            "required": [
+              "id",
+              "revision",
+              "effective_at",
+              "provenance"
+            ]
+          },
+          "performance_reference": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "status": {
+                    "const": "configured"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "status": {
+                    "const": "unavailable"
+                  },
+                  "reason": {
+                    "const": "initial_market_reference_missing"
+                  }
+                },
+                "required": [
+                  "status",
+                  "reason"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "portfolio",
+          "read_only",
+          "opening",
+          "performance_reference"
+        ]
+      },
+      "PortfolioState": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "portfolio": {
+            "$ref": "#/components/schemas/RegisteredPortfolio"
+          },
+          "read_only": {
+            "const": true
+          },
+          "state": {
+            "$ref": "transactions.openapi.json#/components/schemas/CurrentPortfolio"
+          }
+        },
+        "required": [
+          "portfolio",
+          "read_only",
+          "state"
+        ]
+      },
+      "PortfolioValuation": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "portfolio": {
+            "$ref": "#/components/schemas/RegisteredPortfolio"
+          },
+          "read_only": {
+            "const": true
+          },
+          "valuation": {
+            "$ref": "transactions.openapi.json#/components/schemas/CurrentPortfolioValuation"
+          }
+        },
+        "required": [
+          "portfolio",
+          "read_only",
+          "valuation"
+        ]
+      }
+    },
+    "responses": {
+      "Problem": {
+        "description": "Generic error; foreign and unknown portfolio UUIDs both return portfolio_not_found.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "transactions.openapi.json#/components/schemas/Problem"
+            }
+          }
+        }
+      }
+    }
+  }
+}

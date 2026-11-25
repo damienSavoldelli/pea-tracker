@@ -15,6 +15,10 @@ production evidence below continues to describe its own checkpoint. Future V2.0B
 integration replaces the singleton listing with the registry, without registering
 `list_portfolios` twice.
 
+Local V2.0-C extension, not deployed: [versioned multi-portfolio circuits and
+compatibility evidence](../2026_11_21_portfolio-writes/plan.md). The V1.1 schema,
+hash/receipt formats and dated evidence below are preserved.
+
 Current state, 21 November: journal/approval migrations and the separate operational
 reference are deployed; financial writes are enabled under explicit owner authority.
 [Current production evidence](../2026_11_21_operational-start/production.md) supersedes

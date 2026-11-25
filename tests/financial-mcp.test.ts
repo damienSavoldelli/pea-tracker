@@ -457,6 +457,12 @@ it.each([
   const f = await fixture('d1'); const auth = await accessFixture();
   const config = { ...accessConfig, browserAudience: 'b'.repeat(64), internalSubject: writer.subject, financialWritesEnabled: true };
   const opening = await f.openingService.get(portfolioReader);
+  // This fixture initializes legacy data after migrations; explicitly adopt its stable binding.
+  await f.local!.db.prepare(`INSERT INTO transaction_journals(portfolio_id,kind,owner_subject,opening_id,opening_revision,version)
+    VALUES (?,'real',?,?,?,0)`).bind(portfolioId, writer.subject, opening.id, opening.revision).run();
+  await f.local!.db.prepare(`INSERT INTO portfolios(id,owner_subject,name,kind,status,version,opening_source,opening_id,opening_revision,created_at,updated_at)
+    VALUES (?,?,'Synthetic historical PEA','real','active',1,'historical',?,?,?,?)`)
+    .bind(portfolioId, writer.subject, opening.id, opening.revision, opening.recorded_at, opening.recorded_at).run();
   const environment = { INSTRUMENTS_DB: f.local!.db, ACCESS_TEAM_DOMAIN: config.issuer,
     ACCESS_READ_AUD: config.audience, ACCESS_OWNER_SUB: config.ownerSubject,
     ACCESS_READ_ENABLED: 'true', ACCESS_PORTFOLIO_READ_ENABLED: 'true', FINANCIAL_WRITES_ENABLED: 'true',
@@ -489,13 +495,21 @@ it.each([
   });
   await client.connect(transport); cleanups.push(() => client.close());
   const tools = (await client.listTools()).tools;
-  expect(tools).toHaveLength(19);
+  // V1.1.5's 19 capabilities plus seven registry/financial V2 tools; discovery is shared.
+  expect(tools).toHaveLength(19 + 7);
+  expect(new Set(tools.map(tool => tool.name)).size).toBe(tools.length);
+  expect(tools.map(tool => tool.name)).not.toContain('create_portfolio');
+  expect(tools.map(tool => tool.name)).not.toContain('register_portfolio');
+  expect((await app.request(`${origin}/api/v1/portfolios`, { method: 'POST' })).status).toBe(404);
   expect(tools.map(tool => tool.name)).toContain('confirm_financial_operation');
   expect(tools.map(tool => tool.name)).not.toContain('approve_financial_operation');
   expect(tools.find(tool => tool.name === 'confirm_financial_operation')?.annotations?.readOnlyHint).toBe(false);
   const discovered = await client.callTool({ name: 'list_portfolios', arguments: {} });
   expect(discovered.isError).not.toBe(true);
-  expect(discovered.structuredContent).toEqual({ data: [{ id: portfolioId, kind: 'real', status: 'active' }],
+  const registryDiscovery = await app.request(`${origin}/api/v2/portfolios`, { headers: { 'Cf-Access-Jwt-Assertion': mcpToken } });
+  expect(registryDiscovery.status).toBe(200);
+  expect(discovered.structuredContent).toEqual(await registryDiscovery.json());
+  expect(discovered.structuredContent).toMatchObject({ data: [{ id: portfolioId, kind: 'real', status: 'active' }],
     page: { next_after: null }, read_only: true });
   expect((await client.callTool({ name: 'get_positions', arguments: {} })).isError).not.toBe(true);
   const oldPositions = await app.request(`${origin}/api/v1/portfolio/positions`, { headers: { 'Cf-Access-Jwt-Assertion': mcpToken } });

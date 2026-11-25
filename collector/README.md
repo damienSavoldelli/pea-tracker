@@ -42,6 +42,56 @@ implementation evidence records a host run where all four executed.
 
 ## Provider boundary
 
+### V2.0-D observation utilities (local, inactive)
+
+Real qualification checkpoint: one authorized 16-symbol group returned 16/16 and
+cost 16 measured units; campaign total 17 with the reference, no bonus or retry.
+Together with three acquired samples, response evidence covers 19/20; one identity
+conflict remains excluded. Stored Yahoo values were compared without a new supplier
+fetch. Differing source clocks and undeclared quote-body currency/unit/adjustment
+fields prevent claiming exchange-trade equivalence or production admission.
+
+`provider_observation.capture_shadow` composes the isolated EODHD transport,
+parser, normalization and Yahoo-first shadow selector. Default execution is a plan
+only; explicit execution additionally requires qualified policies, fresh account
+usage and a quota store. It has no ingestion client or financial repository.
+Neither the existing CLI nor the active workflows import this composition.
+
+`PrivateQuotaLedger` reuses the private runner journal and account-wide file lock.
+It reserves before I/O, retains uncertain spend, refuses replay, requires refreshed
+usage at UTC rollover and caps this qualification campaign at 18 base units, with
+two daily units withheld. All account consumers must share its directory or remain
+stopped. An ephemeral Actions checkout is **not** shared persistent storage; E must
+wire the `QuotaStore` port to an approved shared authority before cloud execution.
+The local campaign cap is deliberate, not an always-on collector quota service.
+
+Offline replay requires private mode-0600 files: a JSON array of `FeedPolicy`
+declarations (each includes a complete `ProviderMapping`), raw response bytes, and
+a receipt with `state=response_saved`, `http_status`, `content_type`,
+`body_received_at` and matching `body_sha256`. Existing normalized Yahoo rows and
+previous selections are optional private JSON inputs. Supply previous selections
+when comparing against already selected prices; otherwise this is a first-selection
+experiment, not proof of monotonic selection across historical runs.
+
+```sh
+collector/.venv/bin/python -m pea_collector.provider_observe \
+  --policies "$PRIVATE_POLICIES" --body "$PRIVATE_CAPTURE" \
+  --receipt "$PRIVATE_RECEIPT" --existing "$PRIVATE_YAHOO_ROWS" \
+  --previous "$PRIVATE_PREVIOUS_SELECTIONS"
+```
+
+This command never fetches data. It prints only fixed codes/counts and indexed
+selection diagnostics, evaluated **as of the recorded capture time**. It does not
+claim that an archived quote is fresh now. Private normalized rows remain inside
+the composition; never log its full return value or upload inputs as CI artifacts.
+The reference qualifier compares exact ISIN/ticker/currency and requires separate
+reviewed venue evidence; a `.PA` suffix cannot establish ALXP identity.
+
+See [finalization evidence and integration gates](../aidd_docs/tasks/2026_11/2026_11_21_eodhd-http/finalization.md)
+and [operator-reviewed reference/capture recipes](../aidd_docs/tasks/2026_11/2026_11_21_eodhd-http/coverage-readiness.md).
+
+### Existing active Yahoo boundary
+
 - Explicit instrument UUID ↔ symbol, exchange, instrument type, currency/unit and
   source time-zone mapping; maximum 20 unique mappings. The tracked mapping is
   entirely synthetic; real mappings must not become a list of personal holdings.

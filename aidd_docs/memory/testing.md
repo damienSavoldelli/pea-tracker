@@ -29,6 +29,114 @@
   subsequent hosted acceptance is recorded above. See [commands, compatibility and
   RETEX](../releases/v1.1.5.md).
 
+- **24 November 2026, real D observation checkpoint:** owner executed one authorized
+  16-symbol group; 16/16 returned, actual 16 units, campaign 17 with reference, no
+  bonus/retry. D5/D2 checks passed offline on that new body under explicit assumed
+  stream/adjustment context. Sixteen stored-Yahoo MCP reads succeeded; no supplier
+  Yahoo fetch or financial write. Prior three samples/80 acquired/55 new synthetic
+  tests not repeated. Raw/data-derived price comparisons remain private; no pair
+  was simultaneous, and no rejection threshold or production admission is inferred.
+  [Measured evidence and limits](../tasks/2026_11/2026_11_21_eodhd-http/finalization.md).
+
+- **24 November 2026, D local finalization:** 55 distinct new synthetic cases pass:
+  quota 18, observation composition 20, offline CLI 5, reference identity 12.
+  Includes actual competing processes, process exit after durable claim, real D4
+  client with fake opener and actual offline module subprocess. Prior 80 cases not
+  rerun. No supplier call, D1, financial operation or active runtime change. Review
+  is local self-review, not external feed/production acceptance.
+  [Commands, checkpoints and open gates](../tasks/2026_11/2026_11_21_eodhd-http/finalization.md).
+
+- **24 November 2026, local D6 shadow mode:** 35 new targeted synthetic tests pass
+  for provider selection, stale/time regression/conflicts, close/intraday separation,
+  qualification gates, sanitized diagnostics, Free quotas/reserves/period rollover
+  and deduplicated 20-instrument planning with three EODHD samples reused. Python
+  syntax checks pass. No existing parser or supplier qualification tests repeated;
+  no full suite, external collection, persistence or production activation.
+  [Commands and limits](../tasks/2026_11/2026_11_21_eodhd-http/shadow-selection.md).
+
+- **24 November 2026, captured JSON qualification:** three original EODHD bodies
+  parsed offline unchanged; nine rows normalized in memory under explicit assumed
+  context, not live feed admission. Three new synthetic structure tests passed in
+  0.01s, covering per-symbol times/same-time revisions and rejection of daily-feed
+  envelopes as EODHD. D5's 42 tests reused without rerun. No originals or vendor
+  prices enter fixtures; no provider call, credential or financial/D1 operation.
+  [Evidence and Free limits](../tasks/2026_11/2026_11_21_eodhd-http/captured-json-qualification.md).
+
+- **24 November 2026, local D5 parser:** 42 new synthetic tests passed in 0.03s,
+  plus Python syntax checks. Raw bytes → Decimal parser → D2 covers precision,
+  partial/ambiguous responses, bounded input and sanitized failures. No provider
+  call, operational wiring or supplier qualification; D1–D4 tests were not rerun.
+  [Commands and limits](../tasks/2026_11/2026_11_21_eodhd-http/response-parser.md).
+
+- **24 November 2026, external provider evidence:** owner's 23 November Mac PoC
+  returned HTTP 200 for EODHD/Marketstack/Alpha Vantage. Changing delayed snapshots
+  were reported for three EODHD symbols; historical closes for three Marketstack
+  symbols and one Alpha symbol. This is attributed sample evidence, not execution
+  of repository adapters or production qualification. Approximately 15-minute
+  delay is reported, not independently calculated without receipt times. Existing
+  D1–D4 tests were not rerun; documentary checks only for this update.
+  [Evidence matrix and remaining gates](../tasks/2026_11/2026_11_21_eodhd-http/external-poc-2026-11-23.md).
+
+- Local V2.0-D / D4 raw transport: **39 simulated HTTP tests passed** in 0.06 seconds,
+  plus Python syntax and whitespace checks. Single/grouped requests, untouched
+  success/error/partial payloads, timeouts/network failures, body bounds, disabled
+  redirects/proxies and secret-safe output covered. No real socket, vendor call,
+  normalized quotation, quota use or production activation.
+  [Commands and limitations](../tasks/2026_11/2026_11_21_eodhd-http/plan.md).
+
+- Local multi-provider ingestion grants: **29 selected Worker/service tests passed**
+  (10 new cases); typecheck passed. Three affected assertion cases were rerun and
+  passed, without double-counting. Covers explicit shared-instrument pairs, exact
+  duplicates, forbidden cross products, atomic refusal, deny-all and existing
+  Access/read-isolation rules. Synthetic identities/native local D1 only; no
+  external network, supplier API or production configuration change.
+  [Commands, evidence and scope](../tasks/2026_11/2026_11_21_multi-provider-grants/plan.md).
+
+- Local V2.0-D / D3: **68 targeted tests passed** in 0.28 seconds (25 new fixture
+  adapter, 38 D2 and 5 D1 cases). Offline EODHD-format snapshots cover metadata/time/
+  price refusals, partial failures, copied fixture state and provider separation.
+  Existing Yahoo raw normalization rejects secondary neutral data. No network,
+  supplier qualification, full suite or production validation.
+  [Exact command, consolidation proposal and limits](../tasks/2026_11/2026_11_21_eodhd-fixture-adapter/plan.md).
+
+- Local V2.0-D / D2: **91 targeted Python tests passed** in 2.32 seconds (38 new
+  mapping/normalization cases, 53 existing model/D1/runner cases). Synthetic-only
+  checks cover N providers per UUID, provider symbols, distinct trade/close streams,
+  adjusted/bar rejection, provenance, subunits, clocks, missing/invalid data and
+  unchanged Yahoo/replay/deadline behavior. No provider API, full suite or deployment.
+  [Exact command, prepared contract and remaining gates](../tasks/2026_11/2026_11_21_provider-mappings/plan.md).
+
+- Local V2.0-D / D1: **17 targeted Python tests passed** (5 new boundary cases,
+  12 existing runner/CLI/replay/deadline cases). Yahoo raw fields and sanitized
+  errors, exact normalization, partial failures and byte-identical journal replay
+  preserved. Synthetic data/module stubs only; no supplier calls or full suite.
+  Earlier Yahoo PoC counts are observations, not performance guarantees; other
+  supplier results are owner-reported, not independently revalidated in D1.
+  Not deployed; [commands, supplier evidence and limits](../tasks/2026_11/2026_11_21_provider-abstraction/plan.md).
+
+- Local V2.0-C: **55 targeted tests** passed (16 financial C, 1 signed Worker/SDK
+  real+simulated journey, 1 populated B→C migration/V1 proposal compatibility,
+  21 existing financial/browser, 5 versioned migration, 11 B read cases), plus
+  typecheck. Archive/append races, concurrent consumption/replay, exact cost/PRU,
+  circuit/owner/anchor isolation and preserved old hashes/receipts covered.
+  Synthetic local D1 only; no full suite or production validation.
+  [Commands and failure boundaries](../tasks/2026_11/2026_11_21_portfolio-writes/plan.md).
+
+- Local V2.0-B: **35 distinct targeted tests** passed (11 new native D1/service/
+  REST/OpenAPI/SDK/signed Worker cases, 2 existing financial compatibility/security
+  cases, 22 common Hono/MCP diagnostic cases), plus typecheck. Two synthetic owners,
+  real/simulated/empty/archived portfolios, shared quotes, reference isolation and
+  unchanged legacy approval/write/replay covered. No full suite or production check.
+  [Commands and limits](../tasks/2026_11/2026_11_21_portfolio-reads/plan.md).
+
+- Local V2.0-A registry: **21 targeted tests** passed (11 registry, 3 populated/empty
+  V1.1 adoption scenarios, 5 versioned native D1 migration cases, 2 existing MCP
+  compatibility/security cases), plus typecheck. Synthetic old table snapshots,
+  holdings/cash/PRU, event sequences, receipts and approval digests survive upgrade;
+  no administration tool/endpoint added, simulated MCP writes still refused.
+  No full suite, remote migration or production validation.
+  [Commands, decisions and limits](../tasks/2026_11/2026_11_21_portfolio-registry/plan.md).
+
 - **24 November 2026, owner-reported production milestone:** first real nominal
   MCP preparation → independent browser approval → explicit MCP confirmation →
   journal recording → portfolio/journal reread succeeded on corrected Worker

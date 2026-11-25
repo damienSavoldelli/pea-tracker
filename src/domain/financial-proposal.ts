@@ -7,5 +7,9 @@ export const financialIntentSchema = z.object({
   opening_id: z.string().uuid(), opening_revision: z.number().int().positive(),
   idempotency_key: z.string().uuid(), prepared_at: z.string().datetime(), expires_at: z.string().datetime(),
 }).strict();
-export const financialProposalSchema = financialIntentSchema.extend({ digest: z.string().regex(/^[a-f0-9]{64}$/) }).strict();
+export const financialIntentV2Schema = financialIntentSchema.extend({ version: z.literal(2), kind: z.enum(['real', 'simulated']) }).strict();
+const digest = z.string().regex(/^[a-f0-9]{64}$/);
+export const financialProposalSchema = z.union([
+  financialIntentSchema.extend({ digest }).strict(), financialIntentV2Schema.extend({ digest }).strict(),
+]);
 export type FinancialProposal = z.output<typeof financialProposalSchema>;

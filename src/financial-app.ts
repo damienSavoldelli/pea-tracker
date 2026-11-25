@@ -12,7 +12,7 @@ export function createFinancialManagementApp(dependencies: {
 }) {
   const app = createApp({ ...dependencies.rest, mcp: { ...dependencies.mcp, financialOperations: dependencies.financial,
     authenticate: request => dependencies.access.authenticateMcp(request) } });
-  app.route('/financial-confirmation', financialConfirmationRoutes(dependencies.financial,
+  app.route('/financial-confirmation', financialConfirmationRoutes(dependencies.mcp.portfolioFinancial ?? dependencies.financial,
     request => dependencies.access.authenticateBrowser(request), dependencies.origin));
   return app;
 }

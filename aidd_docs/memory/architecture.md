@@ -1,5 +1,217 @@
 # Architecture
 
+## Owner-approved D closure — 2026-11-24
+
+D is closed in observation mode with response evidence on 19/20; TNO remains
+excluded for ISIN divergence. Campaign measured 17/20 units, bonus 500 unchanged;
+80 acquired and 55 complementary passing cases retained. Yahoo stays primary,
+EODHD isolated, unadjusted `last_trade` equivalence not demonstrated. Owner authorizes
+three commits and D branch push only; no main merge, deployment or activation.
+E is to be inspected read-only from branch objects, without modifying its branch
+or the independently used main worktree.
+[Accepted closure](../tasks/2026_11/2026_11_21_eodhd-http/finalization.md).
+Earlier same-day sections below retain their original checkpoint boundaries.
+
+## D real observation checkpoint — 2026-11-24
+
+The authorized isolated capture returned 16/16 with measured per-symbol cost,
+campaign within 18 units and no bonus spend. Existing source catalogue metadata
+resolved the 15 MIC links offline; one ISIN conflict stays excluded, giving response
+evidence on 19/20 including acquired samples. Stored Yahoo observations were read
+through MCP without supplier fetch or D1 mutation. Identity/context compatibility
+does not establish vendor latest-delayed-price equivalence to unadjusted last trade:
+quote body omits currency/unit/adjustment semantics. Keep semantic admission closed,
+Yahoo primary, no fallback or production wiring. Local observation finalization is
+complete with documented limits; cloud orchestration/activation remains separate.
+[Current evidence](../tasks/2026_11/2026_11_21_eodhd-http/finalization.md).
+
+## V2.0-D local finalization — 2026-11-24
+
+[Finalization](../tasks/2026_11/2026_11_21_eodhd-http/finalization.md) connects the
+existing provider layers in an isolated observation composition with a `QuotaStore`
+port. Local adapter reuses account-wide private journal locking/atomic fsync writes,
+caps the qualification campaign at 18 recurring units including observed prior use,
+and never refunds uncertain attempts. UTC rollover requires fresh evidence and
+does not erase operation claims. Exact reference ISIN/code/currency still needs
+separate venue proof; no approximate ALXP admission. Offline CLI evaluates freshness
+at capture time and emits sanitized diagnostics only. No active collector/financial
+wiring or deployment. Ephemeral runner storage is not a shared quota authority;
+E owns shared persistence/orchestration/monitor injection via D's ports. Local work
+complete; full qualification remains blocked on real reference, request authority
+and account/semantic evidence. No automatic paid fallback or Marketstack/Alpha gate.
+
+## EODHD coverage capture preparation — 2026-11-24
+
+[Coverage readiness and prepared command](../tasks/2026_11/2026_11_21_eodhd-http/coverage-readiness.md):
+one supervised group costs 17 published symbol units, not one; actual charging
+needs dashboard before/after evidence. Public candidate pages do not establish
+full ISIN/listing identity. Private mapping remains outside Git. Reuse local runner
+lock/atomic-write primitives for one fixed persistent attempt claim, retaining the
+reservation on uncertain failures and forbidding automatic retries. This is a
+prepared recipe, not an installed shared quota service. Current scheduler day/job
+partition and two-day deletion cannot supply monthly account accounting unchanged.
+No active provider/collector change, authenticated vendor call or deployment.
+
+## Local V2.0-D6 shadow selection — 2026-11-24
+
+Pure `collector/pea_collector/provider_shadow.py`, no active runtime import. Reuses
+D2 mappings/normalized observations for Yahoo-first selection, gated delayed EODHD
+and conditional close-only Marketstack/Alpha. Preserves source-time nonregression,
+quarantines equal-time divergent prices, reports stale/unavailable states and emits
+only fixed/allowlisted diagnostic fields. Cached eligibility is independent of new
+fetch quota. Free-budget proposals require trusted current-period counters, never
+infer reset from stale state, and distinguish symbol costs from HTTP request counts.
+Coverage planning deduplicates portfolio needs, skips acquired samples and defers
+unknown metadata/budget. No atomic durable quota executor is implemented or implied.
+No live collector, financial service, authentication, migration or cloud change.
+[D6 decisions, 35 synthetic tests and remaining gates](../tasks/2026_11/2026_11_21_eodhd-http/shadow-selection.md).
+
+## Captured feed qualification / Free-only direction — 2026-11-24
+
+Nine owner-authorized JSON bodies inspected offline, no detected secret pattern,
+no original data copied into public fixtures. D5 accepts all three captured EODHD
+bodies; nine rows pass normalization under explicit assumed context, not qualified
+identity/venue/adjustment. Filename clocks are collection proxies, not exact receipt
+times; per-symbol timestamps and same-time price revisions must be preserved.
+Marketstack/Alpha bodies are historical daily closes, not current intraday data.
+Free limits rule out full-catalogue recurring intraday backup: retain Yahoo primary,
+budget selective EODHD use and occasional Marketstack closes; Alpha EOD coverage and
+retention remain conditional. No paid upgrade, provider activation or runtime edit.
+[Captured evidence, official limits, rights and zero-cost next steps](../tasks/2026_11/2026_11_21_eodhd-http/captured-json-qualification.md).
+
+## Local V2.0-D5 response parser — 2026-11-24
+
+Isolated `collector/pea_collector/eodhd_response.py` connects bounded raw D4 JSON
+to existing D2 normalization using caller-supplied mapping/provenance. Decimal
+decoding preserves price precision; code matching, source time and per-symbol
+failure boundaries are explicit. No invented delay, venue or adjustment. Only
+synthetic tests import it; Yahoo, live CLI, financial services and fixture adapter
+are unchanged. Actual response/context/rights qualification still precedes live use.
+[Scope, 42 new local tests and remaining gates](../tasks/2026_11/2026_11_21_eodhd-http/response-parser.md).
+
+## External multi-provider evidence — recorded 2026-11-24
+
+Owner-reported 23 November tests outside the repository support a three-symbol
+EODHD delayed intraday candidate, three-symbol Marketstack historical closes and
+one-symbol Alpha Vantage historical close. No production admission follows.
+Yahoo stays primary; D4 raw HTTP and D2 neutral normalization are reusable, but
+the fixture adapter is synthetic-only and the live runner remains Yahoo-shaped.
+No active generic router/fallback is implemented. Date-only closes cannot satisfy
+the current timestamped observation contract or replace recent last-trade data.
+Complete catalogue/ISIN/venue, exact semantics, rights, budgets and capacity gates
+before a separate shadow/activation decision. No provider calls or runtime changes
+were made to integrate this evidence; V1.1 authentication is untouched.
+[Evidence, limits and proposed continuation](../tasks/2026_11/2026_11_21_eodhd-http/external-poc-2026-11-23.md).
+
+## Local V2.0-D / D4 — 2026-11-21
+
+Isolated raw `EodhdHttpClient`, not active: fixed-origin GET with environment token,
+bounded socket timeout/body, no proxies/redirects/retries. Returns unparsed bytes,
+HTTP status and content type for success/errors; transport failures use sanitized
+codes. Shared `NoRedirect`/User-Agent conventions reused without changing ingestion.
+No synthetic adapter call, financial normalization/provenance, quota claim or Yahoo
+behavior change. Real price/time/venue/adjustment, licence and quota qualification
+remain open. [D4 reduced scope and 39 simulated HTTP checks](../tasks/2026_11/2026_11_21_eodhd-http/plan.md).
+
+## Local V2.0-D ingestion grants — 2026-11-21
+
+Locally tested, not deployed: configuration uniqueness now covers the explicit
+`(provider, instrument_id)` pair rather than the instrument alone. Distinct provider
+grants may share an instrument; exact duplicates still fail closed. Existing
+subject/provider/instrument checks, Access verification, deny-all empty grants and
+ingestion/read isolation are unchanged. No actual grants or supplier activation
+changed. The earlier configuration blocker is resolved in local code only; the
+shared collector subject remains the security model.
+[Targeted tests, limits and separate change scope](../tasks/2026_11/2026_11_21_multi-provider-grants/plan.md).
+
+## Local V2.0-D / D3 — 2026-11-21
+
+Offline-only `EodhdFixtureProvider` implements the structural fetch interface with
+in-memory synthetic snapshots and separately declared context. Its neutral output
+is normalized by D2; it is incompatible with the current Yahoo raw normalizer and
+is not wired to the operational runner. Only synthetic unadjusted last-price
+semantics are admitted; snapshot `close` never implies session-close data. Optional
+`previousClose`/`change` cannot reconstruct missing prices. No network transport,
+credential handling, routing, fallback or ingestion grant changes. **This is not
+EODHD qualification.** Real venue/timestamp/price semantics, licence and quotas
+remain gates. [D3 fixtures, 68 local checks and D1/D2 commit proposal](../tasks/2026_11/2026_11_21_eodhd-fixture-adapter/plan.md).
+
+## Local V2.0-D / D2 — 2026-11-21
+
+Prepared, **not activated or deployed**: `provider_mapping.py` reuses the legacy
+instrument-mapping validation for explicit provider/symbol/exchange/data-kind/
+adjustment streams. Multiple providers may map one canonical UUID; inconsistent
+local canonical metadata and ambiguous associations fail. Neutral normalization
+preserves exact prices, units, provenance and independent clocks for the existing
+unadjusted last-trade/session-close observation contract only. OHLCV bars and
+adjusted streams can be declared but are rejected for emission; date-only prices
+never acquire invented market timestamps. No live imports, new ingestion grants,
+schema changes, supplier activation or financial selection changes. Yahoo's
+existing chain and the D1 interface remain unchanged.
+[D2 decisions, 91 targeted tests and D3 limits](../tasks/2026_11/2026_11_21_provider-mappings/plan.md).
+
+## Local V2.0-D / D1 — 2026-11-21
+
+Minimal Python `QuotationProvider` protocol in the existing provider module;
+Yahoo implements its unchanged `fetch(symbol)` raw-field contract and the runner
+uses protocol annotations. No batch/session optimization, fallback, provider router,
+adaptive cadence or secondary feed. Live CLI remains Yahoo-only; the additional
+synthetic provider exists only in tests. Normalization/provenance remain explicitly
+Yahoo-specific, not a generic secondary-feed admission mechanism. Supplier results
+are recorded with measured Yahoo versus owner-reported external-provider evidence.
+Locally tested, not deployed; [D1 scope, tests and remaining gates](../tasks/2026_11/2026_11_21_provider-abstraction/plan.md).
+
+## V2.0-D feasibility — 2026-11-21
+
+Study only, **not implemented or deployed**. C finalized locally at `5264794`;
+successor branch `feat/v2.0d-multi-provider` inherits A/B/C. Conditional GO for
+adaptive collection and N-provider routing using existing Cron/DO/GitHub/Python/D1.
+Provider-scoped immutable storage exists; selection/fallback and per-instrument
+planning do not. Keep yfinance and historical explicit-provider valuation unchanged.
+EODHD delayed quotes merit a bounded PoC, subject to its indicative-data disclaimer;
+Twelve Data's XPAR page specifies EOD, not demonstrated Paris intraday. Exact
+catalogue sample, licensed retention/private MCP, data equivalence, quota budgets
+and monotonic market timestamps remain gates. No quote API PoC or remote change.
+[Evidence, official sources, cost bounds and proposed slices](../backlog/spikes/adaptive-multi-provider-feasibility.md).
+
+## Local V2.0-C — 2026-11-21
+
+Implemented and locally tested, **not deployed**: shared `PortfolioContextService`
+resolves B/C read/write/browser contexts. V2 proposals bind version 2 and real/
+simulated kind; the existing transaction engine is reused. Real operations retain
+independent browser approval; simulated operations need explicit MCP confirmation.
+Four new tools bring the full catalogue to 26. V1 hashes/proposals/receipts remain
+compatible and fixed to the PEA. Additive migration 0009 extends journal anchors
+and atomically refuses archived/mismatched event appends without rewriting rows.
+Consumed proposals without receipts require reconciliation, not automatic retry.
+[Contract, 55 local tests and limits](../tasks/2026_11/2026_11_21_portfolio-writes/plan.md).
+
+## Local V2.0-B — 2026-11-21
+
+Implemented and locally tested, **not deployed**: `PortfolioReadService` resolves
+owner-scoped registry/openings and constructs existing projection/valuation services
+for N real/simulated portfolios. Active and archived states are readable without
+reactivation; no new financial writes. Separate `/api/v2/portfolios` reads and four
+read-only MCP tools leave the old 18 tools and V1/V1.1 chains intact (22 total when
+fully enabled). Shared stored quotations; server-selected performance references
+are keyed and checked against portfolio/kind/opening, with explicit unavailability
+otherwise. The Worker reuses only its configured historical PEA reference.
+[Contract, tests, limits and C prerequisites](../tasks/2026_11/2026_11_21_portfolio-reads/plan.md).
+
+## Local V2.0-A — 2026-11-21
+
+Implemented and locally tested, **not deployed**: additive migration 0008 creates
+`portfolios` with explicit owner/kind/status, immutable opening reference and
+atomic independent-opening JSON. N real/simulated portfolios are supported by the
+internal registry service; no new REST/MCP surface or financial writes are enabled.
+Existing operational references/journals are adopted by their stored UUID/owner,
+including populated journals, without rewriting V1/V1.1 data or canonical receipts.
+Historical global opening revisions remain dedicated to V1. Registry metadata
+version is separate from journal/opening versions; archive does not affect V1.1
+services until future resolution/status enforcement. New journal anchors, financial
+approval routing and multi-provider work remain future slices.
+[Decisions, tests and migration/rollback limits](../tasks/2026_11/2026_11_21_portfolio-registry/plan.md).
+
 ## Authentication incident — recovery and normal admission, 2026-11-24
 
 The [v1.1.4 release record](../releases/v1.1.4.md) consolidates the corrections

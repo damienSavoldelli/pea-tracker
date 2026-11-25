@@ -11,6 +11,7 @@ import stat
 import time
 
 from .model import CollectorError, ProviderError, normalize, unavailable
+from .provider import QuotationProvider
 
 
 def encoded(value) -> bytes:
@@ -78,7 +79,7 @@ def write_journal(path: Path, data: dict):
             temporary.unlink()
 
 
-def collect(mappings, provider, *, clock=lambda: datetime.now(timezone.utc), sleep=time.sleep) -> dict:
+def collect(mappings, provider: QuotationProvider, *, clock=lambda: datetime.now(timezone.utc), sleep=time.sleep) -> dict:
     """Fetch sequentially with bounded retries and explicit failure declarations.
 
     Only provider unavailability is retried. Invalid data and rate limits produce
@@ -100,7 +101,7 @@ def collect(mappings, provider, *, clock=lambda: datetime.now(timezone.utc), sle
     return {"observations": observations}
 
 
-def run(mappings, provider, client, directory: Path, cycle_id: str, *, require_existing: bool = False, **options) -> dict:
+def run(mappings, provider: QuotationProvider, client, directory: Path, cycle_id: str, *, require_existing: bool = False, **options) -> dict:
     """Create or replay a cycle's original payload before optional delivery.
 
     Mapping changes or missing required journals fail closed. Replays preserve
