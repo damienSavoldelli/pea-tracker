@@ -48,7 +48,28 @@ The billing-summary API was unavailable to current credentials; no additional
 scope was requested. No paid runner or storage product is needed. Forty job-minutes
 is the timeout ceiling, not measured usage. Documentation-only pushes skip CI.
 
-Linux results are pending; no Linux success or production readiness is claimed.
+Linux validation succeeded on integrated revision `0363657`:
+[Actions run 45633159770](https://github.com/damienSavoldelli/pea-tracker/actions/runs/45633159770).
+Both jobs passed: **118 TypeScript cases** across 10 files, TypeScript compilation,
+and **91 Python cases** (56 E experiments/harness plus 35 cadence/closing cases;
+20 unrelated cases deselected). Runtimes: Node 22.23.5 / Python 3.14.10.
+This is Linux acceptance of the synthetic integration, not production readiness.
+A final MCP description-only adjustment `02b73aa` retains the V1.1.5 identifier
+guidance in registry discovery; its targeted SDK case passed locally.
+Its Actions run `45636100379` passed all 118 contract cases but exposed one
+intermittent E2 assertion: four logical attempts instead of three (55 other
+experiment cases passed). The experiment includes spawn/import in a 3s deadline;
+a cold-start timeout can trigger the existing runner retry, invalidating an exact
+session-count comparison. This is the identified timing sensitivity, not a change
+to the active collector or proof of a production timeout.
+
+Test-only correction `630f4aa` explicitly uses the existing bounded 10s option
+for successful offline library calls, preserving exact attempt/price assertions.
+The intentional native hang still uses 0.75s with SIGKILL/reap checks unchanged.
+All 14 affected E2 cases passed locally in 8.76s. Final Linux run [45636475608](https://github.com/damienSavoldelli/pea-tracker/actions/runs/45636475608)
+passed both jobs against `630f4aa`: contracts 1m32s, collector 1m11s. No automatic
+retry or supplier campaign was launched. The failure and its test-only repair are
+retained here rather than hidden by a blind rerun.
 The platform reruns are justified by new native libcurl/process/Worker execution,
 not a repeat of the real Yahoo campaign. Native network fixtures are loopback;
 E2's actual library uses blocked exits and mocked HTTP. No vendor key supplied.
@@ -66,3 +87,10 @@ E2's actual library uses blocked exits and mocked HTTP. No vendor key supplied.
   retention, recovery or controlled rollout/rollback. These require separate gates.
 - No main merge, tag/release, remote migration, fallback or deployment authorized
   by integration acceptance.
+
+## Acceptance
+
+Integration GO for owner review. A–E and V1.1.5 ancestry are assembled; SDK/REST,
+authorization, populated local upgrade and Linux checks pass. D/E accepted limits
+are unchanged. Main is still `cc0b54b`; no source branch or independent worktree
+was modified. Final documentation-only commit requires no repeated application CI.

@@ -1,6 +1,6 @@
 ---
 objective: "Integrate A–E on a separate V2.0 branch preserving V1.1.5 discovery/security and qualifying synthetic Linux execution without production writes."
-status: pending
+status: implemented
 ---
 
 # Plan: Global V2.0 integration
@@ -78,3 +78,10 @@ MCP handler changes appear textually mergeable but introduce the semantic duplic
 | A single list_portfolios registration selected by composition | Legacy composition uses configured-owner discovery; V2 composition uses owned registry metadata. No duplicate tool and no reopening of the discovery incident. |
 | Separate validation workflow on the integration branch | Existing collector jobs require main and include live paths; do not relax those protections or modify main to bootstrap validation. |
 | Integration acceptance is separate from production readiness | No remote migration, main merge, tag/release, deployment, fallback or faster cadence activation is included. |
+
+## Execution record
+
+Owner subsequently approved implementation, integration-branch merges, commits,
+push and the bounded Linux validation. All three phases are complete; final Linux run
+`45636475608` passed on `630f4aa`. See [revision and validation evidence](./evidence.md).
+Main, the independent main worktree and production remain outside this delivery.

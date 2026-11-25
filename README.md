@@ -5,10 +5,10 @@
 Separate `integration/v2.0` combines V1.1.5 and A–E locally. Registry discovery
 replaces singleton registration only when present; legacy discovery and independent
 browser approval remain. TypeScript and 85 distinct targeted synthetic local cases
-passed. Linux qualification through isolated Actions is pending. Yahoo stays primary,
+passed. Isolated Linux Actions passed 118 TypeScript and 91 Python checks, plus
+TypeScript compilation. Yahoo stays primary,
 EODHD observation only, default cadence 30 minutes; no production change.
 [Commands, revisions, validation limits and later rollout gates](aidd_docs/tasks/2026_11/2026_11_25_v2-integration/evidence.md).
-
 
 PEA Tracker is an API-first portfolio backend for a single French PEA owner. It combines REST/MCP consultation, owner-approved financial journal commands, exact-decimal services, native D1 persistence, and a separate Python market-data collector. The real PEA is the priority; Trading Lab is a complementary, isolated future use. No brokerage orders are placed.
 

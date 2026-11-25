@@ -1,5 +1,5 @@
 ---
-status: pending
+status: done
 ---
 
 # Instruction: Qualify Linux in Actions and prepare acceptance
@@ -80,3 +80,8 @@ status: pending
 | --- | --- |
 | 1 | Actual Linux results pass against the integrated revision within bounded jobs; workflow has no operational secret/binding/dispatch path and existing production automation is unchanged. |
 | 2 | Reviewable integrated branch with synchronized evidence; no unresolved composition/migration issue, no claim that local/Linux qualification deploys or validates production. |
+
+## Execution evidence
+
+[Final Linux acceptance and retained failure/repair evidence](./evidence.md).
+Both jobs pass on `630f4aa`; no production activation follows.
