@@ -44,7 +44,9 @@ it('official SDK selects registry discovery once when legacy financial tools coe
   await client.connect(new StreamableHTTPClientTransport(new URL(`${origin}/mcp`), {
     fetch: async (url, init) => app.fetch(new Request(url, init)),
   }));
-  const names = (await client.listTools()).tools.map(tool => tool.name);
+  const tools = (await client.listTools()).tools;
+  const names = tools.map(tool => tool.name);
+  expect(tools.find(tool => tool.name === 'list_portfolios')?.description).toContain('Use data[].id as portfolio_id');
   expect(new Set(names).size).toBe(names.length);
   expect(names.filter(name => name === 'list_portfolios')).toHaveLength(1);
   expect(names).toContain('get_transaction_journal');

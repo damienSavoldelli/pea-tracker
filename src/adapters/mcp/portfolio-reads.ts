@@ -12,7 +12,7 @@ type Guard = (action: () => Promise<Record<string, unknown>>) => Promise<{
 export function registerPortfolioReadTools(server: McpServer, service: PortfolioReadService, principal: Principal, guarded: Guard) {
   if (!principal.permissions.includes('portfolio:read')) return;
   const annotations = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false };
-  server.registerTool('list_portfolios', { description: 'List only portfolios owned by the authenticated caller, with explicit nature, status and bounded pagination.',
+  server.registerTool('list_portfolios', { description: 'Discover only portfolios owned by the authenticated caller, with explicit nature, status and bounded pagination. Use data[].id as portfolio_id; never use opening.id or opening_state.id. read_only describes this listing, not financial write permission.',
     inputSchema: portfolioListQuerySchema, annotations }, input => guarded(() => service.list(principal, input)));
   server.registerTool('get_portfolio_details', { description: 'Read owned portfolio metadata and its exact opening reference. Archived portfolios remain read-only. No financial administration.',
     inputSchema: z.object({ portfolio_id: portfolioIdSchema }).strict(), annotations }, input => guarded(() => service.get(principal, input.portfolio_id)));
