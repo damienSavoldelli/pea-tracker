@@ -10,7 +10,7 @@ from pea_collector.monitor import missing
 from pea_collector import checks, qualify
 
 
-@pytest.mark.parametrize("value", ["0", "1", "15", "30; unsafe", ""])
+@pytest.mark.parametrize("value", ["0", "1", "5", "30; unsafe", ""])
 def test_frequency_is_bounded(value):
     """Only reviewed collection intervals may control scheduled execution."""
     with pytest.raises(ValueError):

@@ -5,7 +5,7 @@ import os
 
 def interval(value: str) -> int:
     """Accept only the supported collection intervals, expressed in minutes."""
-    if value not in {"30", "60", "120"}:
+    if value not in {"15", "30", "60", "120"}:
         raise ValueError("invalid_collection_interval")
     return int(value)
 
@@ -17,8 +17,10 @@ def in_window(now: datetime) -> bool:
 
 
 def due(now: datetime, minutes: int) -> bool:
-    """Select a half-hour slot at a previously validated collection interval."""
-    return in_window(now) and int(now.timestamp() // 1800) % (minutes // 30) == 0
+    """Keep legacy coarse window selection; strict slots use cloudflare_cadence."""
+    if minutes not in {15, 30, 60, 120}:
+        return False
+    return in_window(now) and (minutes == 15 or int(now.timestamp() // 1800) % (minutes // 30) == 0)
 
 
 if __name__ == "__main__":

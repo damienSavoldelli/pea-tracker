@@ -207,7 +207,14 @@ mapping: automatic masking of structured JSON is not sufficient by itself.
 
 The published schedule is offset from the hour and uses a broad weekday UTC
 collection window, not an exchange calendar. `COLLECTOR_INTERVAL_MINUTES` accepts
-30 (default), 60 or 120. Longer intervals intentionally provide less freshness;
+15, 30 (default), 60 or 120 in the local V2.0-E candidate. Production cadence was
+read as 30 on 24 November; no remote change accompanies this candidate. Fifteen
+minutes requires aligned scheduler and Actions configuration, not just a variable
+change. It doubles current 30-minute cycles and does not remove publication delay.
+Base Cloudflare slots are :02/:17/:32/:47; at default 30 only :17/:47 dispatch.
+The closing monitor requires all final-hour due slots (four at 15 minutes).
+See the [qualification and bounded live protocol](../aidd_docs/tasks/2026_11/2026_11_24_collector-finalization/plan.md).
+Longer intervals intentionally provide less freshness;
 they do not change backend warning/stale thresholds. A separate read-only workflow
 detects missing successful **actual live steps**, excluding synthetic/skipped jobs.
 It adds `actions: read` solely to inspect run/job conclusions; no ingestion secret.
@@ -228,6 +235,24 @@ limitation must be acknowledged in the unattended-activation decision. Public
 schedules can be disabled after 60 days without repository activity.
 
 ### Historical activation checklist and future reactivation
+
+Local V2.0-E qualification is separate from the historical activation below.
+The authorized 25 November sample is completed: 12 get_info / 52 HTTP attempts,
+12 valid observations; shared policy used 22 versus 30 individual requests.
+Five equal-time pairs match, one different-source-time pair is inconclusive;
+actual round spacing was about 18m17s. This qualifies the isolated experiment,
+not active session reuse or a production schedule change. Do not rerun the used
+campaign or delete/reset its receipt. Default production cadence stays 30 minutes.
+Linux validation is deferred to global V2.0 integration via GitHub Actions.
+From `collector/`, `.venv/bin/python -m experiments.yahoo_session_capture` prints a
+zero-I/O plan. Explicit external execution requires a separately approved session
+date and `--execute`; it uses only three public sample symbols, at most 12 get_info
+calls/80 HTTP attempts, and never ingests data. Native prerequest counting includes
+yfinance internal calls/reissues; redirects and unsupported backends fail closed.
+The fixed ignored private campaign receipt refuses automatic resume after failure.
+`--report` compares the captured clocks/fields offline through D's existing
+selector. It does not certify current market freshness or alter valuation.
+See [operator commands, local evidence and qualified sample](../aidd_docs/tasks/2026_11/2026_11_24_collector-finalization/phase-2.md).
 
 The following procedure preserves the original activation order. It is not the
 next operation for the running V1; do not reset gates or close ingestion merely

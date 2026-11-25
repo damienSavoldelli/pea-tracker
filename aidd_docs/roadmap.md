@@ -18,6 +18,36 @@ Cette roadmap ne vaut ni spécification financière ni autorisation de développ
   L'intégration V2.0B devra remplacer le singleton sans double inscription ;
   voir [contrat, preuves et RETEX](releases/v1.1.5.md).
 
+- **25 November 2026 — V2.0-E closed for bounded local delivery:** configurable
+  15/30/60/120-minute cadence keeps default 30; isolated Yahoo shared-session
+  sample qualified: 12 get_info, 52 HTTP attempts, 12 valid observations. Each
+  round measured 15→11 HTTP attempts (26.7% aggregate reduction); five equal-time
+  pairs match, one advancing-source-time pair is explicitly inconclusive.
+  Observed source age about 15–17 minutes, no time regression/same-time conflict.
+  Actual rounds were about 18m17s apart, not exactly 15 minutes; no deployed
+  cadence benefit or latency SLA is claimed. Linux moves to global integration
+  on GitHub Actions without production writes, by owner decision. Active Yahoo
+  composition, 30-minute production cadence and EODHD observation remain unchanged.
+  [Evidence, RETEX and remaining activation obligations](tasks/2026_11/2026_11_24_collector-finalization/retex.md).
+
+- **24 November 2026 — V2.0-D accepted in observation; E resumed locally:** D's
+  three commits end at `763d9f9`, pushed on its feature branch; 19/20 EODHD identity
+  coverage, TNO excluded, 17/20 measured daily units and 500 bonus untouched.
+  Yahoo remains primary; unadjusted last-trade equivalence remains unproven.
+  E retains its 19+14 acquired offline checks and has a
+  [finalization/cadence plan](tasks/2026_11/2026_11_24_collector-finalization/plan.md).
+  Current GitHub cadence is 30 minutes, not five. Fifteen minutes is supported by
+  a locally tested candidate (35 Python / 59 TypeScript checks, typecheck), default
+  still 30, not activated. The 12-fetch/80-HTTP native counting harness is locally
+  qualified (23 new cases); D modules are reused exactly without history merge.
+  Synthetic native D1 sizing passed; the prepared 25 November Yahoo campaign
+  has explicit execution authorization, but the 24 November evening preflight was
+  outside session and sent no request. Actual freshness/request reduction remain
+  open for E. Owner deferred Linux qualification to global V2.0 integration,
+  directly via GitHub Actions without production writes; it does not block E
+  closure. Local Docker qualification is abandoned. No merge, deployment
+  or production change is included in this preparation.
+
 - **24 November 2026, corrective-branch production acceptance:** the owner reported
   the first successful real nominal MCP preparation, independent browser approval,
   explicit confirmation and portfolio/journal reread after the authentication and

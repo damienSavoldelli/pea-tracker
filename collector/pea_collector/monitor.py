@@ -28,7 +28,7 @@ def missing(fetch, now: datetime, minutes: int, *, paris: bool = False) -> bool:
     required = set()
     if closing:
         for hour in range(19, 6, -1):
-            for minute in (17, 47):
+            for minute in (2, 17, 32, 47):
                 slot = local.replace(hour=hour, minute=minute, second=0, microsecond=0).astimezone(timezone.utc)
                 value = slot.isoformat(timespec="milliseconds").replace("+00:00", "Z")
                 if accepted(value, slot, minutes):

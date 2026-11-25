@@ -25,6 +25,16 @@ tool additions/changes before acceptance. See [evidence and RETEX](../releases/v
   now reused by the isolated observation composition and tests. No active collector
   or REST/MCP wiring. [Scope and evidence](../tasks/2026_11/2026_11_21_eodhd-http/shadow-selection.md).
 
+- Local V2.0-E: `collector/experiments/yahoo_session_capture.py` (opt-in bounded
+  campaign and offline report, no ingestion), `collector/tests/test_yahoo_session_capture.py`
+  (new qualification cases), `tests/collector-storage-sizing.test.ts` (native
+  local D1 synthetic sizing). Earlier E1/E2 experiments remain offline/unchanged.
+  D's `provider_shadow.py`, `provider_quota.py`, `provider_observation.py`,
+  `provider_observe.py`, `eodhd_response.py`, `eodhd_reference.py` are restored
+  exactly from its accepted commit; no duplicate provider implementation.
+  [Current implementation and bounded closure](../tasks/2026_11/2026_11_24_collector-finalization/plan.md);
+  [25 November live sample and residual obligations](../tasks/2026_11/2026_11_24_collector-finalization/retex.md).
+
 - Local V2.0-C: `src/application/portfolio-context.ts` (shared B/C resolution),
   `portfolio-financial.ts` (V2 routing), `src/adapters/mcp/portfolio-financial.ts`,
   versioned proposal union and existing financial service/approval adapters.
