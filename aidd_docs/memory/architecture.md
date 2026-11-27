@@ -1,5 +1,15 @@
 # Architecture
 
+## V2.1A security framing — 27 November 2026
+
+Dedicated integration/v2.1 starts from delivered v2.0.0 c7cf0c5. OWASP reference is
+pinned; audit and future missions only, no runtime change or remote security claim.
+Two manually launched sessions maximum; B/D may overlap, C follows D, then E.
+No automatic subagents or Orchestrator. Current sequencing is V2.1 security,
+V2.2 market data, V2.3 Trading Lab/commercial feasibility, V2.4 advanced analysis
+and conditional Pro decision. Earlier dated roadmaps retain historical evidence.
+[Audit and approval boundaries](../tasks/2026_11/2026_11_27_v2_1a-mcp-security/plan.md).
+
 ## V2 production accepted — 25 November 2026
 
 Remote 0008 then 0009 preserved all original rows and exact anchors. Owner confirmed

@@ -1,0 +1,11 @@
+# Prompt autonome — V2.1C après B/D acceptés
+
+Base : V2.0.0 c7cf0c53a1088431d0a5b43da29b3480f5f21806, puis cadrage A approuvé et committé sur integration/v2.1. Lis AGENTS.md, aidd_docs/memory/vcs.md et aidd_docs/tasks/2026_11/2026_11_27_v2_1a-mcp-security/{references,security,owasp-matrix,missions,plan}.md. Si le cadrage n'est pas disponible dans une référence validée, arrête-toi sans improviser.
+Vérifie branche et worktree avant toute modification. Le propriétaire crée ou autorise explicitement le worktree/branche indiqués ; ne touche pas aux autres worktrees ni à main. Aucun sous-agent, Orchestrator, installation, fournisseur financier, accès production, D1 distant, Access/OAuth, transaction réelle, commit, push, merge, tag ou déploiement automatique. Si les dépendances manquent, demander l'autorisation nécessaire sans les installer. Réutiliser les preuves acquises et les API réellement installées. Jeux synthétiques seulement. Le lancement de cette mission suppose l'approbation préalable du plan V2.1A ; ces prompts ne lancent rien eux-mêmes.
+
+Branche envisagée : feat/v2.1c-mcp-context-contracts ; worktree : pea-tracker-v2.1c.
+Attendre B et D acceptés/intégrés avec autorisation. Lire phase-3.md.
+F3/F4 : réaliser un inventaire champ→finalité et le contrat de confiance des noms/provenances/textes ; tests synthétiques de non-autorisation et de catalogue 15/26. Ne pas prétendre prouver l'immunité de ChatGPT par un test déterministe. Aucun nouveau filtre de texte, modèle de garde, suppression d'enveloppe ou modification de digest/montant/contrat V1.1.
+Seuls les tests dédiés, C/field-purpose.md et des descriptions statiques justifiées sont envisagés ; relire les wrappers acceptés de D. Tout retrait de champ ou schéma incompatible exige une décision du pilote. Documentation seule acceptable. Livrer diff et preuves, sans commit ni autre branche.
+
+Distinguer tests déterministes du serveur et évaluations comportementales LLM ; un corpus de texte hostile n'atteste pas l'immunité d'un modèle. Réutiliser la qualification coûts/quota/rétention des logs et options natives GitHub de D, sans nouvel outil ni vérification distante dupliquée. Inventaire local ≠ déploiements exposés ; laisser les limites externes non vérifiées, sans forcer 10/10 OWASP.

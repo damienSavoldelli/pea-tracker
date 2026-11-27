@@ -1,12 +1,27 @@
 # PEA Tracker — Roadmap & vision
 
+## Séquencement courant — décision du 27 novembre 2026
+
+| Version | Périmètre | État |
+| --- | --- | --- |
+| V2.0 | Fondations multi-portefeuille / multi-provider | Livrée, tag v2.0.0 ; preuves historiques conservées |
+| V2.1 | MCP Security & Hardening — OWASP MCP Top 10 | A validé ; préparation B parallèle à D autorisée, sessions lancées par le propriétaire |
+| V2.2 | OHLCV, watchlists, indicateurs et optimisation des données | Prévue |
+| V2.3 | Trading Lab et faisabilité commerciale | Étude future ; aucune offre engagée |
+| V2.4 | Analyses avancées, interface éventuelle, décision conditionnelle édition Pro | Conditionnelle ; aucune édition Pro livrée |
+
+Cette décision décale les lots futurs ; les sections datées antérieures restent des
+preuves historiques, pas des autorisations actuelles. La notification d'approbation
+différée en V2.3/V3 reste une décision historique séparée, sans implémentation ici.
+[Cadrage A, audit et missions](tasks/2026_11/2026_11_27_v2_1a-mcp-security/plan.md).
+
 ## V2.0.0 — acceptée en production — 25 novembre 2026
 
 Migrations distantes 0008 puis 0009 appliquées avec conservation exacte des données.
 Worker V2 accepté, preuves REST/MCP confirmées par le propriétaire, écritures et
 collecte nominales rétablies. Catalogue attendu : 26 outils, dont 15 lectures.
 Yahoo principal, EODHD en observation, cadence 30 minutes, scheduler inchangé.
-GO pour publication du tag v2.0.0 et de la release ; aucune transaction de test.
+Tag v2.0.0 et release publiés le 25 novembre 2026 au commit c7cf0c5 ; aucune transaction de test.
 Le premier cycle ordinaire après reprise reste à observer au prochain créneau,
 la reprise ayant eu lieu hors plage quotidienne. Sauvegardes/rétention et capacité
 restent sous surveillance manuelle. [Preuves et limites](releases/v2.0.0-production-validation.md).
@@ -287,7 +302,7 @@ fallback after a separate feasibility study. Those slices are not implemented he
 - identification explicite réel/fictif ; contrôles d’accès côté API et MCP ;
 - migration de données, compatibilité et tests de non-régression du PEA réel ;
 - **mutualiser les données de marché** entre portefeuilles ; ne pas dupliquer inutilement les cours ;
-- distinguer support de plusieurs portefeuilles et mise en œuvre d’un moteur de simulation fictive (prévue seulement si utile en V2.2).
+- distinguer support de plusieurs portefeuilles et mise en œuvre d’un moteur de simulation fictive (prévue seulement si utile en V2.3).
 
 ### Multi-provider
 
@@ -300,9 +315,21 @@ fallback after a separate feasibility study. Those slices are not implemented he
 
 **Go/no-go** : audit ciblé du schéma actuel et de l’isolation ; test réel d’un échantillon d’actions/ETF Euronext ; quotas, conditions contractuelles et coût acceptables.
 
-## V2.1 — Données de marché avancées (livraisons intermédiaires)
+## V2.1 — MCP Security & Hardening
 
-### V2.1a — Historique OHLCV
+Référence OWASP figée, frontières et matrice des dix risques dans le
+[cadrage A](tasks/2026_11/2026_11_27_v2_1a-mcp-security/plan.md). Priorité aux écarts démontrés :
+télémétrie minimale et validation CI adaptée. Aucun changement des règles financières,
+de l'architecture ou d'OAuth ; deux sessions maximum lancées manuellement. B est
+qualification, D concentre les changements justifiés, C reste contrat/tests d'abord
+et E prépare la livraison après acceptation. Aucun agent lancé automatiquement.
+
+## V2.2 — Données de marché avancées et optimisation (livraisons intermédiaires)
+
+Optimiser mutualisation, quotas, rétention et appels selon les volumes mesurés ;
+aucun fallback, fournisseur ou rythme nouveau activé sans qualification séparée.
+
+### V2.2a — Historique OHLCV
 
 - Open / High / Low / Close / Volume ; granularité et profondeur historiques à déterminer ;
 - API REST et outils MCP de consultation ;
@@ -310,7 +337,7 @@ fallback after a separate feasibility study. Those slices are not implemented he
 - évaluer stockage D1, volumes, limites Workers, collecteur Python, GitHub Actions et fournisseurs ;
 - collecte limitée aux instruments utiles et appels regroupés si approprié.
 
-### V2.1b — Watchlists et indicateurs
+### V2.2b — Watchlists et indicateurs
 
 - watchlists de valeurs non détenues, séparables par usage/portefeuille ; suivi avant achat ; comparaison avec les positions ;
 - moyennes mobiles MM20/MM50/MM200, RSI, MACD, ATR, volatilité ;
@@ -320,7 +347,11 @@ fallback after a separate feasibility study. Those slices are not implemented he
 
 **Go/no-go** : historique réellement disponible, droits d’usage, coût de collecte/stockage, précision des indicateurs et délais de réponse acceptables.
 
-## V2.2 — Trading Lab et suivi des décisions
+## V2.3 — Trading Lab, suivi des décisions et faisabilité commerciale
+
+Étudier la demande, les usages, les coûts opérationnels, les droits sur les données
+et les obligations de distribution avant toute décision commerciale. Cette étude
+ne livre pas une édition Pro et ne modifie pas la licence actuelle.
 
 - journal de trading : hypothèse, date, entrée prévue, exécution, quantité, frais, stop, objectifs, modifications, sortie, résultat, enseignements ;
 - préserver la décision initiale et l’historique des modifications (traçabilité, pas de réécriture rétrospective) ;
@@ -331,9 +362,13 @@ fallback after a separate feasibility study. Those slices are not implemented he
 
 **Go/no-go** : vérifier les capacités et limites de TradingView, l’accès éventuel aux données, la nécessité d’une simulation interne et la faisabilité du canal d’alerte.
 
-## V2.3 — Analyses avancées et interface
+## V2.4 — Analyses avancées, interface et décision Pro conditionnelle
 
 **Statut : prévu, faisabilité à étudier.** L'allocation du portefeuille appartient à cette version. Les notions de capital investi et de gains V1.1 ne constituent pas à elles seules une performance historique.
+
+Étude Pro conditionnée à la faisabilité commerciale V2.3, aux licences de données,
+aux droits logiciels et aux coûts ; aucun engagement, second dépôt ou changement
+de licence dans V2.1.
 
 ### Performance historique
 

@@ -1,0 +1,27 @@
+{
+  "B": {
+    "files": [
+      "tests/mcp-security-boundaries.test.ts",
+      "tests/helpers/mcp-security-boundaries.ts"
+    ],
+    "directories": [
+      "aidd_docs/tasks/2026_11/2026_11_27_v2_1a-mcp-security/B/"
+    ]
+  },
+  "D": {
+    "files": [
+      "src/adapters/mcp/handler.ts",
+      "src/adapters/mcp/financial-tools.ts",
+      "src/adapters/mcp/portfolio-reads.ts",
+      "src/adapters/mcp/portfolio-financial.ts",
+      "src/adapters/mcp/security-events.ts",
+      "tests/mcp-security-events.test.ts",
+      "tests/mcp-security-ci.test.ts",
+      "tests/helpers/mcp-security-events.ts",
+      ".github/workflows/mcp-security-validation.yml"
+    ],
+    "directories": [
+      "aidd_docs/tasks/2026_11/2026_11_27_v2_1a-mcp-security/D/"
+    ]
+  }
+}

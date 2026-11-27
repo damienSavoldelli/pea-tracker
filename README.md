@@ -8,7 +8,7 @@ This public repository is **source-available**, not OSI open source. Previously
 granted MIT rights remain valid, including published V2 branches. See
 [licensing scope](LICENSING.md) and [third-party notices](THIRD_PARTY_NOTICES.md).
 
-## V2.0.0 — production accepted
+## V2.0.0 — delivered
 
 V2.0 integrates V1.1.5 and A–E: an owner-scoped portfolio registry, versioned REST
 reads, MCP discovery/state/valuation and separate real/simulated journal circuits.
@@ -149,10 +149,11 @@ The [roadmap](aidd_docs/roadmap.md) separates the delivered financial foundation
 
 - **V1.1.0 delivered:** journal, cash, fees/dividends, exact cost/PRU/gains, protected financial MCP, separate operational opening, broker market-value reference and Modified Dietz. Operational positions/PRU are distinct from the explicitly selected market valuation used for performance. No earlier trades or prices were reconstructed.
 - **V1.1 limits:** production replay, concurrency and failure recovery, individual continuous/fixing modes, ALXP and unestablished intraday phases remain open. Monitoring depends on GitHub; advanced/independent alerting is not delivered. Returns remain estimates with source/freshness caveats, not reconstructed pre-reference history or exact TWR.
-- **V2.0:** multi-portfolio isolation and shared market data; multi-provider support.
-- **V2.1:** OHLCV, watchlists and deterministic indicators.
-- **V2.2:** Trading Lab decision journal; evaluate TradingView Paper Trading before any optional internal simulation.
-- **V2.3:** periodic performance, TWR/XIRR if appropriate, portfolio allocation, advanced analysis and optional interfaces.
+- **V2.0 — delivered:** owner-scoped portfolios, preserved financial data, shared quotations and multi-provider observation.
+- **V2.1:** MCP Security & Hardening — OWASP MCP Top 10; [audit and missions](aidd_docs/tasks/2026_11/2026_11_27_v2_1a-mcp-security/plan.md).
+- **V2.2:** OHLCV, watchlists, deterministic indicators and data optimization.
+- **V2.3:** Trading Lab and commercial feasibility study.
+- **V2.4:** advanced analysis, optional interface and conditional Pro-edition decision; no commercial implementation or license change is authorized.
 
 Small Trading Lab increments remain conditional on feasibility and preserving the real PEA priority. Exports, deletion and restoration retain existing requirements and unresolved evidence. Historical performance remains unavailable when source history is insufficient. Release authorization and operational write acceptance are separate; no fictitious transaction may be inserted into the real PEA to close a checklist.
 

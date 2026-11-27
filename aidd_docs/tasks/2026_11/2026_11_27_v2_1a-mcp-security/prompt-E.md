@@ -1,0 +1,8 @@
+# Prompt autonome — V2.1E après B/C/D acceptés
+
+Base : V2.0.0 c7cf0c53a1088431d0a5b43da29b3480f5f21806, puis cadrage A approuvé et committé sur integration/v2.1. Lis AGENTS.md, aidd_docs/memory/vcs.md et aidd_docs/tasks/2026_11/2026_11_27_v2_1a-mcp-security/{references,security,owasp-matrix,missions,plan}.md. Si le cadrage n'est pas disponible dans une référence validée, arrête-toi sans improviser.
+Vérifie branche et worktree avant toute modification. Le propriétaire crée ou autorise explicitement le worktree/branche indiqués ; ne touche pas aux autres worktrees ni à main. Aucun sous-agent, Orchestrator, installation, fournisseur financier, accès production, D1 distant, Access/OAuth, transaction réelle, commit, push, merge, tag ou déploiement automatique. Si les dépendances manquent, demander l'autorisation nécessaire sans les installer. Réutiliser les preuves acquises et les API réellement installées. Jeux synthétiques seulement. Le lancement de cette mission suppose l'approbation préalable du plan V2.1A ; ces prompts ne lancent rien eux-mêmes.
+
+Branche : integration/v2.1 ; worktree : pea-tracker-v2.1.
+Lire phase-4.md. Ne réaliser aucune fusion sans autorisation spécifique. Contrôler les diffs des lots approuvés, les conflits des wrappers, l'absence de données privées et la matrice des preuves. Réutiliser Linux 118/91 comme historique, exécuter uniquement les nouveaux contrôles et les régressions affectées autorisés ; aucun lancement de workflow distant sans GO.
+Actualiser documentation/mémoire/RETEX et préparer les notes V2.1.0 et la procédure de rollback sans déployer. Produire GO/NO-GO, limites restantes et proposition de livraison. Ni tag/release, ni suppression de worktree, ni écriture financière de test.
